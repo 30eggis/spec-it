@@ -2,16 +2,8 @@
 name: hack-2-prd
 description: |
   Analyze services/projects and systematically generate PRD (Product Requirements Document), SPEC, PHASE, and TASKS documents.
-
-  Trigger conditions:
-  - "PRD 작성해줘", "문서화 해줘", "시스템사양서 만들어줘", "요구사항 문서 작성"
-  - "~를 참고해서 PRD 만들어줘", "이 코드를 문서화해줘"
-  - "웹사이트 분석해서 문서 만들어줘", "서비스 스펙 정리해줘"
-
-  Supported input sources:
-  1. Website URL (data collected via Chrome Extension)
-  2. Codebase (local project)
-  3. Mobile App (screenshot/description based)
+  Supports website URLs (via Chrome Extension), local codebases, and mobile apps (screenshot-based).
+  Use when documenting existing products or reverse-engineering requirements from implementations.
 ---
 
 # Hack 2 PRD
