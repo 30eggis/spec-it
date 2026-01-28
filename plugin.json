@@ -1,0 +1,8 @@
+{
+  "name": "frontend-skills",
+  "version": "1.0.0",
+  "description": "A collection of useful skills for frontend development and documentation",
+  "skills": [
+    "skills/hack-2-prd"
+  ]
+}
