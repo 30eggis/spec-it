@@ -7,7 +7,7 @@
   "plugins": [
     {
       "name": "frontend-skills",
-      "source": ".",
+      "source": "github:30eggis/claude-frontend-skills",
       "description": "Frontend development skills including PRD/SPEC/PHASE/TASKS document generation"
     }
   ]
