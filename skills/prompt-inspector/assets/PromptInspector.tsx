@@ -130,24 +130,70 @@ export function PromptInspector({
     };
   }, [bindings]);
 
-  // CSS selector generator
+  // CSS selector generator - handles Tailwind CSS special characters
   const getSelector = useCallback((element: HTMLElement): string => {
-    if (element.id) return `#${element.id}`;
-    const classes = Array.from(element.classList).filter(c => !c.startsWith('_'));
-    if (classes.length > 0) {
-      const selector = `${element.tagName.toLowerCase()}.${classes.join('.')}`;
-      if (document.querySelectorAll(selector).length === 1) return selector;
+    // 1. Try ID selector first (most reliable)
+    if (element.id) {
+      const escapedId = CSS.escape(element.id);
+      return `#${escapedId}`;
     }
+
+    // 2. Try data attributes (great for component identification)
+    const dataTestId = element.getAttribute('data-testid') || element.getAttribute('data-id');
+    if (dataTestId) {
+      return `[data-testid="${dataTestId}"]`;
+    }
+
+    // 3. Try clean class names (filter out Tailwind special chars)
+    const invalidChars = /[:\[\]\/&@!%]/;
+    const cleanClasses = Array.from(element.classList).filter(
+      c => !c.startsWith('_') && !invalidChars.test(c)
+    );
+
+    if (cleanClasses.length > 0) {
+      const escapedClasses = cleanClasses.map(c => CSS.escape(c)).join('.');
+      const selector = `${element.tagName.toLowerCase()}.${escapedClasses}`;
+      try {
+        if (document.querySelectorAll(selector).length === 1) return selector;
+      } catch {
+        // Invalid selector, continue to path-based approach
+      }
+    }
+
+    // 4. Try combining tag + text content for buttons/links
+    const tag = element.tagName.toLowerCase();
+    const text = element.textContent?.trim().slice(0, 30);
+    if (['button', 'a', 'label'].includes(tag) && text) {
+      // Use XPath-like text matching via attribute selector workaround
+      const ariaLabel = element.getAttribute('aria-label');
+      if (ariaLabel) {
+        return `${tag}[aria-label="${CSS.escape(ariaLabel)}"]`;
+      }
+    }
+
+    // 5. Fall back to path-based selector (most reliable)
     const path: string[] = [];
     let current: HTMLElement | null = element;
     while (current && current !== document.body) {
       let selector = current.tagName.toLowerCase();
-      if (current.id) { path.unshift(`#${current.id}`); break; }
+
+      if (current.id) {
+        path.unshift(`#${CSS.escape(current.id)}`);
+        break;
+      }
+
+      // Add nth-child for disambiguation
       const siblings = current.parentElement?.children;
       if (siblings && siblings.length > 1) {
-        const index = Array.from(siblings).indexOf(current) + 1;
-        selector += `:nth-child(${index})`;
+        const sameTagSiblings = Array.from(siblings).filter(
+          s => s.tagName === current!.tagName
+        );
+        if (sameTagSiblings.length > 1) {
+          const index = sameTagSiblings.indexOf(current) + 1;
+          selector += `:nth-of-type(${index})`;
+        }
       }
+
       path.unshift(selector);
       current = current.parentElement;
     }
