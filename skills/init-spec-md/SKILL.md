@@ -1,14 +1,29 @@
 ---
 name: init-spec-md
 description: "Generate SPEC-IT-{HASH}.md files for existing UI code. Enables progressive context loading for legacy codebases. Use when starting to track an existing project."
-disable-model-invocation: true
-allowed-tools: Read, Write, Glob, Grep, Bash
+allowed-tools: Read, Write, Glob, Grep, Bash, Task
 argument-hint: "[path] [--dry-run] [--force]"
 ---
 
 # init-spec-md: SPEC-IT File Generator for Existing Code
 
 Generate `SPEC-IT-{HASH}.md` metadata files for existing UI code to enable **progressive context loading**.
+
+---
+
+## CRITICAL: Context Management Rules
+
+**반드시 [shared/context-rules.md](../shared/context-rules.md) 규칙을 준수하세요.**
+
+### 핵심 규칙
+
+| 규칙 | 제한 | 위반 시 |
+|------|------|---------|
+| 배치 처리 | 10개 파일씩 | 메모리 초과 방지 |
+| 에이전트 반환 | 요약만 | 내용 포함 금지 |
+| 파일 읽기 | 필요한 것만 | 전체 스캔 금지 |
+
+---
 
 ## Purpose
 
@@ -219,67 +234,114 @@ Primary action button with loading state support.
 
 ### Step 1: Parse Arguments
 
-```
-$ARGUMENTS parsing:
-- $0: path (default: ".")
-- Check for --dry-run flag
-- Check for --force flag
+```bash
+# 인자 파싱
+targetPath = $1 || "."
+dryRun = "--dry-run" in $ARGUMENTS
+force = "--force" in $ARGUMENTS
+
+Output: "대상 경로: {targetPath}, dry-run: {dryRun}, force: {force}"
 ```
 
 ### Step 2: Scan Target Directory
 
-```
-Use Glob to find:
-- **/page.tsx, **/layout.tsx → Page type
-- **/*[A-Z]*.tsx with "export default" → Component type
-- **/*Module.ts, **/*Service.ts → Module type
+```bash
+# Glob으로 파일 스캔
+Glob("{targetPath}/**/page.tsx")      → pages[]
+Glob("{targetPath}/**/layout.tsx")   → layouts[]
+Glob("{targetPath}/**/*[A-Z]*.tsx")  → components[] (export default 포함)
+Glob("{targetPath}/**/*Module.ts")   → modules[]
+Glob("{targetPath}/**/*Service.ts")  → services[]
 
-Exclude:
-- node_modules/
-- .next/
-- dist/
-- Files with existing SPEC-IT-*.md in same folder (unless --force)
-```
+# 제외 패턴
+exclude = ["node_modules/**", ".next/**", "dist/**"]
 
-### Step 3: Generate SPEC-IT Files
-
-For each detected file:
-
-```
-Delegate to: spec-md-generator
-Input: File path, type, existing registry
-Output: SPEC-IT-{HASH}.md in same folder
+# 기존 SPEC-IT 파일 확인 (--force 아니면 스킵)
+IF NOT force:
+  existingSpecs = Glob("{targetPath}/**/SPEC-IT-*.md")
+  # 해당 폴더의 파일은 스킵
 ```
 
-### Step 4: Update Registry
+### Step 3: 배치 처리로 SPEC-IT 생성
 
 ```
-Delegate to: spec-md-maintainer
-Actions:
-- Add new entries to registry
-- Set parent-child relationships
-- Update statistics
+# 10개씩 배치로 처리 (컨텍스트 관리)
+allFiles = pages + layouts + components + modules + services
+
+FOR batch in chunks(allFiles, 10):
+  Task(
+    subagent_type: "general-purpose",
+    model: "haiku",
+    prompt: "
+      역할: spec-md-generator
+
+      입력 파일 목록:
+      {batch}
+
+      작업:
+      1. 각 파일 분석 (Props, JSDoc, export 등)
+      2. SPEC-IT-{HASH}.md 생성
+      3. HASH = MD5(파일경로).substring(0,8).toUpperCase()
+
+      출력: 각 파일과 같은 폴더에 SPEC-IT-{HASH}.md
+
+      OUTPUT RULES:
+      1. 파일에만 저장
+      2. 반환 시 '생성됨: {경로}' 형식만
+      3. 파일 내용 반환 금지
+    "
+  )
 ```
 
-### Step 5: Report Results
+### Step 4: Registry 업데이트
 
 ```
-Output format:
+Task(
+  subagent_type: "general-purpose",
+  model: "haiku",
+  prompt: "
+    역할: spec-md-maintainer
+
+    작업:
+    1. .spec-it-registry.json 읽기 (없으면 생성)
+    2. 새로 생성된 SPEC-IT 파일들 등록
+    3. parent-child 관계 설정
+    4. 통계 업데이트
+
+    OUTPUT RULES: (요약만 반환)
+  "
+)
+```
+
+### Step 5: 결과 보고
+
+```
+Output: "
 ═══════════════════════════════════════════════════════
-  init-spec-md Complete
+  init-spec-md 완료
 ═══════════════════════════════════════════════════════
 
-  Created: 45 files
-    - Components: 30
-    - Pages: 10
-    - Modules: 5
+  생성됨: {created}개
+    - Components: {components}개
+    - Pages: {pages}개
+    - Modules: {modules}개
 
-  Skipped: 12 files (already exist)
+  스킵됨: {skipped}개 (이미 존재)
 
-  Registry: .spec-it-registry.json updated
+  Registry: .spec-it-registry.json 업데이트됨
 
 ═══════════════════════════════════════════════════════
+"
 ```
+
+---
+
+## Dry-Run Mode
+
+`--dry-run` 사용 시:
+- 파일 생성 없이 미리보기만
+- 어떤 파일이 생성될지 목록 출력
+- Registry 변경 없음
 
 ## Templates
 

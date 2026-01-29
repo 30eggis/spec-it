@@ -1,13 +1,40 @@
 ---
 name: spec-it
 description: "Frontend specification generator (Manual mode). Transforms vibe-coding/PRD into production-ready detailed specifications with chapter-by-chapter approval. Use for: (1) Frontend specification writing, (2) Converting vibe-coding/PRD to dev specs, (3) UI/component design documents, (4) Scenario test specifications"
-disable-model-invocation: true
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion
+argument-hint: "[--resume <sessionId>]"
 ---
 
 # spec-it: Frontend Specification Generator (Manual Mode)
 
 Transform vibe-coding/PRD into **production-ready frontend specifications** with **chapter-by-chapter user approval**.
+
+---
+
+## CRITICAL: Context Management Rules
+
+**반드시 [shared/context-rules.md](../shared/context-rules.md) 규칙을 준수하세요.**
+
+### 핵심 규칙 요약
+
+| 규칙 | 제한 | 위반 시 |
+|------|------|---------|
+| 직접 Write | 100줄 이하만 | 에이전트에게 위임 |
+| 파일 크기 | 200줄 이하 | 분리 필수 |
+| 동시 에이전트 | 최대 2개 | 배치로 나눠 실행 |
+| 에이전트 반환 | 요약만 (경로+줄수) | 내용 포함 금지 |
+
+### 에이전트 프롬프트 필수 문구
+
+```
+OUTPUT RULES:
+1. 모든 결과는 파일에 저장
+2. 반환 시 "완료. 생성 파일: {경로} ({줄수}줄)" 형식만
+3. 파일 내용을 응답에 절대 포함하지 않음
+4. 200줄 초과 시 하위 폴더로 분리
+```
+
+---
 
 ## Mode Characteristics
 
@@ -259,38 +286,127 @@ Cross-platform notification hooks for permission requests:
 
 ## Execution Instructions
 
-### Getting Started
+### Step 0: 초기화 및 Resume 확인
 
-1. **Prepare Input**: Have your PRD or vibe-coding description ready
-2. **Run Command**: `/frontend-skills:spec-it`
-3. **Answer Questions**: Respond to each chapter's Q&A
-4. **Approve Chapters**: Confirm each chapter before proceeding
-5. **Review Output**: Check final specification in `tmp/{session-id}/06-final/`
+```
+IF 인자에 "--resume" 또는 "이어서" 또는 "재개" 포함:
+  → Resume 모드 (Step 0.R)
+ELSE:
+  → 새 세션 (Step 0.1)
+```
+
+#### Step 0.R: Resume 모드
+
+```bash
+# 1. _meta.json 로드
+Read(tmp/{sessionId}/_meta.json)
+
+# 2. 현재 챕터 확인
+currentChapter = _meta.currentChapter
+
+# 3. 해당 챕터부터 재개
+```
+
+#### Step 0.1: 새 세션
+
+```bash
+sessionId = $(date +%Y%m%d-%H%M%S)
+mkdir -p tmp/{sessionId}/{00-requirements,01-chapters/decisions,02-screens/wireframes,03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
+```
+
+### Step 1: 각 챕터별 반복 (CH-00 ~ CH-07)
+
+```
+FOR chapter in [CH-00, CH-01, CH-02, ..., CH-07]:
+
+  # 1. 에이전트에게 챕터 작성 위임
+  Task(
+    subagent_type: "general-purpose",
+    model: "opus",
+    prompt: "
+      역할: design-interviewer
+      챕터: {chapter}
+
+      작업:
+      1. 사용자에게 질문 (1개씩)
+      2. 응답 수집
+      3. 챕터 결정문서 작성
+
+      출력: tmp/{sessionId}/01-chapters/decisions/decision-{chapter}.md
+
+      OUTPUT RULES: (요약만 반환)
+    "
+  )
+
+  # 2. 결과 요약 표시
+  Output: "
+    ## Chapter {chapter} 요약
+    - 결정 사항: ...
+    - 다음 챕터: ...
+  "
+
+  # 3. 사용자 승인
+  AskUserQuestion(
+    questions: [{
+      question: "이 챕터 내용이 맞습니까?",
+      header: "승인",
+      options: [
+        {label: "Yes", description: "다음 챕터 진행"},
+        {label: "No", description: "수정 필요"},
+        {label: "Questions", description: "질문 있음"}
+      ]
+    }]
+  )
+
+  # 4. _meta.json 업데이트
+  _meta.currentChapter = next_chapter
+  _meta.completedChapters += chapter
+  Update(_meta.json)
+
+  # 5. IF No or Questions → 수정 후 재승인
+```
+
+### Step 2-6: Phase 진행
+
+각 Phase는 `spec-it-automation`과 동일하되, **매 단계마다 사용자 승인** 요청
 
 ### Question Style
 
-The design-interviewer asks one question at a time:
-
 ```markdown
-**Q: Who is the primary target user for this service?**
+**Q: 이 서비스의 주요 사용자는 누구입니까?**
 
-A) 20-30s professionals - Prioritize fast task completion
-B) 40-50s middle-aged - Value stability and trust
-C) Teenagers - Value fun and social features
-D) Other (please specify)
+A) 20-30대 직장인 - 빠른 업무 처리 중시
+B) 40-50대 중장년층 - 안정성과 신뢰 중시
+C) 10대 청소년 - 재미와 소셜 기능 중시
+D) 기타 (직접 입력)
 ```
 
 ### Chapter Approval Format
 
 ```markdown
-## Chapter Summary: {chapter_name}
+## Chapter {chapter} 요약
 
-### Confirmed Items
-- Item 1
-- Item 2
+### 확정 사항
+- 항목 1
+- 항목 2
 
-### Next Chapter Preview
-{upcoming content}
+### 다음 챕터 미리보기
+{다음 내용}
 
-Is this content correct? [Yes] [No] [Questions]
+이 내용이 맞습니까? [Yes] [No] [Questions]
 ```
+
+---
+
+## Error Recovery
+
+### Context Limit 도달 시
+
+```
+현재 상태 저장됨.
+재개: /frontend-skills:spec-it --resume {sessionId}
+```
+
+### Resume 지원
+
+모든 진행 상태는 `_meta.json`에 저장되어 언제든 재개 가능
