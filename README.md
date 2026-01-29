@@ -69,6 +69,96 @@ python scripts/discover_apis.py /path/to/your-project
 
 ---
 
+### spec-it
+
+Frontend specification generator that transforms vibe-coding/PRD into **production-ready detailed specifications**.
+
+#### Features
+
+- **Design Brainstorming** - Superpowers-style chunk-based Q&A for requirement refinement
+- **UI Architecture** - ASCII art wireframes and screen structure design
+- **Component Discovery** - Existing component scanning + gap analysis + migration planning
+- **Critical Review** - Rigorous scenario/IA/exception handling review
+- **Test Specification** - Persona-based scenario test specification generation
+- **SPEC-IT-{HASH}.md** - Metadata system for progressive context loading
+
+#### Commands
+
+| Command | Mode | Description |
+|---------|------|-------------|
+| `/frontend-skills:spec-it` | Manual | All chapters require user approval |
+| `/frontend-skills:spec-it-complex` | Hybrid | Auto-validation + major milestone approval |
+| `/frontend-skills:spec-it-automation` | Full Auto | Multi-agent validation, single final approval |
+| `/frontend-skills:init-spec-md` | Utility | Create SPEC-IT files for existing code |
+
+#### Agents (15 total)
+
+**Core Agents**
+- `design-interviewer` (opus) - Brainstorming Q&A facilitator
+- `divergent-thinker` (sonnet) - Divergent thinking for alternatives
+- `chapter-critic` (opus) - Critical validation
+- `chapter-planner` (opus) - Chapter structure finalization
+- `ui-architect` (sonnet) - Wireframe design
+
+**Component Agents**
+- `component-auditor` (haiku) - Component scanning and inventory
+- `component-builder` (sonnet) - Component specification
+- `component-migrator` (sonnet) - Component migration planning
+
+**Review Agents**
+- `critical-reviewer` (opus) - Scenario/IA/exception review
+- `ambiguity-detector` (opus) - Ambiguity detection
+
+**Test Agents**
+- `persona-architect` (sonnet) - Persona definition
+- `test-spec-writer` (sonnet) - Test specification
+
+**Utility Agents**
+- `spec-assembler` (haiku) - Final assembly
+- `spec-md-generator` (haiku) - SPEC-IT creation
+- `spec-md-maintainer` (haiku) - SPEC-IT maintenance
+
+#### Workflow
+
+```
+Phase 0: Input Analysis
+    ↓
+Phase 1: Design Brainstorming (Interactive + Validation)
+    ↓
+Phase 2: UI Architecture (ASCII Wireframes)
+    ↓
+Phase 3: Component Discovery & Migration
+    ↓
+Phase 4: Critical Review
+    ↓
+Phase 5: Persona & Scenario Test Spec
+    ↓
+Phase 6: Final Assembly
+```
+
+#### Output Structure
+
+```
+tmp/{session-id}/
+├── _meta.json
+├── 00-requirements/
+├── 01-chapters/
+├── 02-screens/
+├── 03-components/
+├── 04-review/
+├── 05-tests/
+└── 06-final/
+```
+
+#### Trigger Examples
+
+- "프론트엔드 스펙 작성해줘" / "Write frontend spec"
+- "이 PRD를 개발 명세로 변환해줘" / "Convert this PRD to dev spec"
+- "UI 컴포넌트 설계 문서 만들어줘" / "Create UI component design doc"
+- "시나리오 테스트 명세 생성해줘" / "Generate scenario test spec"
+
+---
+
 ### hack-2-prd
 
 Analyze services/projects and systematically generate documentation:
