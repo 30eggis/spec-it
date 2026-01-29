@@ -135,30 +135,34 @@ CRITICAL OUTPUT RULES:
 ### 3.1 동시 에이전트 수
 
 ```markdown
-# 최대 2개 동시 실행
-# 4개 이상 동시 실행 금지 (결과 반환 시 컨텍스트 폭발)
+# 최대 4개 동시 실행
+# 5개 이상 동시 실행 금지 (결과 반환 시 컨텍스트 폭발)
 
 # BAD
-Task 1: run_in_background: true
-Task 2: run_in_background: true
-Task 3: run_in_background: true
-Task 4: run_in_background: true  ← 4개 동시 = 위험
+Task 1~5: run_in_background: true  ← 5개 동시 = 위험
 
-# GOOD
-Batch 1: Task 1, Task 2 (동시)
+# GOOD - 4개씩 배치
+Batch 1: Task 1, Task 2, Task 3, Task 4 (동시)
 → 완료 대기
-Batch 2: Task 3, Task 4 (동시)
+Batch 2: Task 5, Task 6 (동시)
 → 완료 대기
 ```
 
-### 3.2 배치 실행 패턴
+### 3.2 파이프라인 실행 패턴
 
 ```
+# 의존성 없는 Phase는 파이프라인으로 실행
 Phase 2 (UI Architecture + Component Discovery):
-  Batch 2.1: ui-architect, component-auditor
+  # 4개 동시 실행
+  Parallel: ui-architect, component-auditor, component-builder, component-migrator
   → 완료 대기 + _meta.json 업데이트
-  Batch 2.2: component-builder, component-migrator
-  → 완료 대기 + _meta.json 업데이트
+
+# Critique는 Multi-Agent Debate 패턴 (3회 순차 → 3병렬 + Moderator)
+Phase 1.3 (Critique):
+  Parallel: critic-logic, critic-feasibility, critic-frontend (3개 병렬)
+  → 완료 대기
+  Sequential: critic-moderator (합의 도출)
+  → 완료 대기
 ```
 
 ---
@@ -321,7 +325,7 @@ HASH = 파일경로의 MD5 앞 8자리 대문자
 실행 전 확인:
 
 - [ ] 100줄 이상 파일을 직접 Write하려 하지 않는가?
-- [ ] 3개 이상 에이전트를 동시에 실행하려 하지 않는가?
+- [ ] 5개 이상 에이전트를 동시에 실행하려 하지 않는가?
 - [ ] 에이전트 프롬프트에 "요약만 반환" 규칙이 포함되어 있는가?
 - [ ] Step 완료 후 _meta.json 업데이트가 포함되어 있는가?
 - [ ] Phase 완료 후 컨텍스트 관리 안내가 포함되어 있는가?

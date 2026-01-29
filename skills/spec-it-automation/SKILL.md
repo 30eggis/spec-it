@@ -21,7 +21,7 @@ Transform vibe-coding/PRD into production-ready frontend specifications with **m
 |------|------|---------|
 | 직접 Write | 100줄 이하만 | 에이전트에게 위임 |
 | 파일 크기 | 600줄 이하 | 분리 필수 (wireframe 제외) |
-| 동시 에이전트 | 최대 2개 | 배치로 나눠 실행 |
+| 동시 에이전트 | 최대 4개 | 배치로 나눠 실행 |
 | 에이전트 반환 | 요약만 (경로+줄수) | 내용 포함 금지 |
 | 분리 네이밍 | {index}-{name}-{type}.md | 통일 규칙 |
 
@@ -285,64 +285,113 @@ _meta.currentStep = "1.3"
 Update(_meta.json)
 ```
 
-#### Step 1.3: Chapter Critique (3 Rounds)
+#### Step 1.3: Chapter Critique (Multi-Agent Debate)
 
 ```
-# Round 1
+# 3명의 Critic이 병렬로 검토 후 Moderator가 합의 도출
+# ┌─────────────┬─────────────┬─────────────┐
+# │critic-logic │critic-feasi.│critic-frontend│  ← 병렬
+# └──────┬──────┴──────┬──────┴──────┬──────┘
+#        └─────────────┼─────────────┘
+#                      ▼
+#              critic-moderator              ← 합의
+
+# Step 1.3.1: 3 Critics 병렬 실행
 Task(
   subagent_type: "general-purpose",
-  model: "opus",
+  model: "sonnet",
+  run_in_background: true,
   prompt: "
-    역할: chapter-critic (Round 1/3)
+    역할: critic-logic (논리 일관성 검증)
 
     입력:
     - tmp/{sessionId}/00-requirements/requirements.md
     - tmp/{sessionId}/01-chapters/alternatives/_index.md
 
-    작업:
-    1. 누락된 요구사항 식별
-    2. 기술적 리스크 분석
-    3. 개선 제안
+    검증 항목:
+    1. 챕터 중복 체크
+    2. 누락 영역 체크
+    3. 의존 순서 검증
+    4. 용어/범위 일관성
 
-    출력 경로: tmp/{sessionId}/01-chapters/critique-round1.md
-
-    OUTPUT RULES: (위와 동일)
-  "
-)
-
-# Round 2 (Round 1 반영)
-Task(
-  subagent_type: "general-purpose",
-  model: "opus",
-  prompt: "
-    역할: chapter-critic (Round 2/3)
-
-    입력: critique-round1.md
-
-    작업:
-    1. Round 1 피드백의 해결 여부 확인
-    2. 추가 누락 사항 식별
-    3. 아키텍처 일관성 검증
-
-    출력 경로: tmp/{sessionId}/01-chapters/critique-round2.md
+    출력 경로: tmp/{sessionId}/01-chapters/critique-logic.md
 
     OUTPUT RULES: (위와 동일)
   "
 )
 
-# Round 3 (최종)
+Task(
+  subagent_type: "general-purpose",
+  model: "sonnet",
+  run_in_background: true,
+  prompt: "
+    역할: critic-feasibility (실현 가능성 검증)
+
+    입력:
+    - tmp/{sessionId}/00-requirements/requirements.md
+    - tmp/{sessionId}/01-chapters/alternatives/_index.md
+
+    검증 항목:
+    1. 독립 정의 가능성
+    2. 완료 기준 명확성
+    3. 테스트 가능한 산출물
+    4. 리소스 현실성
+
+    출력 경로: tmp/{sessionId}/01-chapters/critique-feasibility.md
+
+    OUTPUT RULES: (위와 동일)
+  "
+)
+
+Task(
+  subagent_type: "general-purpose",
+  model: "sonnet",
+  run_in_background: true,
+  prompt: "
+    역할: critic-frontend (프론트엔드 특화 검증)
+
+    입력:
+    - tmp/{sessionId}/00-requirements/requirements.md
+    - tmp/{sessionId}/01-chapters/alternatives/_index.md
+
+    검증 항목:
+    1. UI/UX 관점 누락
+    2. 컴포넌트 재사용성
+    3. 반응형/접근성
+    4. 성능 고려
+
+    출력 경로: tmp/{sessionId}/01-chapters/critique-frontend.md
+
+    OUTPUT RULES: (위와 동일)
+  "
+)
+
+# 3 Critics 완료 대기
+Wait for all 3 tasks
+
+# Step 1.3.2: Moderator가 합의 도출
 Task(
   subagent_type: "general-purpose",
   model: "opus",
   prompt: "
-    역할: chapter-critic (Round 3/3 - Final)
+    역할: critic-moderator (합의 도출)
 
-    입력: critique-round1.md, critique-round2.md
+    입력:
+    - tmp/{sessionId}/01-chapters/critique-logic.md
+    - tmp/{sessionId}/01-chapters/critique-feasibility.md
+    - tmp/{sessionId}/01-chapters/critique-frontend.md
 
     작업:
-    1. 최종 품질 게이트 검증
-    2. 해결되지 않은 이슈 목록
-    3. 챕터 구조 최종 권고
+    1. 3명의 critic 결과 종합
+    2. 중복 이슈 병합
+    3. 충돌 의견 해결 (근거 기반)
+    4. 우선순위 재조정 (CRITICAL/MAJOR/MINOR)
+    5. 최종 Verdict 결정
+
+    Verdict 규칙:
+    - 3명 중 2명 이상 PASS → PASS
+    - 1명이라도 CRITICAL FAIL → FAIL
+    - 그 외 → WARN
 
     출력 경로: tmp/{sessionId}/01-chapters/critique-final.md
 
@@ -546,7 +595,7 @@ Phase 2 완료 (UI Architecture + Components)
 
 ### Phase 3: Critical Review
 
-#### Step 3.1: Parallel Review (2개씩)
+#### Step 3.1: Parallel Review (최대 4개)
 
 ```
 # Batch 1: Critical Reviewer + Ambiguity Detector
@@ -823,9 +872,10 @@ tmp/{session-id}/
 │   │   ├── 0-state-alternative.md
 │   │   ├── 1-datafetch-alternative.md
 │   │   └── ...
-│   ├── critique-round1.md
-│   ├── critique-round2.md
-│   ├── critique-final.md
+│   ├── critique-logic.md      # 논리 일관성 (병렬)
+│   ├── critique-feasibility.md # 실현 가능성 (병렬)
+│   ├── critique-frontend.md   # FE 특화 (병렬)
+│   ├── critique-final.md      # Moderator 합의
 │   ├── chapter-plan-final.md
 │   └── decisions/
 │       ├── _index.md

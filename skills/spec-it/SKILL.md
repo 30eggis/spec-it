@@ -21,7 +21,7 @@ Transform vibe-coding/PRD into **production-ready frontend specifications** with
 |------|------|---------|
 | 직접 Write | 100줄 이하만 | 에이전트에게 위임 |
 | 파일 크기 | 600줄 이하 | 분리 필수 (wireframe 제외) |
-| 동시 에이전트 | 최대 2개 | 배치로 나눠 실행 |
+| 동시 에이전트 | 최대 4개 | 배치로 나눠 실행 |
 | 에이전트 반환 | 요약만 (경로+줄수) | 내용 포함 금지 |
 | 분리 네이밍 | {index}-{name}-{type}.md | 통일 규칙 |
 
