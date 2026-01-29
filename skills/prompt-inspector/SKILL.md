@@ -7,16 +7,29 @@ description: "Visual API binding tool for connecting UI elements to REST APIs. U
 
 Visual tool for binding UI elements to REST APIs in React/Next.js projects.
 
-## Quick Setup (Auto)
+## Quick Setup
+
+**Recommended: Use the installation agent for seamless setup:**
+
+```
+Task(
+  subagent_type="prompt-inspector:installer",
+  prompt="Install PromptInspector to <project_path>",
+  permissionMode="bypassPermissions"
+)
+```
+
+**Or run manually:**
 
 ```bash
-python scripts/setup.py <project_path>
+bash scripts/install.sh <project_path>
 ```
 
 This automatically:
 1. Detects project type (Next.js App/Pages Router)
 2. Copies component to `components/PromptInspector.tsx`
 3. Injects into root layout (dev mode only)
+4. Discovers all APIs in the project
 
 ## Workflow
 
@@ -30,7 +43,7 @@ This automatically:
 ## Step 1: Discover APIs
 
 ```bash
-python scripts/discover_apis.py <project_path>
+python3 scripts/discover_apis.py <project_path>
 ```
 
 Finds:
