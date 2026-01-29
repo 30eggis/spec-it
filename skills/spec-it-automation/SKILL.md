@@ -20,9 +20,10 @@ Transform vibe-coding/PRD into production-ready frontend specifications with **m
 | 규칙 | 제한 | 위반 시 |
 |------|------|---------|
 | 직접 Write | 100줄 이하만 | 에이전트에게 위임 |
-| 파일 크기 | 200줄 이하 | 분리 필수 |
+| 파일 크기 | 600줄 이하 | 분리 필수 (wireframe 제외) |
 | 동시 에이전트 | 최대 2개 | 배치로 나눠 실행 |
 | 에이전트 반환 | 요약만 (경로+줄수) | 내용 포함 금지 |
+| 분리 네이밍 | {index}-{name}-{type}.md | 통일 규칙 |
 
 ### 에이전트 프롬프트 필수 문구
 
@@ -33,7 +34,9 @@ OUTPUT RULES:
 1. 모든 결과는 파일에 저장
 2. 반환 시 "완료. 생성 파일: {경로} ({줄수}줄)" 형식만
 3. 파일 내용을 응답에 절대 포함하지 않음
-4. 200줄 초과 시 하위 폴더로 분리
+4. 600줄 초과 시 분리 (와이어프레임 제외)
+5. 분리 시 네이밍: {index}-{name}-{type}.md
+6. 분리 시 _index.md 필수 생성
 ```
 
 ---
@@ -256,7 +259,7 @@ Task(
     - UI 컴포넌트 선택
     - 테스트 전략
 
-    출력: 주제별로 분리된 파일 (200줄 이하씩)
+    출력: 주제별로 분리된 파일 (600줄 이하씩)
 
     출력 경로:
     - tmp/{sessionId}/01-chapters/alternatives/state-management.md
@@ -270,7 +273,9 @@ Task(
     1. 모든 결과는 파일에 저장
     2. 반환 시 파일 경로와 줄 수만 보고
     3. 파일 내용을 응답에 절대 포함하지 않음
-    4. 200줄 초과 시 추가 분리
+    4. 600줄 초과 시 추가 분리 (와이어프레임 제외)
+    5. 분리 시 네이밍: {index}-{name}-{type}.md
+    6. 분리 시 _index.md 필수 생성
   "
 )
 
@@ -808,42 +813,67 @@ tmp/{session-id}/
 ├── _meta.json                 # 체크포인트 (Resume 지원)
 ├── _status.json               # 실시간 상태 (Dashboard용)
 ├── 00-requirements/
-│   └── requirements.md
+│   ├── _index.md              # 분리 시 생성
+│   ├── 0-overview-requirement.md
+│   ├── 1-auth-requirement.md
+│   └── ...
 ├── 01-chapters/
-│   ├── alternatives/          # 분리된 대안 분석
+│   ├── alternatives/
 │   │   ├── _index.md
-│   │   ├── state-management.md
+│   │   ├── 0-state-alternative.md
+│   │   ├── 1-datafetch-alternative.md
 │   │   └── ...
 │   ├── critique-round1.md
 │   ├── critique-round2.md
 │   ├── critique-final.md
 │   ├── chapter-plan-final.md
 │   └── decisions/
+│       ├── _index.md
+│       ├── 0-scope-decision.md
+│       └── ...
 ├── 02-screens/
-│   ├── screen-list.md
-│   └── wireframes/
+│   ├── _index.md
+│   ├── 0-login-screen.md
+│   ├── 1-dashboard-screen.md
+│   └── wireframes/            # 와이어프레임은 분리 제외 (무제한)
 │       ├── wireframe-{screen}.md
 │       └── SPEC-IT-{HASH}.md
 ├── 03-components/
 │   ├── inventory.md
 │   ├── gap-analysis.md
 │   ├── new/
-│   │   ├── spec-{component}.md
+│   │   ├── _index.md
+│   │   ├── 0-datepicker-component.md
+│   │   ├── 1-stepper-component.md
 │   │   └── SPEC-IT-{HASH}.md
 │   └── migrations/
+│       ├── _index.md
+│       └── 0-datatable-migration.md
 ├── 04-review/
 │   ├── scenarios/
+│   │   ├── _index.md
+│   │   └── 0-first-login-scenario.md
 │   ├── ia-review.md
 │   ├── exceptions/
+│   │   ├── _index.md
+│   │   └── 0-network-error-exception.md
 │   ├── ambiguities.md
 │   └── ambiguities-resolved.md
 ├── 05-tests/
 │   ├── personas/
+│   │   ├── _index.md
+│   │   ├── 0-newbie-persona.md
+│   │   └── 1-expert-persona.md
 │   ├── scenarios/
+│   │   ├── _index.md
+│   │   ├── 0-login-flow-test.md
+│   │   └── 1-buy-stock-test.md
 │   ├── components/
 │   └── coverage-map.md
 └── 06-final/
-    ├── final-spec.md
+    ├── _index.md              # 분리 시 생성
+    ├── 0-overview-spec.md
+    ├── 1-components-spec.md
     ├── dev-tasks.md
     └── SPEC-SUMMARY.md
 ```
