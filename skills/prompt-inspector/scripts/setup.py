@@ -11,10 +11,19 @@ Usage:
 
 import os
 import sys
+import re
 import shutil
 from pathlib import Path
 
 COMPONENT_IMPORT = "import { PromptInspector } from '@/components/PromptInspector';"
+
+def get_version_from_file(file_path: Path) -> str | None:
+    """Extract version from PromptInspector.tsx file."""
+    if not file_path.exists():
+        return None
+    content = file_path.read_text(encoding='utf-8')
+    match = re.search(r"PROMPT_INSPECTOR_VERSION\s*=\s*['\"]([^'\"]+)['\"]", content)
+    return match.group(1) if match else '1.0.0'  # Default to 1.0.0 for old versions
 COMPONENT_JSX = """{process.env.NODE_ENV === 'development' && <PromptInspector />}"""
 
 def find_project_type(project_path: Path) -> dict:
@@ -76,23 +85,74 @@ def find_project_type(project_path: Path) -> dict:
     return result
 
 
-def copy_component(components_dir: Path, script_dir: Path) -> bool:
+def compare_versions(v1: str, v2: str) -> int:
+    """Compare two version strings. Returns: -1 if v1 < v2, 0 if equal, 1 if v1 > v2."""
+    def parse(v):
+        return [int(x) for x in v.split('.')]
+    p1, p2 = parse(v1), parse(v2)
+    for a, b in zip(p1, p2):
+        if a < b:
+            return -1
+        if a > b:
+            return 1
+    return 0
+
+
+def copy_component(components_dir: Path, script_dir: Path, force_update: bool = False) -> bool:
     """Copy PromptInspector component to project."""
     components_dir.mkdir(parents=True, exist_ok=True)
 
     source = script_dir.parent / 'assets' / 'PromptInspector.tsx'
     dest = components_dir / 'PromptInspector.tsx'
 
-    if dest.exists():
-        print(f"  Component already exists at {dest}")
-        return True
-
     if not source.exists():
         print(f"  Error: Source component not found at {source}")
         return False
 
+    source_version = get_version_from_file(source)
+    dest_version = get_version_from_file(dest)
+
+    if dest.exists():
+        if dest_version and source_version:
+            comparison = compare_versions(source_version, dest_version)
+            if comparison > 0:
+                # Newer version available
+                print(f"\n  ╔════════════════════════════════════════════════════════════╗")
+                print(f"  ║  🆕 UPDATE AVAILABLE                                        ║")
+                print(f"  ╠════════════════════════════════════════════════════════════╣")
+                print(f"  ║  Current version: {dest_version:<10}                              ║")
+                print(f"  ║  Latest version:  {source_version:<10}                              ║")
+                print(f"  ╚════════════════════════════════════════════════════════════╝")
+
+                if force_update:
+                    response = 'y'
+                else:
+                    response = input("\n  Update to latest version? [Y/n]: ").strip().lower()
+
+                if response in ('', 'y', 'yes'):
+                    # Backup existing
+                    backup = dest.with_suffix('.tsx.backup')
+                    shutil.copy(dest, backup)
+                    print(f"  📦 Backup saved to {backup.name}")
+
+                    shutil.copy(source, dest)
+                    print(f"  ✅ Updated to v{source_version}")
+                    return True
+                else:
+                    print(f"  ⏭️  Skipped update (keeping v{dest_version})")
+                    return True
+            elif comparison == 0:
+                print(f"  ✅ Component is up to date (v{dest_version})")
+                return True
+            else:
+                print(f"  ⚠️  Local version (v{dest_version}) is newer than source (v{source_version})")
+                return True
+        else:
+            print(f"  Component already exists at {dest}")
+            return True
+
     shutil.copy(source, dest)
-    print(f"  Copied component to {dest}")
+    print(f"  ✅ Installed PromptInspector v{source_version}")
     return True
 
 
@@ -169,11 +229,31 @@ def inject_into_layout(layout_file: Path, project_type: str) -> bool:
 
 def main():
     if len(sys.argv) < 2:
-        print("Usage: python setup.py <project_path>")
+        print("Usage: python setup.py <project_path> [options]")
         print("\nAutomatically sets up Prompt Inspector in your project.")
+        print("\nOptions:")
+        print("  --check, -c    Check for updates only (no installation)")
+        print("  --force, -y    Auto-accept updates without prompting")
         return 1
 
-    project_path = Path(sys.argv[1]).resolve()
+    # Parse arguments
+    args = sys.argv[1:]
+    project_path = None
+    force_update = False
+    check_only = False
+
+    for arg in args:
+        if arg in ('--force', '-y'):
+            force_update = True
+        elif arg in ('--check', '-c'):
+            check_only = True
+        elif not project_path:
+            project_path = Path(arg).resolve()
+
+    if not project_path:
+        print("Error: Project path is required")
+        return 1
+
     script_dir = Path(__file__).parent
 
     if not project_path.exists():
@@ -195,10 +275,32 @@ def main():
     print(f"Layout file: {project_info['layout_file']}")
     print(f"Components dir: {project_info['components_dir']}")
 
+    # Check-only mode
+    if check_only:
+        source = script_dir.parent / 'assets' / 'PromptInspector.tsx'
+        dest = project_info['components_dir'] / 'PromptInspector.tsx'
+
+        source_version = get_version_from_file(source)
+        dest_version = get_version_from_file(dest)
+
+        print(f"\n  Version Check:")
+        print(f"  ├─ Installed: {dest_version or 'Not installed'}")
+        print(f"  └─ Latest:    {source_version}")
+
+        if not dest.exists():
+            print("\n  ⚠️  PromptInspector is not installed. Run without --check to install.")
+            return 1
+        elif dest_version and source_version and compare_versions(source_version, dest_version) > 0:
+            print("\n  🆕 Update available! Run without --check to update.")
+            return 1
+        else:
+            print("\n  ✅ Up to date!")
+            return 0
+
     print("\nSetting up Prompt Inspector...")
 
     # Step 1: Copy component
-    if not copy_component(project_info['components_dir'], script_dir):
+    if not copy_component(project_info['components_dir'], script_dir, force_update):
         return 1
 
     # Step 2: Inject into layout

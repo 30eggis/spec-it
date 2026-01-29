@@ -1,5 +1,8 @@
 'use client';
 
+// Prompt Inspector v1.1.0 - API Search Feature
+export const PROMPT_INSPECTOR_VERSION = '1.1.0';
+
 import React, { useState, useCallback, useEffect } from 'react';
 
 // ============================================================================
