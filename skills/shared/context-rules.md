@@ -27,26 +27,69 @@ Task(
 
 | 파일 유형 | 최대 줄 수 | 초과 시 |
 |-----------|-----------|---------|
-| 챕터 결정문서 | 200줄 | 하위 파일로 분리 |
-| 컴포넌트 명세 | 300줄 | 섹션별 분리 |
-| 와이어프레임 | 150줄 | 화면별 분리 |
-| 테스트 시나리오 | 100줄 | 시나리오별 분리 |
+| 모든 문서 | 600줄 | {index}-{name}-{type}.md로 분리 |
+| 와이어프레임 | **무제한** | 분리 불필요 |
 
 ### 1.3 분리 규칙
 
 ```markdown
-# 파일이 200줄 초과 시:
+# 파일이 600줄 초과 시 (와이어프레임 제외):
 
-원본: 01-chapters/alternatives.md (500줄)
+원본: 00-requirements/requirements.md (800줄)
 
 분리 후:
-01-chapters/alternatives/
-├── _index.md (목차, 50줄)
-├── state-management.md (100줄)
-├── data-fetching.md (100줄)
-├── real-time.md (100줄)
-├── calendar.md (100줄)
-└── charts.md (100줄)
+00-requirements/
+├── _index.md (목차, 30-50줄)
+├── 0-overview-requirement.md (100줄)
+├── 1-auth-requirement.md (150줄)
+├── 2-dashboard-requirement.md (200줄)
+├── 3-trading-requirement.md (180줄)
+└── 4-notification-requirement.md (120줄)
+```
+
+### 1.4 통일 네이밍 규칙
+
+모든 분리 파일은 `{index}-{name}-{type}.md` 형식 사용:
+
+| 폴더 | type suffix | 예시 |
+|------|-------------|------|
+| 00-requirements | -requirement | 0-auth-requirement.md |
+| 01-chapters/decisions | -decision | 0-scope-decision.md |
+| 01-chapters/alternatives | -alternative | 0-state-alternative.md |
+| 02-screens | -screen | 0-login-screen.md |
+| 03-components/new | -component | 0-button-component.md |
+| 03-components/migrations | -migration | 0-datatable-migration.md |
+| 04-review/scenarios | -scenario | 0-login-scenario.md |
+| 04-review/exceptions | -exception | 0-timeout-exception.md |
+| 05-tests/personas | -persona | 0-newbie-persona.md |
+| 05-tests/scenarios | -test | 0-checkout-test.md |
+| 06-final | -spec, -task | 0-overview-spec.md |
+
+**index 규칙**:
+- 0부터 시작하는 순차 번호
+- 논리적 순서 또는 우선순위 기반
+- 한 자리수 사용 (0-9), 10개 초과 시 두 자리 (00-99)
+
+### 1.5 _index.md 템플릿
+
+분리 발생 시 해당 폴더에 `_index.md` 필수 생성:
+
+```markdown
+# {Section Name} - Index
+
+## Overview
+{섹션 개요}
+
+## Files
+| # | File | Description | Lines |
+|---|------|-------------|-------|
+| 0 | [0-auth-requirement.md](./0-auth-requirement.md) | 인증/계정 관리 | 120 |
+| 1 | [1-dashboard-requirement.md](./1-dashboard-requirement.md) | 대시보드 | 95 |
+| ... | ... | ... | ... |
+
+## Cross References
+- Related: [../02-screens/](../02-screens/)
+- Dependencies: [../03-components/](../03-components/)
 ```
 
 ---
@@ -78,9 +121,11 @@ Task(
 ```
 CRITICAL OUTPUT RULES:
 1. 모든 결과는 파일에 저장
-2. 반환 시 파일 경로와 줄 수만 보고
-3. 파일 내용을 응답에 포함하지 않음
-4. 200줄 초과 시 자동 분리
+2. 반환 시 "완료. 생성 파일: {경로} ({줄수}줄)" 형식만
+3. 파일 내용을 응답에 절대 포함하지 않음
+4. 600줄 초과 시 분리 (와이어프레임 제외)
+5. 분리 시 네이밍: {index}-{name}-{type}.md
+6. 분리 시 _index.md 필수 생성
 ```
 
 ---
@@ -280,6 +325,9 @@ HASH = 파일경로의 MD5 앞 8자리 대문자
 - [ ] 에이전트 프롬프트에 "요약만 반환" 규칙이 포함되어 있는가?
 - [ ] Step 완료 후 _meta.json 업데이트가 포함되어 있는가?
 - [ ] Phase 완료 후 컨텍스트 관리 안내가 포함되어 있는가?
+- [ ] 600줄 초과 파일이 와이어프레임이 아닌 경우 분리되었는가?
+- [ ] 분리된 파일이 {index}-{name}-{type}.md 형식을 따르는가?
+- [ ] 분리 발생 폴더에 _index.md가 생성되었는가?
 
 ---
 
