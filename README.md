@@ -1,38 +1,39 @@
 # Claude Frontend Skills
 
-A collection of useful skills for frontend development and documentation.
+A collection of specialized skills and agents for frontend development, specification generation, and code quality assurance.
 
 ## Installation
 
 ```bash
+# Via marketplace
 /plugin marketplace add 30eggis/claude-frontend-skills
-```
 
-Or install directly:
-
-```bash
+# Direct install
 /plugin install frontend-skills@30eggis/claude-frontend-skills
 ```
 
+---
+
 ## Skills Overview
 
-| Skill | Description |
-|-------|-------------|
-| `spec-it` | Frontend specification generator (Manual mode) |
-| `spec-it-complex` | Frontend specification generator (Hybrid mode) |
-| `spec-it-automation` | Frontend specification generator (Full Auto mode) |
-| `init-spec-md` | SPEC-IT file generator for existing code |
-| `prompt-inspector` | Visual API binding tool for React/Next.js |
-| `hack-2-prd` | Code analysis to PRD/SPEC/PHASE/TASKS generation |
-| `prd-mirror` | PRD vs implementation comparison |
+| Skill | Description | Mode |
+|-------|-------------|------|
+| `spec-it` | Frontend specification generator | Manual |
+| `spec-it-complex` | Frontend specification generator | Hybrid |
+| `spec-it-automation` | Frontend specification generator | Full Auto |
+| `spec-it-execute` | Autopilot implementation executor | Auto |
+| `init-spec-md` | SPEC-IT file generator for existing code | Auto |
+| `prompt-inspector` | Visual API binding tool | Interactive |
+| `hack-2-prd` | Code to PRD/SPEC/PHASE/TASKS generator | Auto |
+| `prd-mirror` | PRD vs implementation comparison | Auto |
 
 ---
 
-## spec-it (Frontend Specification Generator)
+## spec-it Suite (Specification Generator)
 
 Transform vibe-coding/PRD into **production-ready frontend specifications** with multi-agent collaboration.
 
-### Three Modes
+### Three Generation Modes
 
 | Command | Mode | User Approval | Best For |
 |---------|------|---------------|----------|
@@ -40,32 +41,66 @@ Transform vibe-coding/PRD into **production-ready frontend specifications** with
 | `/frontend-skills:spec-it-complex` | Hybrid | 4 milestones | Medium projects |
 | `/frontend-skills:spec-it-automation` | Full Auto | Final only | Large projects |
 
-### Core Features
-
-1. **Design Brainstorming**: Superpowers-style Q&A for requirement refinement
-2. **UI Architecture**: ASCII art wireframes and screen structure design
-3. **Component Discovery**: Existing component scanning + gap analysis + migration
-4. **Critical Review**: Rigorous scenario/IA/exception handling review
-5. **Test Specification**: Persona-based scenario test specification generation
-6. **SPEC-IT-{HASH}.md**: Metadata system for progressive context loading
-
 ### Workflow Phases
 
-| Phase | Output |
-|-------|--------|
-| 0. Input Analysis | `00-requirements/requirements.md` |
-| 1. Design Brainstorming | `01-chapters/decisions/*.md` |
-| 2. UI Architecture | `02-screens/wireframes/*.md` |
-| 3. Component Discovery | `03-components/inventory.md, gap-analysis.md` |
-| 4. Critical Review | `04-review/scenarios/, ambiguities.md` |
-| 5. Test Specification | `05-tests/personas/, coverage-map.md` |
-| 6. Final Assembly | `06-final/final-spec.md, dev-tasks.md` |
+```
+Phase 0: Input Analysis     → requirements.md
+Phase 1: Design Brainstorm  → decisions/*.md (Q&A refinement)
+Phase 2: UI Architecture    → wireframes/*.md (ASCII art)
+Phase 3: Component Discover → inventory.md, gap-analysis.md
+Phase 4: Critical Review    → scenarios/, ambiguities.md
+Phase 5: Test Specification → personas/, coverage-map.md
+Phase 6: Final Assembly     → final-spec.md, dev-tasks.md
+```
 
-### Trigger Examples
+### Key Features (v2)
 
-- "프론트엔드 스펙 작성해줘" / "Write frontend spec"
-- "PRD를 개발 스펙으로 변환해줘" / "Convert PRD to dev spec"
-- "UI 컴포넌트 설계 문서 만들어줘" / "Create UI component design doc"
+- **Resume Support**: `--resume <sessionId>` to continue interrupted sessions
+- **Real-time Dashboard**: Monitor progress in separate terminal
+- **Context Management**: Automatic file splitting and agent batching
+- **Checkpoint System**: `_meta.json` state tracking for recovery
+
+### Usage Examples
+
+```bash
+# Start new specification
+/frontend-skills:spec-it-automation
+
+# Resume interrupted session
+/frontend-skills:spec-it-automation --resume 20260130-123456
+
+# Monitor progress (separate terminal)
+~/.claude/plugins/frontend-skills/skills/shared/dashboard/spec-it-dashboard.sh
+```
+
+---
+
+## spec-it-execute (Implementation Executor)
+
+Transform spec-it output into **working code** with autonomous execution.
+
+```bash
+/frontend-skills:spec-it-execute <spec-folder>
+/frontend-skills:spec-it-execute tmp/20260130-123456 --resume abc123
+```
+
+### Execution Phases
+
+```
+Phase 1: LOAD     → Validate specs, extract tasks
+Phase 2: PLAN     → Generate execution plan + critique
+Phase 3: EXECUTE  → Implement with spec-executor agent
+Phase 4: QA       → Build/lint/test loop (max 5 cycles)
+Phase 5: VALIDATE → Code review + security audit
+```
+
+### Smart Model Routing
+
+| Complexity | Model | Use Case |
+|------------|-------|----------|
+| LOW | Haiku | Simple reads, status checks |
+| MEDIUM | Sonnet | Standard implementation |
+| HIGH | Opus | Complex multi-file changes |
 
 ---
 
@@ -73,20 +108,18 @@ Transform vibe-coding/PRD into **production-ready frontend specifications** with
 
 Generate `SPEC-IT-{HASH}.md` metadata files for existing UI code to enable **progressive context loading**.
 
-### Usage
-
 ```bash
 /frontend-skills:init-spec-md                    # Full project scan
-/frontend-skills:init-spec-md src/components     # Specific path only
-/frontend-skills:init-spec-md --dry-run          # Preview (no file creation)
-/frontend-skills:init-spec-md --force            # Overwrite existing files
+/frontend-skills:init-spec-md src/components     # Specific path
+/frontend-skills:init-spec-md --dry-run          # Preview mode
+/frontend-skills:init-spec-md --force            # Overwrite existing
 ```
 
 ### Purpose
 
 - **Progressive Context Loading**: Agents load only required context
 - **Bidirectional Navigation**: Parent ↔ Child document links
-- **Registry Management**: All HASHes managed in `.spec-it-registry.json`
+- **Registry Management**: `.spec-it-registry.json` tracks all HASHes
 
 ---
 
@@ -96,66 +129,30 @@ Visual API binding tool for connecting UI elements to REST APIs in React/Next.js
 
 ### Features
 
-- **Visual Element Selection** - Click on any UI element to select
-- **API Discovery** - Automatically find APIs (axios, fetch, Express, Next.js routes)
+- **Visual Element Selection** - Click any UI element
+- **API Discovery** - Auto-detect axios, fetch, Express, Next.js routes
 - **Binding Configuration** - Set trigger, success/error handlers
-- **Multiple Error Cases** - Support for business error codes
-- **Export to Markdown** - Generate specs for Claude to implement
+- **Export to Markdown** - Generate specs for implementation
 
-### Quick Setup
+### Setup
 
 ```bash
 # Auto-install (detects Next.js App/Pages Router)
 python scripts/setup.py /path/to/your-project
 
-# Discover APIs in your project
+# Discover APIs
 python scripts/discover_apis.py /path/to/your-project
-```
-
-### Trigger Examples
-
-- "UI에 API 연결해줘" / "Connect API to UI"
-- "prompt-inspector 설정해줘" / "Setup prompt-inspector"
-- "API 바인딩 명세 만들어줘" / "Create API binding spec"
-
-### Output Example
-
-```markdown
-# Route: /users
-
-## 1. POST /api/users
-- Selector: `button.submit-btn`
-- Trigger: onClick
-- OnSuccess: toast ("User created")
-- OnError #1: [ERR_DUPLICATE] toast ("Already exists")
-- OnError #2: toast ("Unknown error")
 ```
 
 ---
 
 ## hack-2-prd
 
-Analyze services/projects and systematically generate documentation:
+Analyze services/projects and systematically generate documentation.
 
-- **PRD** (Product Requirements Document)
-- **SPEC** (Feature Specifications)
-- **PHASE** (Implementation Phases)
-- **TASKS** (Task Lists)
-
-### Trigger Examples
-
-- "PRD 작성해줘" / "Write a PRD"
-- "문서화 해줘" / "Document this"
-- "이 코드를 문서화해줘" / "Document this codebase"
-- "웹사이트 분석해서 문서 만들어줘" / "Analyze this website and create docs"
-
-### Supported Input Sources
-
-| Source | Description |
-|--------|-------------|
-| Website URL | Analyze via Chrome Extension data |
-| Codebase | Analyze local project structure |
-| Mobile App | Analyze from screenshots/descriptions |
+```bash
+/frontend-skills:hack-2-prd
+```
 
 ### Output Structure
 
@@ -164,15 +161,20 @@ docs/
 ├── PRD.md
 ├── specs/
 │   ├── SPEC-01.md
-│   ├── SPEC-02.md
 │   └── ...
 ├── phases/
-│   ├── PHASE-01.md
-│   └── ...
+│   └── PHASE-01.md
 └── tasks/
-    ├── TASKS-PHASE-01.md
-    └── ...
+    └── TASKS-PHASE-01.md
 ```
+
+### Supported Sources
+
+| Source | Description |
+|--------|-------------|
+| Website URL | Analyze via Chrome Extension data |
+| Codebase | Analyze local project structure |
+| Mobile App | Analyze from screenshots |
 
 ---
 
@@ -180,63 +182,146 @@ docs/
 
 Compare original PRD against actual implementation to verify spec compliance.
 
+```bash
+/frontend-skills:prd-mirror
+```
+
 ### Workflow
 
 ```
 [Original PRD] + [Codebase]
        ↓
-[Generate reverse-engineered PRD via hack-2-prd]
+[Reverse-engineer PRD via hack-2-prd]
        ↓
 [Compare REQ items]
        ↓
-[Generate report: Over-spec / Missing / Matched]
+[Report: Over-spec / Missing / Matched]
 ```
-
-### Trigger Examples
-
-- "PRD 대비 구현 상태 확인해줘" / "Check implementation against PRD"
-- "오버스펙 기능 찾아줘" / "Find over-spec features"
 
 ---
 
-## Agents
+## Agents (20 Total)
 
-The spec-it skills use 15 specialized agents for multi-agent collaboration:
+### Specification Agents
 
-### Core Agents
 | Agent | Model | Role |
 |-------|-------|------|
-| `design-interviewer` | opus | Brainstorming Q&A facilitator |
-| `divergent-thinker` | sonnet | Divergent thinking, alternatives |
-| `chapter-critic` | opus | Critical validation (3 rounds) |
-| `chapter-planner` | opus | Chapter structure finalization |
-| `ui-architect` | sonnet | Wireframe design |
+| `design-interviewer` | Opus | Brainstorming Q&A facilitator |
+| `divergent-thinker` | Sonnet | Alternatives and creative thinking |
+| `chapter-critic` | Opus | Critical validation (3 rounds) |
+| `chapter-planner` | Opus | Chapter structure finalization |
+| `ui-architect` | Sonnet | Wireframe and layout design |
 
 ### Component Agents
+
 | Agent | Model | Role |
 |-------|-------|------|
-| `component-auditor` | haiku | Component scanning |
-| `component-builder` | sonnet | Component specification |
-| `component-migrator` | sonnet | Component migration |
+| `component-auditor` | Haiku | Component scanning and inventory |
+| `component-builder` | Sonnet | Component specification writer |
+| `component-migrator` | Sonnet | Migration strategy planner |
 
 ### Review Agents
+
 | Agent | Model | Role |
 |-------|-------|------|
-| `critical-reviewer` | opus | Scenario/IA/Exception review |
-| `ambiguity-detector` | opus | Ambiguity detection |
+| `critical-reviewer` | Opus | Scenario/IA/Exception review |
+| `ambiguity-detector` | Opus | Ambiguity and gap detection |
+| `spec-critic` | Opus | Plan validation (4-pillar review) |
 
 ### Test Agents
+
 | Agent | Model | Role |
 |-------|-------|------|
-| `persona-architect` | sonnet | Persona definition |
-| `test-spec-writer` | sonnet | Test specification |
+| `persona-architect` | Sonnet | User persona definition |
+| `test-spec-writer` | Sonnet | Test specification author |
+
+### Execution Agents
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `spec-executor` | Opus | Multi-file implementation |
+| `code-reviewer` | Opus | Two-stage code review |
+| `security-reviewer` | Opus | OWASP Top 10 audit |
+| `screen-vision` | Sonnet | Visual/mockup analysis |
 
 ### Utility Agents
+
 | Agent | Model | Role |
 |-------|-------|------|
-| `spec-assembler` | haiku | Final assembly |
-| `spec-md-generator` | haiku | SPEC-IT file creation |
-| `spec-md-maintainer` | haiku | SPEC-IT file maintenance |
+| `spec-assembler` | Haiku | Final document assembly |
+| `spec-md-generator` | Haiku | SPEC-IT file creation |
+| `spec-md-maintainer` | Haiku | SPEC-IT file maintenance |
+
+---
+
+## Real-time Dashboard
+
+Monitor spec-it progress in a separate terminal.
+
+### Installation
+
+```bash
+# Run install script
+bash ~/.claude/plugins/frontend-skills/skills/shared/dashboard/install.sh
+
+# Or create alias manually
+alias spec-it-dashboard='~/.claude/plugins/frontend-skills/skills/shared/dashboard/spec-it-dashboard.sh'
+```
+
+### Usage
+
+```bash
+# Auto-detect active session
+spec-it-dashboard
+
+# Specific session
+spec-it-dashboard ./tmp/20260130-123456
+
+# Simple watch mode
+watch -n 2 ~/.claude/plugins/frontend-skills/skills/shared/dashboard/spec-it-status.sh
+```
+
+### Dashboard Display
+
+```
+╔══════════════════════════════════════════════════════════════════╗
+║  SPEC-IT DASHBOARD                    Runtime: 00:05:32  ║
+╠══════════════════════════════════════════════════════════════════╣
+║  Session: 20260130-123456
+║
+║  Phase: 2/6 - UI Architecture
+║  Step:  2.1
+║  [████████████░░░░░░░░░░░░░░░░░░░░░░░░░░░░]  33%
+║
+╠══════════════════════════════════════════════════════════════════╣
+║  AGENTS
+║
+║  ● ui-architect              [running  ]  00:02:15
+║  ✓ component-auditor         [completed]  00:01:30
+║  ○ component-builder         [pending  ]
+║
+╠══════════════════════════════════════════════════════════════════╣
+║  STATS
+║
+║  Files: 12 created
+║  Lines: 1847 written
+╚══════════════════════════════════════════════════════════════════╝
+```
+
+---
+
+## Context Management Rules
+
+All spec-it skills follow these rules to prevent context overflow:
+
+| Rule | Limit |
+|------|-------|
+| Direct Write | Max 100 lines (delegate larger to agents) |
+| File Size | Max 200 lines (auto-split if larger) |
+| Concurrent Agents | Max 2 (batch execution) |
+| Agent Output | Summary only (path + line count) |
+
+See `skills/shared/context-rules.md` for full documentation.
 
 ---
 
