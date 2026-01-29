@@ -326,10 +326,17 @@ FOR task IN tasks (sorted by dependency):
   _state.lastCheckpoint = now()
   Update(_state.json)
 
-  # Quick verification
+  # Quick verification (via spec-executor agent)
   IF task.verification:
-    result = Bash(task.verification)
-    IF result.failed:
+    Task(
+      subagent_type: "Bash",
+      model: "haiku",
+      prompt: "
+        Run verification command: {task.verification}
+        Return: 'PASS' or 'FAIL: {error summary}'
+      "
+    )
+    IF result contains "FAIL":
       # Log failure, continue (QA phase will catch it)
       Write(.spec-it/execute/{sessionId}/logs/failures.md, append)
 
@@ -356,20 +363,39 @@ WHILE _state.qaAttempts < _state.maxQaAttempts:
 
   _state.qaAttempts += 1
 
-  # Run all checks
-  lintResult = Bash("npm run lint 2>&1 || true")
-  typeResult = Bash("npm run type-check 2>&1 || true")
-  testResult = Bash("npm run test 2>&1 || true")
-  buildResult = Bash("npm run build 2>&1 || true")
+  # Run QA checks via spec-executor agent (has bypassPermissions)
+  Task(
+    subagent_type: "Bash",
+    model: "haiku",
+    prompt: "
+      Run QA checks and report results:
 
-  # Aggregate results
-  allPassed = lint.ok && type.ok && test.ok && build.ok
+      Commands to run:
+      1. npm run lint 2>&1 || true
+      2. npm run type-check 2>&1 || true
+      3. npm run test 2>&1 || true
+      4. npm run build 2>&1 || true
 
-  IF allPassed:
+      Output format:
+      LINT: [PASS/FAIL] {summary}
+      TYPE: [PASS/FAIL] {summary}
+      TEST: [PASS/FAIL] {summary}
+      BUILD: [PASS/FAIL] {summary}
+      ALL_PASSED: [true/false]
+
+      If errors exist, include first 20 lines of each error.
+
+      OUTPUT RULES:
+      1. Return results in format above
+      2. Do NOT fix anything - just report
+    "
+  )
+
+  IF ALL_PASSED == true:
     Output: "QA Passed on attempt {_state.qaAttempts}"
     BREAK
 
-  # Diagnose and fix
+  # Diagnose and fix (needs general-purpose for file editing)
   Task(
     subagent_type: "general-purpose",
     model: "opus",
@@ -378,10 +404,7 @@ WHILE _state.qaAttempts < _state.maxQaAttempts:
 
       QA Failures (Attempt {_state.qaAttempts}/{maxQaAttempts}):
 
-      Lint: {lintResult}
-      Type: {typeResult}
-      Test: {testResult}
-      Build: {buildResult}
+      {QA check results from previous task}
 
       Instructions:
       1. Analyze root cause of each failure
@@ -391,7 +414,9 @@ WHILE _state.qaAttempts < _state.maxQaAttempts:
 
       Output: .spec-it/execute/{sessionId}/logs/qa-{attempt}.md
 
-      OUTPUT RULES: (standard)
+      OUTPUT RULES:
+      1. Write log to output path
+      2. Return: 'Fixed {N} issues. Ready for re-check.'
     "
   )
 
@@ -545,9 +570,17 @@ AskUserQuestion(
 )
 
 IF Archive:
-  Bash("mv .spec-it/execute/{sessionId} .spec-it/archive/{sessionId}")
+  Task(
+    subagent_type: "Bash",
+    model: "haiku",
+    prompt: "Run: mv .spec-it/execute/{sessionId} .spec-it/archive/{sessionId}"
+  )
 ELIF Delete:
-  Bash("rm -rf .spec-it/execute/{sessionId}")
+  Task(
+    subagent_type: "Bash",
+    model: "haiku",
+    prompt: "Run: rm -rf .spec-it/execute/{sessionId}"
+  )
 ```
 
 ---
