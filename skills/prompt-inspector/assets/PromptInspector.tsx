@@ -96,6 +96,8 @@ export function PromptInspector({
   const [bindings, setBindings] = useState<Binding[]>([]);
   const [badgePositions, setBadgePositions] = useState<Array<{ index: number; top: number; left: number; mode: string }>>([]);
   const [routePath, setRoutePath] = useState(typeof window !== 'undefined' ? window.location.pathname : '/');
+  const [apiSearchQuery, setApiSearchQuery] = useState('');
+  const [isApiDropdownOpen, setIsApiDropdownOpen] = useState(false);
 
   const [currentBinding, setCurrentBinding] = useState<Partial<Binding>>({
     mode: undefined,
@@ -251,8 +253,34 @@ export function PromptInspector({
       successHandler: { type: HANDLER_TYPES[0], message: 'Successfully completed.' },
       errorHandlers: [{ id: 1, type: HANDLER_TYPES[0], message: 'An error occurred.', errorCode: '' }],
     });
+    setApiSearchQuery('');
+    setIsApiDropdownOpen(false);
     if (continueSelecting) setIsSelecting(true);
   };
+
+  // Filter APIs based on search query
+  const filteredApis = apis.filter(api => {
+    if (!apiSearchQuery.trim()) return true;
+    const query = apiSearchQuery.toLowerCase();
+    return (
+      api.method.toLowerCase().includes(query) ||
+      api.path.toLowerCase().includes(query) ||
+      (api.description?.toLowerCase().includes(query) ?? false)
+    );
+  });
+
+  // Close API dropdown when clicking outside
+  useEffect(() => {
+    if (!isApiDropdownOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      const target = e.target as HTMLElement;
+      if (!target.closest('[data-api-search]')) {
+        setIsApiDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [isApiDropdownOpen]);
 
   const completeBinding = () => {
     if (!currentBinding.elementSelector) return;
@@ -424,13 +452,83 @@ export function PromptInspector({
             {/* API Mode */}
             {panelStep === 'api' && (
               <>
-                {/* API Selection */}
-                <div style={{ marginBottom: 24 }}>
-                  <div style={styles.sectionTitle}>Select API</div>
-                  <select style={styles.select} value={currentBinding.api?.id || ''} onChange={(e) => { const api = apis.find(a => a.id === e.target.value); setCurrentBinding(prev => ({ ...prev, api })); }}>
-                    <option value="">Choose an API...</option>
-                    {apis.map(api => <option key={api.id} value={api.id}>[{api.method}] {api.path}{api.description ? ` - ${api.description}` : ''}</option>)}
-                  </select>
+                {/* API Selection with Search */}
+                <div style={{ marginBottom: 24, position: 'relative' }} data-api-search>
+                  <div style={styles.sectionTitle}>Select API ({apis.length} available)</div>
+                  <div style={{ position: 'relative' }}>
+                    <input
+                      style={styles.input}
+                      placeholder="🔍 Search APIs by method, path, or description..."
+                      value={apiSearchQuery}
+                      onChange={(e) => {
+                        setApiSearchQuery(e.target.value);
+                        setIsApiDropdownOpen(true);
+                      }}
+                      onFocus={() => setIsApiDropdownOpen(true)}
+                    />
+                    {apiSearchQuery && (
+                      <button
+                        style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', background: 'none', border: 'none', color: '#9ca3af', cursor: 'pointer', fontSize: 16, padding: 4 }}
+                        onClick={() => { setApiSearchQuery(''); setIsApiDropdownOpen(true); }}
+                        title="Clear search"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+                  {currentBinding.api && (
+                    <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginTop: 8, padding: '8px 12px', backgroundColor: '#6366f1', borderRadius: 8 }}>
+                      <span style={{ fontWeight: 600, fontSize: 12 }}>{currentBinding.api.method}</span>
+                      <span style={{ fontSize: 14 }}>{currentBinding.api.path}</span>
+                      <button
+                        style={{ marginLeft: 'auto', background: 'none', border: 'none', color: 'white', cursor: 'pointer', fontSize: 14, padding: 2 }}
+                        onClick={() => setCurrentBinding(prev => ({ ...prev, api: undefined }))}
+                        title="Remove selection"
+                      >
+                        ✕
+                      </button>
+                    </div>
+                  )}
+                  {isApiDropdownOpen && (
+                    <div style={{ position: 'absolute', top: '100%', left: 0, right: 0, maxHeight: 240, overflow: 'auto', backgroundColor: '#2d3748', borderRadius: 8, marginTop: 4, boxShadow: '0 4px 12px rgba(0,0,0,0.3)', zIndex: 10 }}>
+                      {filteredApis.length === 0 ? (
+                        <div style={{ padding: 16, textAlign: 'center', color: '#9ca3af' }}>
+                          {apiSearchQuery ? `No APIs matching "${apiSearchQuery}"` : 'No APIs available'}
+                        </div>
+                      ) : (
+                        filteredApis.map(api => (
+                          <div
+                            key={api.id}
+                            style={{ display: 'flex', alignItems: 'center', gap: 12, padding: '10px 12px', cursor: 'pointer', borderBottom: '1px solid #374151', backgroundColor: currentBinding.api?.id === api.id ? '#4b5563' : 'transparent' }}
+                            onClick={() => {
+                              setCurrentBinding(prev => ({ ...prev, api }));
+                              setIsApiDropdownOpen(false);
+                              setApiSearchQuery('');
+                            }}
+                            onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = '#4b5563'; }}
+                            onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.backgroundColor = currentBinding.api?.id === api.id ? '#4b5563' : 'transparent'; }}
+                          >
+                            <span style={{
+                              padding: '2px 8px',
+                              borderRadius: 4,
+                              fontSize: 11,
+                              fontWeight: 700,
+                              backgroundColor: api.method === 'GET' ? '#10b981' : api.method === 'POST' ? '#3b82f6' : api.method === 'PUT' ? '#f59e0b' : api.method === 'DELETE' ? '#ef4444' : '#8b5cf6',
+                              color: 'white',
+                              minWidth: 50,
+                              textAlign: 'center'
+                            }}>
+                              {api.method}
+                            </span>
+                            <div style={{ flex: 1, minWidth: 0 }}>
+                              <div style={{ fontSize: 14, fontFamily: 'monospace', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{api.path}</div>
+                              {api.description && <div style={{ fontSize: 12, color: '#9ca3af', marginTop: 2, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{api.description}</div>}
+                            </div>
+                          </div>
+                        ))
+                      )}
+                    </div>
+                  )}
                 </div>
 
                 {/* Trigger */}
