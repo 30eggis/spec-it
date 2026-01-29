@@ -82,65 +82,36 @@ Frontend specification generator that transforms vibe-coding/PRD into **producti
 - **Test Specification** - Persona-based scenario test specification generation
 - **SPEC-IT-{HASH}.md** - Metadata system for progressive context loading
 
-#### Commands
+#### Skills (4 modes)
 
-| Command | Mode | Description |
-|---------|------|-------------|
-| `/frontend-skills:spec-it` | Manual | All chapters require user approval |
-| `/frontend-skills:spec-it-complex` | Hybrid | Auto-validation + major milestone approval |
-| `/frontend-skills:spec-it-automation` | Full Auto | Multi-agent validation, single final approval |
-| `/frontend-skills:init-spec-md` | Utility | Create SPEC-IT files for existing code |
+| Skill | Mode | User Approval | Best For |
+|-------|------|---------------|----------|
+| `/frontend-skills:spec-it` | Manual | Every chapter | Small projects, learning, maximum control |
+| `/frontend-skills:spec-it-complex` | Hybrid | 4 milestones | Medium projects, balanced automation |
+| `/frontend-skills:spec-it-automation` | Full Auto | Final only | Large projects, fast generation |
+| `/frontend-skills:init-spec-md` | Utility | - | Generate SPEC-IT files for existing code |
 
 #### Agents (15 total)
 
-**Core Agents**
-- `design-interviewer` (opus) - Brainstorming Q&A facilitator
-- `divergent-thinker` (sonnet) - Divergent thinking for alternatives
-- `chapter-critic` (opus) - Critical validation
-- `chapter-planner` (opus) - Chapter structure finalization
-- `ui-architect` (sonnet) - Wireframe design
-
-**Component Agents**
-- `component-auditor` (haiku) - Component scanning and inventory
-- `component-builder` (sonnet) - Component specification
-- `component-migrator` (sonnet) - Component migration planning
-
-**Review Agents**
-- `critical-reviewer` (opus) - Scenario/IA/exception review
-- `ambiguity-detector` (opus) - Ambiguity detection
-
-**Test Agents**
-- `persona-architect` (sonnet) - Persona definition
-- `test-spec-writer` (sonnet) - Test specification
-
-**Utility Agents**
-- `spec-assembler` (haiku) - Final assembly
-- `spec-md-generator` (haiku) - SPEC-IT creation
-- `spec-md-maintainer` (haiku) - SPEC-IT maintenance
+| Category | Agents |
+|----------|--------|
+| Core | `design-interviewer` (opus), `divergent-thinker` (sonnet), `chapter-critic` (opus), `chapter-planner` (opus), `ui-architect` (sonnet) |
+| Component | `component-auditor` (haiku), `component-builder` (sonnet), `component-migrator` (sonnet) |
+| Review | `critical-reviewer` (opus), `ambiguity-detector` (opus) |
+| Test | `persona-architect` (sonnet), `test-spec-writer` (sonnet) |
+| Utility | `spec-assembler` (haiku), `spec-md-generator` (haiku), `spec-md-maintainer` (haiku) |
 
 #### Workflow
 
 ```
-Phase 0: Input Analysis
-    ↓
-Phase 1: Design Brainstorming (Interactive + Validation)
-    ↓
-Phase 2: UI Architecture (ASCII Wireframes)
-    ↓
-Phase 3: Component Discovery & Migration
-    ↓
-Phase 4: Critical Review
-    ↓
-Phase 5: Persona & Scenario Test Spec
-    ↓
-Phase 6: Final Assembly
+Input Analysis → Design Brainstorming → UI Architecture →
+Component Discovery → Critical Review → Test Spec → Final Assembly
 ```
 
 #### Output Structure
 
 ```
 tmp/{session-id}/
-├── _meta.json
 ├── 00-requirements/
 ├── 01-chapters/
 ├── 02-screens/
@@ -150,12 +121,17 @@ tmp/{session-id}/
 └── 06-final/
 ```
 
+#### Resources
+
+- **Templates**: 16 templates for various specification documents
+- **References**: ASCII wireframe guide, shadcn component list, test patterns
+- **Hooks**: Cross-platform notification hooks (macOS/Windows/Linux)
+
 #### Trigger Examples
 
 - "프론트엔드 스펙 작성해줘" / "Write frontend spec"
 - "이 PRD를 개발 명세로 변환해줘" / "Convert this PRD to dev spec"
 - "UI 컴포넌트 설계 문서 만들어줘" / "Create UI component design doc"
-- "시나리오 테스트 명세 생성해줘" / "Generate scenario test spec"
 
 ---
 
