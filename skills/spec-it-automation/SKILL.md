@@ -100,6 +100,47 @@ IF currentPhase >= 2:
 GOTO Step {currentStep}
 ```
 
+#### Step 0.0: UI 구현 방식 선택 (새 세션 전)
+
+```
+AskUserQuestion(
+  questions: [{
+    question: "UI 디자인 방식을 선택해 주세요.",
+    header: "UI Mode",
+    options: [
+      {label: "ASCII Wireframe (Recommended)", description: "텍스트 기반 와이어프레임 (빠름, 오프라인 가능)"},
+      {label: "Google Stitch", description: "AI 기반 실제 UI 생성 (GCP 연동 필요)"}
+    ]
+  }]
+)
+
+IF "Google Stitch" 선택:
+  # GCP 인증 확인
+  Bash(~/.claude/plugins/frontend-skills/scripts/setup-stitch-gcp.sh --check-only)
+
+  IF 인증 실패:
+    AskUserQuestion(
+      questions: [{
+        question: "GCP 인증이 필요합니다. 지금 설정하시겠습니까?",
+        header: "GCP Setup",
+        options: [
+          {label: "Yes", description: "GCP 인증 설정 시작"},
+          {label: "No", description: "ASCII Wireframe으로 진행"}
+        ]
+      }]
+    )
+
+    IF "Yes":
+      Bash(~/.claude/plugins/frontend-skills/scripts/setup-stitch-gcp.sh)
+      uiMode = "stitch"
+    ELSE:
+      uiMode = "ascii"
+  ELSE:
+    uiMode = "stitch"
+ELSE:
+  uiMode = "ascii"
+```
+
 #### Step 0.1: 새 세션 초기화
 
 ```bash
@@ -136,6 +177,7 @@ Session: {sessionId} 시작
   "pendingSteps": ["1.1", "1.2", "1.3", "1.4", "2.1", "2.2", "3.1", "3.2", "4.1", "5.1", "6.1"],
   "lastCheckpoint": "{startTime}",
   "canResume": true,
+  "uiMode": "ascii|stitch",
   "techStack": {
     "framework": "Next.js 15 (App Router)",
     "ui": "React + shadcn/ui",
@@ -464,34 +506,63 @@ Phase 1 완료 (Design Brainstorming)
 
 **병렬 실행 제한: 최대 2개씩 배치**
 
-#### Step 2.1: Batch 1 (UI Architect + Component Auditor)
+#### Step 2.1: Batch 1 (UI Architect/Stitch + Component Auditor)
 
 ```
-# 2개 에이전트 동시 실행
-Task(
-  subagent_type: "general-purpose",
-  model: "sonnet",
-  run_in_background: true,
-  prompt: "
-    역할: ui-architect
+# UI 모드에 따라 다른 에이전트 실행
+IF _meta.uiMode == "stitch":
+  # Google Stitch 모드
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    run_in_background: true,
+    prompt: "
+      역할: stitch-ui-designer
 
-    입력: chapter-plan-final.md
+      입력: chapter-plan-final.md
 
-    작업:
-    1. 화면 목록 작성 (screen-list.md)
-    2. 각 화면별 ASCII 와이어프레임 생성
-    3. Desktop/Tablet/Mobile 반응형 고려
+      작업:
+      1. Stitch 프로젝트 생성 (이름: spec-it-{sessionId})
+      2. 각 화면별 UI 생성 (generate_screen_from_text)
+      3. 디자인 QA 실행 (접근성, 반응형)
+      4. HTML/CSS 내보내기
 
-    출력 경로:
-    - tmp/{sessionId}/02-screens/screen-list.md
-    - tmp/{sessionId}/02-screens/wireframes/wireframe-{screen}.md (화면별)
+      출력 경로:
+      - tmp/{sessionId}/02-screens/screen-list.md
+      - tmp/{sessionId}/02-screens/stitch-project.json
+      - tmp/{sessionId}/02-screens/html/*.html
+      - tmp/{sessionId}/02-screens/assets/styles.css
+      - tmp/{sessionId}/02-screens/qa-report.md
 
-    각 wireframe 파일에 SPEC-IT-{HASH}.md 도 함께 생성
-    HASH = 파일경로 MD5 앞 8자리 대문자
+      OUTPUT RULES: (위와 동일)
+    "
+  )
+ELSE:
+  # ASCII Wireframe 모드 (기본)
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    run_in_background: true,
+    prompt: "
+      역할: ui-architect
 
-    OUTPUT RULES: (위와 동일)
-  "
-)
+      입력: chapter-plan-final.md
+
+      작업:
+      1. 화면 목록 작성 (screen-list.md)
+      2. 각 화면별 ASCII 와이어프레임 생성
+      3. Desktop/Tablet/Mobile 반응형 고려
+
+      출력 경로:
+      - tmp/{sessionId}/02-screens/screen-list.md
+      - tmp/{sessionId}/02-screens/wireframes/wireframe-{screen}.md (화면별)
+
+      각 wireframe 파일에 SPEC-IT-{HASH}.md 도 함께 생성
+      HASH = 파일경로 MD5 앞 8자리 대문자
+
+      OUTPUT RULES: (위와 동일)
+    "
+  )
 
 Task(
   subagent_type: "general-purpose",
@@ -883,11 +954,21 @@ tmp/{session-id}/
 │       └── ...
 ├── 02-screens/
 │   ├── _index.md
+│   ├── screen-list.md
 │   ├── 0-login-screen.md
 │   ├── 1-dashboard-screen.md
-│   └── wireframes/            # 와이어프레임은 분리 제외 (무제한)
-│       ├── wireframe-{screen}.md
-│       └── SPEC-IT-{HASH}.md
+│   ├── wireframes/            # ASCII 모드 (와이어프레임은 분리 제외)
+│   │   ├── wireframe-{screen}.md
+│   │   └── SPEC-IT-{HASH}.md
+│   ├── html/                  # Stitch 모드
+│   │   ├── index.html         # 프리뷰 페이지
+│   │   ├── login.html
+│   │   └── dashboard.html
+│   ├── assets/                # Stitch 모드
+│   │   ├── styles.css
+│   │   └── tokens.json
+│   ├── stitch-project.json    # Stitch 모드
+│   └── qa-report.md           # Stitch 모드
 ├── 03-components/
 │   ├── inventory.md
 │   ├── gap-analysis.md

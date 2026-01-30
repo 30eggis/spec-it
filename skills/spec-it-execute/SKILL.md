@@ -146,9 +146,52 @@ _state.lastCheckpoint = now()
 Update(_state.json)
 ```
 
-#### Step 1.3: Mockup Analysis (Optional)
+#### Step 1.3: UI Reference Analysis
+
 ```
-IF mockups exist in {spec-folder}/02-screens/wireframes/:
+# Check UI mode from spec-it _meta.json
+Read({spec-folder}/_meta.json)
+
+IF _meta.uiMode == "stitch":
+  # Stitch HTML 모드 - HTML 파일을 디자인 레퍼런스로 사용
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    prompt: "
+      Role: screen-vision
+
+      Analyze Stitch HTML outputs in {spec-folder}/02-screens/html/
+
+      Load:
+      - stitch-project.json (screen metadata)
+      - html/*.html (actual UI designs)
+      - assets/styles.css (design system CSS)
+      - assets/tokens.json (design tokens)
+
+      Extract:
+      1. HTML structure for each screen
+      2. CSS classes and their styles
+      3. Design tokens (colors, spacing, typography)
+      4. Component patterns from HTML
+      5. Responsive breakpoints
+
+      Output: .spec-it/execute/{sessionId}/plans/html-analysis.md
+
+      Include mapping table:
+      | Screen | HTML File | Key Components | CSS Classes |
+      |--------|-----------|----------------|-------------|
+
+      OUTPUT RULES: (standard)
+    "
+  )
+
+  # Save UI mode for spec-executor
+  _state.uiMode = "stitch"
+  _state.htmlReferencePath = "{spec-folder}/02-screens/html/"
+  Update(_state.json)
+
+ELIF mockups exist in {spec-folder}/02-screens/wireframes/:
+  # ASCII Wireframe 모드
   Task(
     subagent_type: "general-purpose",
     model: "sonnet",
@@ -167,6 +210,9 @@ IF mockups exist in {spec-folder}/02-screens/wireframes/:
       OUTPUT RULES: (standard)
     "
   )
+
+  _state.uiMode = "ascii"
+  Update(_state.json)
 
 # Phase 1 complete
 _state.completedPhases += "1"
@@ -294,6 +340,27 @@ FOR task IN tasks (sorted by dependency):
   complexity = assess_complexity(task)
   model = complexity == "HIGH" ? "opus" : "sonnet"
 
+  # Build UI reference context based on mode
+  IF _state.uiMode == "stitch":
+    uiRefContext = "
+      UI Reference Mode: STITCH (HTML)
+      HTML Files: {_state.htmlReferencePath}
+      Design System: {spec-folder}/02-screens/assets/styles.css
+      Design Tokens: {spec-folder}/02-screens/assets/tokens.json
+
+      CRITICAL: When implementing UI:
+      1. Read corresponding HTML file for the screen
+      2. Match HTML structure exactly in React components
+      3. Use same CSS classes from styles.css
+      4. Apply design tokens for colors, spacing
+      5. Preserve accessibility attributes from HTML
+    "
+  ELSE:
+    uiRefContext = "
+      UI Reference Mode: ASCII (Wireframe)
+      Wireframes: {spec-folder}/02-screens/wireframes/
+    "
+
   Task(
     subagent_type: "general-purpose",
     model: model,
@@ -304,11 +371,14 @@ FOR task IN tasks (sorted by dependency):
       Files: {task.files}
       Spec Reference: {task.spec_ref}
 
+      {uiRefContext}
+
       Requirements:
       1. Implement exactly as specified
       2. Use TodoWrite for tracking
       3. Verify after each file change
       4. Record decisions in notepad
+      5. IF HTML reference exists, match design exactly
 
       Verification Command: {task.verification}
 
@@ -600,7 +670,9 @@ ELIF Delete:
   "completedTasks": ["T-001", "T-002"],
   "startedAt": "2026-01-30T14:30:22Z",
   "lastCheckpoint": "2026-01-30T14:45:00Z",
-  "completedAt": null
+  "completedAt": null,
+  "uiMode": "ascii | stitch",
+  "htmlReferencePath": "tmp/{sessionId}/02-screens/html/"
 }
 ```
 

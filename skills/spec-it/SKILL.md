@@ -102,11 +102,23 @@ For each chapter:
 Output: `tmp/{session-id}/01-chapters/decisions/`
 
 ### Phase 2: UI Architecture
+
 ```
-Agent: ui-architect (sonnet)
-Output:
-- tmp/{session-id}/02-screens/screen-list.md
-- tmp/{session-id}/02-screens/wireframes/*.md
+IF _meta.uiMode == "stitch":
+  # Google Stitch 모드
+  Agent: stitch-ui-designer (sonnet)
+  Output:
+  - tmp/{session-id}/02-screens/screen-list.md
+  - tmp/{session-id}/02-screens/stitch-project.json
+  - tmp/{session-id}/02-screens/html/*.html
+  - tmp/{session-id}/02-screens/assets/styles.css
+  - tmp/{session-id}/02-screens/qa-report.md
+ELSE:
+  # ASCII Wireframe 모드 (기본)
+  Agent: ui-architect (sonnet)
+  Output:
+  - tmp/{session-id}/02-screens/screen-list.md
+  - tmp/{session-id}/02-screens/wireframes/*.md
 ```
 
 ### Phase 3: Component Discovery & Migration
@@ -157,7 +169,8 @@ Ask user about tmp folder handling:
 | `divergent-thinker` | sonnet | Divergent thinking, alternatives |
 | `chapter-critic` | opus | Critical validation (3 rounds) |
 | `chapter-planner` | opus | Chapter structure finalization |
-| `ui-architect` | sonnet | Wireframe design |
+| `ui-architect` | sonnet | ASCII Wireframe design |
+| `stitch-ui-designer` | sonnet | Google Stitch UI generation (optional) |
 
 ### Component Agents
 | Agent | Model | Role |
@@ -215,11 +228,21 @@ tmp/{session-id}/
 │       └── ...
 ├── 02-screens/
 │   ├── _index.md
+│   ├── screen-list.md
 │   ├── 0-login-screen.md
 │   ├── 1-dashboard-screen.md
-│   └── wireframes/            # 와이어프레임은 분리 제외
-│       ├── wireframe-login.md
-│       └── ...
+│   ├── wireframes/            # ASCII 모드 (와이어프레임은 분리 제외)
+│   │   ├── wireframe-login.md
+│   │   └── ...
+│   ├── html/                  # Stitch 모드
+│   │   ├── index.html         # 프리뷰 페이지
+│   │   ├── login.html
+│   │   └── dashboard.html
+│   ├── assets/                # Stitch 모드
+│   │   ├── styles.css
+│   │   └── tokens.json
+│   ├── stitch-project.json    # Stitch 모드
+│   └── qa-report.md           # Stitch 모드
 ├── 03-components/
 │   ├── inventory.md
 │   ├── gap-analysis.md
@@ -323,6 +346,48 @@ IF 인자에 "--resume" 또는 "이어서" 또는 "재개" 포함:
   → Resume 모드 (Step 0.R)
 ELSE:
   → 새 세션 (Step 0.1)
+```
+
+#### Step 0.0: UI 구현 방식 선택 (새 세션 시작 시)
+
+```
+AskUserQuestion(
+  questions: [{
+    question: "UI 디자인 방식을 선택해 주세요.",
+    header: "UI Mode",
+    options: [
+      {label: "ASCII Wireframe", description: "텍스트 기반 와이어프레임 (오프라인 가능)"},
+      {label: "Google Stitch", description: "AI 기반 실제 UI 생성 (GCP 연동 필요)"}
+    ]
+  }]
+)
+
+IF "Google Stitch" 선택:
+  # GCP 인증 확인
+  Bash(~/.claude/plugins/frontend-skills/scripts/setup-stitch-gcp.sh --check-only)
+
+  IF 인증 실패:
+    AskUserQuestion(
+      questions: [{
+        question: "GCP 인증이 필요합니다. 지금 설정하시겠습니까?",
+        header: "GCP Setup",
+        options: [
+          {label: "Yes", description: "GCP 인증 설정 시작"},
+          {label: "No", description: "ASCII Wireframe으로 진행"}
+        ]
+      }]
+    )
+
+    IF "Yes":
+      Bash(~/.claude/plugins/frontend-skills/scripts/setup-stitch-gcp.sh)
+    ELSE:
+      uiMode = "ascii"
+  ELSE:
+    uiMode = "stitch"
+ELSE:
+  uiMode = "ascii"
+
+# _meta.json에 uiMode 저장
 ```
 
 #### Step 0.R: Resume 모드
