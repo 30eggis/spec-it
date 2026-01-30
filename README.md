@@ -181,17 +181,28 @@ Visual API binding tool for connecting UI elements to REST APIs in React/Next.js
 
 Analyze services/projects and systematically generate documentation.
 
-| 이렇게 말하면... | 동작 |
-|-----------------|------|
-| "이 코드 분석해서 PRD 만들어줘" | hack-2-prd 로딩 |
-| "프로젝트 문서화해줘" | hack-2-prd 로딩 |
-| "hack-2-prd 실행해줘" | 직접 실행 |
+| 이렇게 말하면... | 대상 | 동작 |
+|-----------------|------|------|
+| "src/app 분석해서 PRD 만들어줘" | 코드 경로 | 로컬 코드 분석 |
+| "http://localhost:3000 PRD로 만들어줘" | 개발 서버 | 실행 중인 앱 분석 |
+| "https://google.com PRD로 만들어줘" | 외부 URL | 웹사이트 분석 |
+| "이 스크린샷으로 PRD 만들어줘" | 이미지 | 모바일 앱 분석 |
 
 ```
-💬 "이 서비스 분석해서 기획서 만들어줘"
-   → hack-2-prd 자동 로딩
-   → 코드베이스 분석
-   → PRD/SPEC/TASKS 생성
+💬 "./src/app 폴더 분석해서 PRD 만들어줘"
+   → 코드베이스 스캔
+   → 구조/기능 분석
+   → PRD 생성
+
+💬 "http://localhost:8080/ 이거 PRD로 만들어줘"
+   → 개발 서버 접속
+   → UI/기능 분석
+   → PRD 생성
+
+💬 "https://notion.so 분석해서 기획서 만들어줘"
+   → 웹사이트 크롤링
+   → 기능 역분석
+   → PRD 생성
 ```
 
 ### Output Structure
