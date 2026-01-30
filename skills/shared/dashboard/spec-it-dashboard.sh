@@ -210,12 +210,15 @@ render_dashboard() {
 
     echo -e "${BOLD}║${NC}"
 
-    # Stats section
+    # Stats section - calculate from actual files
+    local actual_files=$(find "$SESSION_PATH" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+    local actual_lines=$(find "$SESSION_PATH" -name "*.md" -type f -exec cat {} + 2>/dev/null | wc -l | tr -d ' ')
+
     echo -e "${BOLD}╠══════════════════════════════════════════════════════════════════╣${NC}"
     echo -e "${BOLD}║${NC}  ${WHITE}STATS${NC}"
     echo -e "${BOLD}║${NC}"
-    echo -e "${BOLD}║${NC}  Files: ${GREEN}${files_count}${NC} created"
-    echo -e "${BOLD}║${NC}  Lines: ${GREEN}${lines_count}${NC} written"
+    echo -e "${BOLD}║${NC}  Files: ${GREEN}${actual_files}${NC} created"
+    echo -e "${BOLD}║${NC}  Lines: ${GREEN}${actual_lines}${NC} written"
 
     # Recent files
     if [ -d "$SESSION_PATH" ]; then
