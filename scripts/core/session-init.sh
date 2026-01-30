@@ -53,13 +53,15 @@ cat > "$SESSION_DIR/_status.json" << EOF
 }
 EOF
 
-# Auto-launch dashboard in separate terminal
+# Auto-launch dashboard in separate terminal with logging
 DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"
 if [ -x "$DASHBOARD_SCRIPT" ]; then
-  nohup "$DASHBOARD_SCRIPT" "$SESSION_DIR" > /dev/null 2>&1 &
+  LOG_FILE="/tmp/spec-it-dashboard-$(date +%Y%m%d%H%M%S).log"
+  nohup "$DASHBOARD_SCRIPT" "$SESSION_DIR" >> "$LOG_FILE" 2>&1 &
   echo "DASHBOARD:launched"
+  echo "DASHBOARD_LOG:$LOG_FILE"
 else
-  echo "DASHBOARD:not_found"
+  echo "DASHBOARD:not_found" >&2
 fi
 
 echo "SESSION_ID:$SESSION_ID"

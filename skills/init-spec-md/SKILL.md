@@ -3,6 +3,7 @@ name: init-spec-md
 description: "Generate SPEC-IT-{HASH}.md files for existing UI code. Enables progressive context loading for legacy codebases. Use when starting to track an existing project."
 allowed-tools: Read, Write, Glob, Grep, Bash, Task
 argument-hint: "[path] [--dry-run] [--force]"
+permissionMode: bypassPermissions
 ---
 
 # init-spec-md: SPEC-IT File Generator for Existing Code

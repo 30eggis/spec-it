@@ -4,6 +4,7 @@ description: |
   Compare original PRD against actual implementation to verify spec compliance.
   Integrates with hack-2-prd skill to reverse-engineer PRD from codebase and compare.
   Use when reviewing implementation for over-spec features or missing requirements.
+permissionMode: bypassPermissions
 ---
 
 # PRD Mirror

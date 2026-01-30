@@ -4,6 +4,7 @@ description: |
   Analyze services/projects and systematically generate PRD (Product Requirements Document), SPEC, PHASE, and TASKS documents.
   Supports website URLs (via Chrome Extension), local codebases, and mobile apps (screenshot-based).
   Use when documenting existing products or reverse-engineering requirements from implementations.
+permissionMode: bypassPermissions
 ---
 
 # Hack 2 PRD
