@@ -260,57 +260,86 @@ Compare original PRD against actual implementation to verify spec compliance.
 
 ---
 
-## Agents (20 Total)
+## Agents (27 Total)
 
-### Specification Agents
+### Design & Planning Agents
 
-| Agent | Model | Role |
+| Agent | Model | 역할 |
 |-------|-------|------|
-| `design-interviewer` | Opus | Brainstorming Q&A facilitator |
-| `divergent-thinker` | Sonnet | Alternatives and creative thinking |
-| `chapter-critic` | Opus | Critical validation (3 rounds) |
-| `chapter-planner` | Opus | Chapter structure finalization |
-| `ui-architect` | Sonnet | Wireframe and layout design |
+| `design-interviewer` | Opus | 브레인스토밍 Q&A 진행자 |
+| `divergent-thinker` | Sonnet | 대안 탐색, 창의적 사고 |
+| `chapter-planner` | Opus | 챕터 구조 최종 확정 |
+| `ui-architect` | Sonnet | ASCII 와이어프레임 설계 |
+
+### Multi-Agent Debate (Critic System)
+
+병렬로 3명의 critic이 검토 후 moderator가 합의 도출:
+
+```
+┌─────────────┬─────────────┬─────────────┐
+│critic-logic │critic-feasi.│critic-frontend│  ← 병렬 실행
+└──────┬──────┴──────┬──────┴──────┬──────┘
+       └─────────────┼─────────────┘
+                     ▼
+             critic-moderator              ← 합의 도출
+```
+
+| Agent | Model | 검증 영역 |
+|-------|-------|----------|
+| `critic-logic` | Sonnet | 논리 일관성, 중복/누락, 의존 순서 |
+| `critic-feasibility` | Sonnet | 실현 가능성, 완료 기준, 테스트 가능성 |
+| `critic-frontend` | Sonnet | UI/UX, 컴포넌트 재사용, 반응형/접근성 |
+| `critic-moderator` | Opus | 3명 합의 도출, 충돌 해결, 최종 Verdict |
+
+> `chapter-critic`은 레거시 (단일 에이전트 3라운드 방식)
 
 ### Component Agents
 
-| Agent | Model | Role |
+| Agent | Model | 역할 |
 |-------|-------|------|
-| `component-auditor` | Haiku | Component scanning and inventory |
-| `component-builder` | Sonnet | Component specification writer |
-| `component-migrator` | Sonnet | Migration strategy planner |
+| `component-auditor` | Haiku | 기존 컴포넌트 스캔, 인벤토리 생성 |
+| `component-builder` | Sonnet | 신규 컴포넌트 스펙 작성 |
+| `component-migrator` | Sonnet | 컴포넌트 마이그레이션 계획 |
 
 ### Review Agents
 
-| Agent | Model | Role |
+| Agent | Model | 역할 |
 |-------|-------|------|
-| `critical-reviewer` | Opus | Scenario/IA/Exception review |
-| `ambiguity-detector` | Opus | Ambiguity and gap detection |
-| `spec-critic` | Opus | Plan validation (4-pillar review) |
+| `critical-reviewer` | Opus | 시나리오/IA/예외 상황 리뷰 |
+| `ambiguity-detector` | Opus | 모호성 탐지, 질문 생성 |
+| `spec-critic` | Opus | 실행 계획 검증 (4 pillar) |
 
 ### Test Agents
 
-| Agent | Model | Role |
+| Agent | Model | 역할 |
 |-------|-------|------|
-| `persona-architect` | Sonnet | User persona definition |
-| `test-spec-writer` | Sonnet | Test specification author |
+| `persona-architect` | Sonnet | 사용자 페르소나 정의 |
+| `test-spec-writer` | Sonnet | TDD 테스트 스펙 작성, 80%+ 커버리지 |
 
 ### Execution Agents
 
-| Agent | Model | Role |
+| Agent | Model | 역할 |
 |-------|-------|------|
-| `spec-executor` | Opus | Multi-file implementation |
-| `code-reviewer` | Opus | Two-stage code review |
-| `security-reviewer` | Opus | OWASP Top 10 audit |
-| `screen-vision` | Sonnet | Visual/mockup analysis |
+| `spec-executor` | Opus | 다중 파일 구현, HTML 레퍼런스 지원 |
+| `code-reviewer` | Opus | 2단계 코드 리뷰 (스펙 준수 → 품질) |
+| `security-reviewer` | Opus | OWASP Top 10 보안 감사 |
+| `screen-vision` | Sonnet | 스크린샷/목업 분석 |
+
+### Stitch Agents (Google Stitch MCP)
+
+| Agent | Model | 역할 |
+|-------|-------|------|
+| `stitch-controller` | Sonnet | Stitch 전체 워크플로우 자동 제어 |
+| `stitch-installer` | Haiku | 의존성 설치, OAuth, 프로젝트 생성 |
+| `stitch-ui-designer` | Sonnet | 텍스트 → Hi-Fi UI 생성 |
 
 ### Utility Agents
 
-| Agent | Model | Role |
+| Agent | Model | 역할 |
 |-------|-------|------|
-| `spec-assembler` | Haiku | Final document assembly |
-| `spec-md-generator` | Haiku | SPEC-IT file creation |
-| `spec-md-maintainer` | Haiku | SPEC-IT file maintenance |
+| `spec-assembler` | Haiku | 최종 문서 조립 |
+| `spec-md-generator` | Haiku | SPEC-IT 파일 생성 |
+| `spec-md-maintainer` | Haiku | SPEC-IT 파일 유지보수 |
 
 ---
 
