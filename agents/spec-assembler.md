@@ -2,8 +2,9 @@
 name: spec-assembler
 description: "Final specification assembly. Priority organization. Use for assembling final specification document with prioritized tasks."
 model: haiku
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Glob]
+allowedTools: [Read, Write, Glob]
 ---
 
 # Spec Assembler

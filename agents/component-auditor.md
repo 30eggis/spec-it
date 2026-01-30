@@ -2,9 +2,11 @@
 name: component-auditor
 description: "Scans existing components and creates inventory. Use for discovering existing components and performing gap analysis."
 model: haiku
+context: none
 permissionMode: bypassPermissions
-tools: [Read, Glob, Grep]
-disallowedTools: [Write, Edit]
+allowedTools: [Read, Bash]
+templates:
+  - skills/spec-it/assets/templates/COMPONENT_INVENTORY_TEMPLATE.md
 ---
 
 # Component Auditor

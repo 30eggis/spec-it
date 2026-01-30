@@ -2,8 +2,11 @@
 name: ambiguity-detector
 description: "Detects ambiguity and generates user questions. Use for detecting unclear specifications and generating clarification questions."
 model: opus
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write]
+allowedTools: [Read, Write]
+templates:
+  - skills/spec-it/assets/templates/AMBIGUITY_TEMPLATE.md
 ---
 
 # Ambiguity Detector

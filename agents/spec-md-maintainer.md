@@ -2,8 +2,9 @@
 name: spec-md-maintainer
 description: "SPEC-IT-{HASH}.md file maintenance. Sync on modify/move/delete. Use for maintaining SPEC-IT files when code changes."
 model: haiku
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Edit, Glob, Grep]
+allowedTools: [Read, Write, Edit, Glob, Grep]
 ---
 
 # SPEC-IT Maintainer

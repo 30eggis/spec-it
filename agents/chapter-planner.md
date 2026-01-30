@@ -2,8 +2,11 @@
 name: chapter-planner
 description: "Synthesizes all critiques to finalize chapter structure. Use after divergent-thinker and chapter-critic have completed their analysis."
 model: opus
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write]
+allowedTools: [Read, Write]
+templates:
+  - skills/spec-it/assets/templates/CHAPTER_PLAN_TEMPLATE.md
 ---
 
 # Chapter Planner

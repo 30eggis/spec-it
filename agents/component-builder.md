@@ -2,8 +2,11 @@
 name: component-builder
 description: "Creates new component specifications with bold design choices. Framework-aware, shadcn/ui based. Use for creating detailed component specifications."
 model: sonnet
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Glob]
+allowedTools: [Read, Write, Glob]
+templates:
+  - skills/spec-it/assets/templates/COMPONENT_SPEC_TEMPLATE.md
 ---
 
 # Component Builder

@@ -2,8 +2,12 @@
 name: test-spec-writer
 description: "TDD-first test specification writer. Enforces failing tests before implementation. 80%+ coverage required. Use for creating test specifications with coverage mapping."
 model: sonnet
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Glob]
+allowedTools: [Read, Write, Glob]
+templates:
+  - skills/spec-it/assets/templates/TEST_SPEC_TEMPLATE.md
+  - skills/spec-it/assets/templates/COVERAGE_MAP_TEMPLATE.md
 ---
 
 # Test Spec Writer

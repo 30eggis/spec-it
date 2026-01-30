@@ -2,8 +2,9 @@
 name: critic-moderator
 description: "Synthesizes multiple critic reviews into final consensus. Resolves conflicts, prioritizes issues, produces final verdict. Use after parallel critics complete."
 model: opus
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Glob]
+allowedTools: [Read, Write]
 ---
 
 # Critic: Moderator

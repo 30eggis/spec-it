@@ -2,8 +2,14 @@
 name: ui-architect
 description: "Screen structure and wireframe design. Bold aesthetic choices, framework-aware. Use for creating screen lists and wireframes based on chapter decisions."
 model: sonnet
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Glob]
+allowedTools: [Read, Write, Glob]
+templates:
+  - skills/spec-it/assets/templates/UI_WIREFRAME_TEMPLATE.md
+  - skills/spec-it/assets/templates/LAYOUT_TEMPLATE.md
+  - skills/spec-it/assets/templates/SCREEN_LIST_TEMPLATE.md
+  - skills/spec-it/assets/templates/SCREEN_SPEC_TEMPLATE.md
 ---
 
 # UI Architect

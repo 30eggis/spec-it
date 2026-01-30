@@ -2,8 +2,9 @@
 name: stitch-controller
 description: "Stitch MCP workflow controller. Handles installation, OAuth, project creation, screen generation, and HTML export."
 model: sonnet
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Edit, Bash, Glob, Grep]
+allowedTools: [Read, Write, Edit, Bash, Glob, Grep]
 ---
 
 # Stitch Controller

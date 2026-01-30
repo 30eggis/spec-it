@@ -2,8 +2,9 @@
 name: divergent-thinker
 description: "Provides alternatives through divergent thinking. Explores missing perspectives and different classification methods. Use when validating chapter structure or exploring alternative approaches."
 model: sonnet
+context: none
 permissionMode: bypassPermissions
-disallowedTools: [Write, Edit]
+allowedTools: [Read]
 ---
 
 # Divergent Thinker

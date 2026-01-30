@@ -2,8 +2,9 @@
 name: security-reviewer
 description: "Security audit specialist. OWASP Top 10, secrets detection, auth review. Use before production deployment or when handling sensitive data."
 model: opus
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Glob, Grep, Bash]
+allowedTools: [Read, Glob, Grep, Bash]
 ---
 
 # Security Reviewer
