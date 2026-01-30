@@ -110,7 +110,15 @@ _meta.designTrendsPath = DESIGN_TRENDS_PATH
 ### Step 0.1: Session Init
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh {sessionId} {uiMode}
+# Generate session and get SESSION_DIR
+# IMPORTANT: workDir is the current working directory where tmp/ folder will be created
+result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh "" {uiMode} "$(pwd)"
+
+# Parse output to get SESSION_DIR (full absolute path)
+# Output format: SESSION_ID:xxx, SESSION_DIR:/path/to/tmp/xxx
+sessionId = extract SESSION_ID from result
+sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all status-update calls
+
 → Auto-launches dashboard
 ```
 
@@ -129,13 +137,13 @@ IF --resume in args:
 ### Step 1.1: Requirements
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} agent-start design-interviewer
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start design-interviewer
 
 Task(design-interviewer, opus):
   Output: 00-requirements/requirements.md
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} agent-complete design-interviewer
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 1.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete design-interviewer
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionDir} 1.1
 ```
 
 ### Step 1.2: Divergent Thinking
@@ -171,7 +179,7 @@ Task(critic-moderator, opus):
 Task(chapter-planner, opus):
   Output: 01-chapters/chapter-plan-final.md
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 16 1.4 1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} progress 16 1.4 1
 ```
 
 ---
@@ -181,7 +189,7 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/sta
 ### Step 2.1: UI Architecture
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ui
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionDir} ui
 → Returns: DISPATCH:stitch-convert OR DISPATCH:ascii-wireframe
 ```
 
@@ -282,7 +290,7 @@ Task(component-builder, sonnet, parallel):
 Task(component-migrator, sonnet, parallel):
   Output: 03-components/migrations/migration-plan.md
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 33 2.2 2
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} progress 33 2.2 2
 ```
 
 ---
@@ -304,7 +312,7 @@ WAIT for both
 ### Step 3.2: Ambiguity Resolution
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ambiguity
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionDir} ambiguity
 
 IF DISPATCH:user-question:
   Read: 04-review/ambiguities.md
@@ -318,7 +326,7 @@ IF DISPATCH:user-question:
 ELSE:
   Auto-proceed
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 50 3.2 3
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} progress 50 3.2 3
 ```
 
 ---
@@ -334,7 +342,7 @@ Task(test-spec-writer, sonnet, parallel):
 
 WAIT for both
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 66 4.1 4
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} progress 66 4.1 4
 ```
 
 ---
@@ -348,7 +356,7 @@ Task(spec-assembler, haiku):
   - 06-final/dev-tasks.md
   - 06-final/SPEC-SUMMARY.md
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 83 5.1 5
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} progress 83 5.1 5
 ```
 
 ---
@@ -364,7 +372,7 @@ Options: [Archive, Keep, Delete]
 IF Archive: mv tmp/{sessionId} archive/
 IF Delete: rm -rf tmp/{sessionId}
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} complete
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
 ```
 
 ---

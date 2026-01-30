@@ -1,15 +1,35 @@
 #!/bin/bash
 # phase-dispatcher.sh - Dispatch phase based on uiMode and current state
-# Usage: phase-dispatcher.sh <sessionId> <phase> [baseDir]
+# Usage: phase-dispatcher.sh <sessionId|sessionDir> <phase> [baseDir]
 # Returns: DISPATCH:{action}
+#
+# sessionId can be:
+#   - Just the ID (e.g., 20260131-024252) - will search in baseDir/tmp/
+#   - Full path to session dir (e.g., /path/to/tmp/20260131-024252)
 
 set -e
 
-SESSION_ID="$1"
+SESSION_ARG="$1"
 PHASE="$2"
 BASE_DIR="${3:-.}"
 
-SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
+# Determine SESSION_DIR
+if [ -d "$SESSION_ARG" ] && [ -f "$SESSION_ARG/_meta.json" ]; then
+  SESSION_DIR="$SESSION_ARG"
+  SESSION_ID=$(basename "$SESSION_DIR")
+elif [ -d "$BASE_DIR/tmp/$SESSION_ARG" ]; then
+  SESSION_ID="$SESSION_ARG"
+  SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
+else
+  SESSION_ID="$SESSION_ARG"
+  for search_dir in "$BASE_DIR" "$(pwd)" "$HOME"; do
+    if [ -d "$search_dir/tmp/$SESSION_ID" ]; then
+      SESSION_DIR="$search_dir/tmp/$SESSION_ID"
+      break
+    fi
+  done
+fi
+
 META_FILE="$SESSION_DIR/_meta.json"
 
 if [ ! -f "$META_FILE" ]; then

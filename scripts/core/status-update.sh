@@ -1,25 +1,54 @@
 #!/bin/bash
 # status-update.sh - Update _status.json for dashboard + runtime-log.md
-# Usage: status-update.sh <sessionId> <action> [args...] [baseDir]
+# Usage: status-update.sh <sessionId|sessionDir> <action> [args...] [baseDir]
 # Actions: agent-start, agent-complete, progress, file-created, error
+#
+# sessionId can be:
+#   - Just the ID (e.g., 20260131-024252) - will search in baseDir/tmp/
+#   - Full path to session dir (e.g., /path/to/tmp/20260131-024252)
 
 set -e
 
-SESSION_ID="$1"
+SESSION_ARG="$1"
 ACTION="$2"
 shift 2
 
 # Find baseDir (last arg if it's a directory)
 ARGS=("$@")
 BASE_DIR="."
-if [ ${#ARGS[@]} -gt 0 ] && [ -d "${ARGS[-1]}/tmp/$SESSION_ID" ]; then
-  BASE_DIR="${ARGS[-1]}"
-  unset 'ARGS[-1]'
+if [ ${#ARGS[@]} -gt 0 ]; then
+  LAST_ARG="${ARGS[-1]}"
+  if [ -d "$LAST_ARG" ]; then
+    BASE_DIR="$LAST_ARG"
+    unset 'ARGS[-1]'
+  fi
 fi
 
-SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
+# Determine SESSION_DIR
+if [ -d "$SESSION_ARG" ] && [ -f "$SESSION_ARG/_status.json" ]; then
+  # SESSION_ARG is already a full path to session directory
+  SESSION_DIR="$SESSION_ARG"
+  SESSION_ID=$(basename "$SESSION_DIR")
+elif [ -d "$BASE_DIR/tmp/$SESSION_ARG" ]; then
+  # SESSION_ARG is just the session ID
+  SESSION_ID="$SESSION_ARG"
+  SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
+else
+  # Try to find session directory by searching common locations
+  SESSION_ID="$SESSION_ARG"
+  for search_dir in "$BASE_DIR" "$(pwd)" "$HOME"; do
+    if [ -d "$search_dir/tmp/$SESSION_ID" ]; then
+      SESSION_DIR="$search_dir/tmp/$SESSION_ID"
+      break
+    fi
+  done
+fi
+
 STATUS_FILE="$SESSION_DIR/_status.json"
 RUNTIME_LOG="$SESSION_DIR/runtime-log.md"
+
+# Debug output
+echo "DEBUG:SESSION_DIR=$SESSION_DIR" >&2
 
 if [ ! -f "$STATUS_FILE" ]; then
   echo "ERROR:STATUS_NOT_FOUND"

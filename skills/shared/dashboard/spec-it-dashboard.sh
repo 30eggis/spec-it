@@ -16,9 +16,14 @@ DIM='\033[2m'
 NC='\033[0m' # No Color
 BOLD='\033[1m'
 
-# Find session path
+# Find session path (convert to absolute path)
 if [ -n "$1" ]; then
-    SESSION_PATH="$1"
+    # Convert to absolute path if relative
+    if [[ "$1" = /* ]]; then
+        SESSION_PATH="$1"
+    else
+        SESSION_PATH="$(cd "$1" 2>/dev/null && pwd)" || SESSION_PATH="$1"
+    fi
 else
     # Auto-detect latest session using absolute paths
     SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -96,22 +101,45 @@ render_dashboard() {
     local session_id phase step progress runtime files_count lines_count
     local start_time current_time
 
+    # Helper function: Convert ISO timestamp to Unix timestamp (macOS compatible)
+    iso_to_unix() {
+        local iso_ts="$1"
+        if [ -z "$iso_ts" ] || [ "$iso_ts" = "null" ] || [ "$iso_ts" = "0" ]; then
+            echo 0
+            return
+        fi
+        # Extract datetime part (before +/- timezone)
+        local dt_part=$(echo "$iso_ts" | sed 's/[+-][0-9][0-9]:[0-9][0-9]$//' | sed 's/T/ /')
+        # Try macOS date format
+        date -j -f "%Y-%m-%d %H:%M:%S" "$dt_part" "+%s" 2>/dev/null || \
+        # Try Linux date format
+        date -d "$iso_ts" "+%s" 2>/dev/null || \
+        echo 0
+    }
+
     if [ -f "$STATUS_FILE" ]; then
-        session_id=$(jq -r '.sessionId // "unknown"' "$STATUS_FILE" 2>/dev/null)
-        phase=$(jq -r '.currentPhase // 1' "$STATUS_FILE" 2>/dev/null)
-        step=$(jq -r '.currentStep // "1.1"' "$STATUS_FILE" 2>/dev/null)
-        progress=$(jq -r '.progress // 0' "$STATUS_FILE" 2>/dev/null)
-        start_time=$(jq -r '.startTime // 0' "$STATUS_FILE" 2>/dev/null)
-        files_count=$(jq -r '.stats.filesCreated // 0' "$STATUS_FILE" 2>/dev/null)
-        lines_count=$(jq -r '.stats.linesWritten // 0' "$STATUS_FILE" 2>/dev/null)
+        session_id=$(jq -r '.sessionId // "unknown"' "$STATUS_FILE" 2>/dev/null || echo "unknown")
+        phase=$(jq -r '.currentPhase // 1' "$STATUS_FILE" 2>/dev/null || echo 1)
+        step=$(jq -r '.currentStep // "1.1"' "$STATUS_FILE" 2>/dev/null || echo "1.1")
+        progress=$(jq -r '.progress // 0' "$STATUS_FILE" 2>/dev/null || echo 0)
+        local start_time_iso=$(jq -r '.startTime // ""' "$STATUS_FILE" 2>/dev/null || echo "")
+        start_time=$(iso_to_unix "$start_time_iso")
+        files_count=$(jq -r '.stats.filesCreated // 0' "$STATUS_FILE" 2>/dev/null || echo 0)
+        lines_count=$(jq -r '.stats.linesWritten // 0' "$STATUS_FILE" 2>/dev/null || echo 0)
     elif [ -f "$META_FILE" ]; then
-        session_id=$(jq -r '.sessionId // "unknown"' "$META_FILE" 2>/dev/null)
-        phase=$(jq -r '.currentPhase // 1' "$META_FILE" 2>/dev/null)
-        step=$(jq -r '.currentStep // "1.1"' "$META_FILE" 2>/dev/null)
+        session_id=$(jq -r '.sessionId // "unknown"' "$META_FILE" 2>/dev/null || echo "unknown")
+        phase=$(jq -r '.currentPhase // 1' "$META_FILE" 2>/dev/null || echo 1)
+        step=$(jq -r '.currentStep // "1.1"' "$META_FILE" 2>/dev/null || echo "1.1")
         progress=$((phase * 100 / 6))
-        start_time=$(date -j -f "%Y-%m-%dT%H:%M:%S" "$(jq -r '.startTime // empty' "$META_FILE" 2>/dev/null | cut -d'+' -f1)" "+%s" 2>/dev/null || echo 0)
+        local start_time_iso=$(jq -r '.lastCheckpoint // ""' "$META_FILE" 2>/dev/null || echo "")
+        start_time=$(iso_to_unix "$start_time_iso")
         files_count=$(find "$SESSION_PATH" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
         lines_count=$(find "$SESSION_PATH" -name "*.md" -type f -exec wc -l {} + 2>/dev/null | tail -1 | awk '{print $1}' || echo 0)
+    fi
+
+    # Ensure progress is a valid number
+    if ! [[ "$progress" =~ ^[0-9]+$ ]]; then
+        progress=0
     fi
 
     # Calculate runtime

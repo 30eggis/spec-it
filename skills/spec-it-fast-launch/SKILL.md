@@ -43,8 +43,13 @@ See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rule
 ### Step 0.1: Session Init
 
 ```
-sessionId = generate UUID
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh {sessionId} ascii
+# Generate session and get SESSION_DIR
+result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh "" ascii "$(pwd)"
+
+# Parse output to get SESSION_DIR (full absolute path)
+sessionId = extract SESSION_ID from result
+sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script calls
+
 → Creates folders, _meta.json, _status.json
 ```
 
@@ -248,7 +253,7 @@ Task(spec-assembler, haiku):
        - Color token summary
   "
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} complete
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
 ```
 
 ### Step 3.2: Done

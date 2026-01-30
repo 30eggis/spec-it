@@ -103,7 +103,13 @@ _meta.designTrendsPath = DESIGN_TRENDS_PATH
 ### Step 0.1: Session Init
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh {sessionId} {uiMode}
+# Generate session and get SESSION_DIR
+result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh "" {uiMode} "$(pwd)"
+
+# Parse output to get SESSION_DIR (full absolute path)
+sessionId = extract SESSION_ID from result
+sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script calls
+
 → Creates folders, _meta.json, _status.json
 → Auto-launches dashboard in separate terminal
 ```
@@ -316,7 +322,7 @@ Task(spec-assembler, haiku):
 AskUserQuestion: "Spec complete. Handle tmp folder?"
 Options: [Archive, Keep, Delete]
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} complete
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
 ```
 
 ---

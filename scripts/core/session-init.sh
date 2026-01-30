@@ -11,7 +11,15 @@ SESSION_ID="${1:-$(date +%Y%m%d-%H%M%S)}"
 UI_MODE="${2:-ascii}"
 WORK_DIR="${3:-$(pwd)}"
 
+# Convert to absolute path
+if [[ "$WORK_DIR" != /* ]]; then
+    WORK_DIR="$(cd "$WORK_DIR" 2>/dev/null && pwd)" || WORK_DIR="$(pwd)"
+fi
+
 SESSION_DIR="$WORK_DIR/tmp/$SESSION_ID"
+
+echo "DEBUG:WORK_DIR=$WORK_DIR"
+echo "DEBUG:SESSION_DIR=$SESSION_DIR"
 
 # Create folder structure
 mkdir -p "$SESSION_DIR"/{00-requirements,01-chapters/{decisions,alternatives},02-screens/{wireframes,layouts},03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
