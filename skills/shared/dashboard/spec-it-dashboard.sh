@@ -167,8 +167,34 @@ render_dashboard() {
         lines_count=$(find "$SESSION_PATH" -name "*.md" -type f -exec wc -l {} + 2>/dev/null | tail -1 | awk '{print $1}' || echo 0)
     fi
 
-    # Dynamic progress calculation based on folder content
+    # Dynamic progress calculation based on folder content or phase
     calculate_progress() {
+        local current_mode="$1"
+        local current_phase="$2"
+
+        # Execute mode: calculate by phase and completedPhases
+        if [ "$current_mode" = "execute" ]; then
+            local completed_phases=$(jq -r '.completedPhases | length' "$STATUS_FILE" 2>/dev/null || echo 0)
+            local qa_attempts=$(jq -r '.qaAttempts // 0' "$STATUS_FILE" 2>/dev/null || echo 0)
+
+            # Base progress on completed phases (20% each for 5 phases)
+            local calc_progress=$((completed_phases * 20))
+
+            # Add partial progress for current phase
+            case "$current_phase" in
+                1) calc_progress=$((calc_progress + 5)) ;;   # LOAD in progress
+                2) calc_progress=$((calc_progress + 10)) ;;  # PLAN in progress
+                3) calc_progress=$((calc_progress + 10)) ;;  # EXECUTE in progress
+                4) calc_progress=$((calc_progress + 5 + qa_attempts * 3)) ;;  # QA with attempts
+                5) calc_progress=$((calc_progress + 10)) ;;  # VALIDATE in progress
+            esac
+
+            [ "$calc_progress" -gt 100 ] && calc_progress=100
+            echo "$calc_progress"
+            return
+        fi
+
+        # Spec-it mode: calculate by folder content
         local req_files=$(find "$SESSION_PATH/00-requirements" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
         local ch_files=$(find "$SESSION_PATH/01-chapters" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
         local scr_files=$(find "$SESSION_PATH/02-screens" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
@@ -188,9 +214,8 @@ render_dashboard() {
         if [ "$is_fast_launch" -eq 1 ]; then
             # Fast-launch mode: Requirements(20%) + Wireframes(70%) + Final(10%)
             [ "$req_files" -gt 0 ] && calc_progress=$((calc_progress + 20))
-            [ "$scr_files" -gt 0 ] && calc_progress=$((calc_progress + 10 + scr_files * 4))  # Dynamic based on wireframe count
+            [ "$scr_files" -gt 0 ] && calc_progress=$((calc_progress + 10 + scr_files * 4))
             [ "$final_files" -gt 0 ] && calc_progress=100
-            # Cap at 95 if not final
             [ "$calc_progress" -gt 95 ] && [ "$final_files" -eq 0 ] && calc_progress=95
         else
             # Standard mode: weighted by phase
@@ -206,14 +231,6 @@ render_dashboard() {
         echo "$calc_progress"
     }
 
-    # Override progress with dynamic calculation
-    progress=$(calculate_progress)
-
-    # Ensure progress is a valid number
-    if ! [[ "$progress" =~ ^[0-9]+$ ]]; then
-        progress=0
-    fi
-
     # Calculate runtime
     current_time=$(date +%s)
     if [ "$start_time" -gt 0 ] 2>/dev/null; then
@@ -222,21 +239,68 @@ render_dashboard() {
         runtime=0
     fi
 
-    # Get phase name
+    # Detect mode: spec-it (generation) vs spec-it-execute (implementation)
+    local mode="spec-it"
+    local total_phases=6
+    local mode_label="SPEC-IT"
+
+    # Check for execute mode indicators
+    if [ -f "$STATUS_FILE" ]; then
+        local spec_source=$(jq -r '.specSource // ""' "$STATUS_FILE" 2>/dev/null)
+        local qa_attempts=$(jq -r '.qaAttempts // ""' "$STATUS_FILE" 2>/dev/null)
+        if [ -n "$spec_source" ] || [ -n "$qa_attempts" ]; then
+            mode="execute"
+            total_phases=5
+            mode_label="SPEC-IT EXECUTE"
+        fi
+    fi
+
+    # Also detect by path pattern
+    if [[ "$SESSION_PATH" == *".spec-it/execute"* ]]; then
+        mode="execute"
+        total_phases=5
+        mode_label="SPEC-IT EXECUTE"
+    fi
+
+    # Get phase name based on mode
     local phase_name
-    case "$phase" in
-        1) phase_name="Design Brainstorming" ;;
-        2) phase_name="UI Architecture" ;;
-        3) phase_name="Critical Review" ;;
-        4) phase_name="Test Specification" ;;
-        5) phase_name="Final Assembly" ;;
-        6) phase_name="Complete" ;;
-        *) phase_name="Initializing" ;;
-    esac
+    if [ "$mode" = "execute" ]; then
+        case "$phase" in
+            1) phase_name="LOAD" ;;
+            2) phase_name="PLAN" ;;
+            3) phase_name="EXECUTE" ;;
+            4) phase_name="QA" ;;
+            5) phase_name="VALIDATE" ;;
+            6) phase_name="Complete" ;;
+            *) phase_name="Initializing" ;;
+        esac
+    else
+        case "$phase" in
+            1) phase_name="Design Brainstorming" ;;
+            2) phase_name="UI Architecture" ;;
+            3) phase_name="Critical Review" ;;
+            4) phase_name="Test Specification" ;;
+            5) phase_name="Final Assembly" ;;
+            6) phase_name="Complete" ;;
+            *) phase_name="Initializing" ;;
+        esac
+    fi
+
+    # Calculate progress dynamically based on mode
+    progress=$(calculate_progress "$mode" "$phase")
+
+    # Ensure progress is a valid number
+    if ! [[ "$progress" =~ ^[0-9]+$ ]]; then
+        progress=0
+    fi
 
     # Header
     echo -e "${BOLD}╔══════════════════════════════════════════════════════════════════╗${NC}"
-    echo -e "${BOLD}║${NC}  ${CYAN}SPEC-IT DASHBOARD${NC}                    Runtime: ${WHITE}$(format_duration $runtime)${NC}  ${BOLD}║${NC}"
+    if [ "$mode" = "execute" ]; then
+        echo -e "${BOLD}║${NC}  ${GREEN}${mode_label}${NC}                  Runtime: ${WHITE}$(format_duration $runtime)${NC}  ${BOLD}║${NC}"
+    else
+        echo -e "${BOLD}║${NC}  ${CYAN}${mode_label} DASHBOARD${NC}                    Runtime: ${WHITE}$(format_duration $runtime)${NC}  ${BOLD}║${NC}"
+    fi
     echo -e "${BOLD}╠══════════════════════════════════════════════════════════════════╣${NC}"
 
     # Session info
@@ -244,7 +308,7 @@ render_dashboard() {
     echo -e "${BOLD}║${NC}"
 
     # Progress
-    echo -e "${BOLD}║${NC}  Phase: ${WHITE}${phase}/6${NC} - ${CYAN}${phase_name}${NC}"
+    echo -e "${BOLD}║${NC}  Phase: ${WHITE}${phase}/${total_phases}${NC} - ${CYAN}${phase_name}${NC}"
     echo -e "${BOLD}║${NC}  Step:  ${WHITE}${step}${NC}"
     echo -e "${BOLD}║${NC}  $(progress_bar $progress)"
     echo -e "${BOLD}║${NC}"
