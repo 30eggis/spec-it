@@ -2,5 +2,18 @@
   "name": "frontend-skills",
   "version": "1.0.0",
   "description": "A collection of useful skills for frontend development and documentation",
-  "skills": "./skills/"
+  "skills": "./skills/",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill(spec-it*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "~/.claude/plugins/frontend-skills/scripts/core/pre-init.sh"
+          }
+        ]
+      }
+    ]
+  }
 }
