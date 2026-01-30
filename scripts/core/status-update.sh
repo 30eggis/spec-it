@@ -194,11 +194,31 @@ case "$ACTION" in
 
     echo "ERROR_LOGGED:$ERROR_MSG"
     ;;
+  "waiting")
+    # Set waiting for user input flag
+    WAITING_MSG="${ARGS[0]:-Waiting for user input}"
+    jq --arg ts "$TIMESTAMP" --arg msg "$WAITING_MSG" '
+      .waitingForUser = true |
+      .waitingMessage = $msg |
+      .lastUpdate = $ts
+    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    echo "WAITING:$WAITING_MSG"
+    ;;
+  "resume")
+    # Clear waiting for user input flag
+    jq --arg ts "$TIMESTAMP" '
+      .waitingForUser = false |
+      .waitingMessage = null |
+      .lastUpdate = $ts
+    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    echo "RESUMED"
+    ;;
   "complete")
     # Update _status.json
     jq --arg ts "$TIMESTAMP" '
       .status = "completed" |
       .progress = 100 |
+      .waitingForUser = false |
       .lastUpdate = $ts
     ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
 

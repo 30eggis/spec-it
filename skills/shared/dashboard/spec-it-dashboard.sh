@@ -83,6 +83,28 @@ agent_icon() {
     esac
 }
 
+# ASCII art for waiting alert
+show_waiting_alert() {
+    local msg="$1"
+    echo ""
+    echo -e "${YELLOW}╔══════════════════════════════════════════════════════════════════╗${NC}"
+    echo -e "${YELLOW}║${NC}                                                                  ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}                    ${BOLD}${YELLOW}██╗${NC}                                         ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}                    ${BOLD}${YELLOW}██║${NC}     ${WHITE}USER INPUT REQUIRED${NC}              ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}                    ${BOLD}${YELLOW}██║${NC}                                         ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}                    ${BOLD}${YELLOW}╚═╝${NC}                                         ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}                    ${BOLD}${YELLOW}██╗${NC}                                         ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}                    ${BOLD}${YELLOW}╚═╝${NC}                                         ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}                                                                  ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}  ${CYAN}$msg${NC}"
+    printf "${YELLOW}║${NC}%*s${YELLOW}║${NC}\n" 66 ""
+    echo -e "${YELLOW}║${NC}                                                                  ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}         ${DIM}Please respond in the Claude Code terminal${NC}              ${YELLOW}║${NC}"
+    echo -e "${YELLOW}║${NC}                                                                  ${YELLOW}║${NC}"
+    echo -e "${YELLOW}╚══════════════════════════════════════════════════════════════════╝${NC}"
+    echo ""
+}
+
 # Render dashboard
 render_dashboard() {
     clear
@@ -95,6 +117,14 @@ render_dashboard() {
         echo -e "${DIM}Start spec-it in another terminal:${NC}"
         echo -e "  /frontend-skills:spec-it-automation"
         return
+    fi
+
+    # Check for waiting for user input
+    local waiting_for_user=$(jq -r '.waitingForUser // false' "$STATUS_FILE" 2>/dev/null)
+    local waiting_message=$(jq -r '.waitingMessage // "Waiting for user input"' "$STATUS_FILE" 2>/dev/null)
+
+    if [ "$waiting_for_user" = "true" ]; then
+        show_waiting_alert "$waiting_message"
     fi
 
     # Read status
@@ -137,6 +167,48 @@ render_dashboard() {
         lines_count=$(find "$SESSION_PATH" -name "*.md" -type f -exec wc -l {} + 2>/dev/null | tail -1 | awk '{print $1}' || echo 0)
     fi
 
+    # Dynamic progress calculation based on folder content
+    calculate_progress() {
+        local req_files=$(find "$SESSION_PATH/00-requirements" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        local ch_files=$(find "$SESSION_PATH/01-chapters" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        local scr_files=$(find "$SESSION_PATH/02-screens" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        local comp_files=$(find "$SESSION_PATH/03-components" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        local rev_files=$(find "$SESSION_PATH/04-review" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        local test_files=$(find "$SESSION_PATH/05-tests" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        local final_files=$(find "$SESSION_PATH/06-final" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+
+        local calc_progress=0
+
+        # Detect mode: fast-launch skips chapters, components, review, tests
+        local is_fast_launch=0
+        if [ "$scr_files" -gt 0 ] && [ "$ch_files" -eq 0 ]; then
+            is_fast_launch=1
+        fi
+
+        if [ "$is_fast_launch" -eq 1 ]; then
+            # Fast-launch mode: Requirements(20%) + Wireframes(70%) + Final(10%)
+            [ "$req_files" -gt 0 ] && calc_progress=$((calc_progress + 20))
+            [ "$scr_files" -gt 0 ] && calc_progress=$((calc_progress + 10 + scr_files * 4))  # Dynamic based on wireframe count
+            [ "$final_files" -gt 0 ] && calc_progress=100
+            # Cap at 95 if not final
+            [ "$calc_progress" -gt 95 ] && [ "$final_files" -eq 0 ] && calc_progress=95
+        else
+            # Standard mode: weighted by phase
+            [ "$req_files" -gt 0 ] && calc_progress=$((calc_progress + 10))
+            [ "$ch_files" -gt 0 ] && calc_progress=$((calc_progress + 15))
+            [ "$scr_files" -gt 0 ] && calc_progress=$((calc_progress + 25))
+            [ "$comp_files" -gt 0 ] && calc_progress=$((calc_progress + 20))
+            [ "$rev_files" -gt 0 ] && calc_progress=$((calc_progress + 15))
+            [ "$test_files" -gt 0 ] && calc_progress=$((calc_progress + 10))
+            [ "$final_files" -gt 0 ] && calc_progress=100
+        fi
+
+        echo "$calc_progress"
+    }
+
+    # Override progress with dynamic calculation
+    progress=$(calculate_progress)
+
     # Ensure progress is a valid number
     if ! [[ "$progress" =~ ^[0-9]+$ ]]; then
         progress=0
@@ -177,32 +249,48 @@ render_dashboard() {
     echo -e "${BOLD}║${NC}  $(progress_bar $progress)"
     echo -e "${BOLD}║${NC}"
 
-    # Agents section
+    # Agents section with summary
     echo -e "${BOLD}╠══════════════════════════════════════════════════════════════════╣${NC}"
     echo -e "${BOLD}║${NC}  ${WHITE}AGENTS${NC}"
     echo -e "${BOLD}║${NC}"
 
     if [ -f "$STATUS_FILE" ]; then
-        # Read agents from status file
         local agents_json=$(jq -r '.agents // []' "$STATUS_FILE" 2>/dev/null)
+
         if [ "$agents_json" != "[]" ] && [ -n "$agents_json" ]; then
-            echo "$agents_json" | jq -r '.[] | "\(.name)|\(.status)|\(.duration // 0)"' 2>/dev/null | while IFS='|' read -r name status duration; do
-                local icon=$(agent_icon "$status")
-                local status_color
-                case "$status" in
-                    "running") status_color="${GREEN}" ;;
-                    "completed") status_color="${BLUE}" ;;
-                    "error") status_color="${RED}" ;;
-                    *) status_color="${DIM}" ;;
-                esac
-                printf "${BOLD}║${NC}  %s %-25s ${status_color}[%-9s]${NC}" "$icon" "$name" "$status"
-                if [ "$duration" -gt 0 ] 2>/dev/null; then
-                    printf "  %s" "$(format_duration $duration)"
+            # Count by status
+            local running_count=$(echo "$agents_json" | jq -r '[.[] | select(.status == "running")] | length' 2>/dev/null || echo 0)
+            local completed_count=$(echo "$agents_json" | jq -r '[.[] | select(.status == "completed")] | length' 2>/dev/null || echo 0)
+            local error_count=$(echo "$agents_json" | jq -r '[.[] | select(.status == "error")] | length' 2>/dev/null || echo 0)
+            local total_count=$(echo "$agents_json" | jq -r 'length' 2>/dev/null || echo 0)
+
+            # Summary line
+            printf "${BOLD}║${NC}  ${DIM}Total:${NC} %d  " "$total_count"
+            [ "$running_count" -gt 0 ] && printf "${GREEN}●${NC} %d running  " "$running_count"
+            [ "$completed_count" -gt 0 ] && printf "${BLUE}✓${NC} %d done  " "$completed_count"
+            [ "$error_count" -gt 0 ] && printf "${RED}✗${NC} %d error" "$error_count"
+            echo ""
+            echo -e "${BOLD}║${NC}"
+
+            # Show running agents first (highlighted)
+            echo "$agents_json" | jq -r '.[] | select(.status == "running") | "\(.name)|\(.status)|\(.duration // "-")"' 2>/dev/null | while IFS='|' read -r name status duration; do
+                echo -e "${BOLD}║${NC}  ${GREEN}▶${NC} ${WHITE}${name}${NC} ${GREEN}[running]${NC}"
+            done
+
+            # Show recent completed/error agents (last 3)
+            echo "$agents_json" | jq -r '[.[] | select(.status != "running")] | reverse | .[0:3] | .[] | "\(.name)|\(.status)|\(.duration // "-")"' 2>/dev/null | while IFS='|' read -r name status duration; do
+                local icon status_color
+                if [ "$status" = "completed" ]; then
+                    icon="${BLUE}✓${NC}"
+                    status_color="${DIM}"
+                else
+                    icon="${RED}✗${NC}"
+                    status_color="${RED}"
                 fi
-                echo ""
+                echo -e "${BOLD}║${NC}  ${icon} ${status_color}${name}${NC} ${DIM}(${duration})${NC}"
             done
         else
-            echo -e "${BOLD}║${NC}  ${DIM}No agents running${NC}"
+            echo -e "${BOLD}║${NC}  ${DIM}No agents tracked yet${NC}"
         fi
     else
         echo -e "${BOLD}║${NC}  ${DIM}Agent tracking not available${NC}"
