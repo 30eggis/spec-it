@@ -31,9 +31,9 @@ AskUserQuestion: "Select UI design mode"
 Options: ["ASCII Wireframe (Recommended)", "Google Stitch"]
 
 IF Stitch:
-  Bash: ./scripts/verify-stitch-mcp.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/verify-stitch-mcp.sh
   IF exit != 0:
-    Bash: ./scripts/setup-stitch-mcp.sh
+    Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-mcp.sh
     IF exit == 2: RESTART_REQUIRED (MCP needs Claude restart)
     IF exit == 1: Fallback to ASCII
 ```
@@ -41,7 +41,7 @@ IF Stitch:
 ### Step 0.1: Session Init
 
 ```
-Bash: ../../scripts/core/session-init.sh {sessionId} {uiMode}
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh {sessionId} {uiMode}
 → Creates folders, _meta.json, _status.json
 → Auto-launches dashboard in separate terminal
 ```
@@ -83,7 +83,7 @@ CH-07: Non-Functional Requirements
 3. AskUserQuestion: "Is this correct?"
    Options: [Yes, No, Questions]
 
-4. Bash: ../../scripts/core/meta-checkpoint.sh {sessionId} {chapter}
+4. Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} {chapter}
 
 5. IF No/Questions: Revise and re-ask
 ```
@@ -95,7 +95,7 @@ CH-07: Non-Functional Requirements
 ### Step 2.1: Dispatch
 
 ```
-Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ui
 → Returns: DISPATCH:stitch-convert OR DISPATCH:ascii-wireframe
 ```
 
@@ -117,11 +117,11 @@ Output: 02-screens/html/, assets/
 1. Task(ui-architect, sonnet):
    - Generate layout-system.md and screen-list.md
 
-2. Bash: ../../scripts/planners/screen-planner.sh {sessionId}
+2. Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
    → Creates screens.json
 
 3. FOR each batch (4 screens):
-   Bash: ../../scripts/executors/batch-runner.sh {sessionId} wireframe {batchIndex}
+   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/executors/batch-runner.sh {sessionId} wireframe {batchIndex}
 
    Task(ui-architect, sonnet, parallel):
      - Generate wireframe-{screen}.md
@@ -142,7 +142,7 @@ AskUserQuestion: "UI Architecture complete. Continue?"
 ## Phase 3: Component Specification
 
 ```
-Bash: ../../scripts/planners/component-planner.sh {sessionId}
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/component-planner.sh {sessionId}
 
 Task(component-builder, sonnet, parallel):
   Output: 03-components/new/spec-{component}.md
@@ -164,7 +164,7 @@ Task(critical-reviewer, opus):
 Task(ambiguity-detector, opus):
   Output: 04-review/ambiguities.md
 
-Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ambiguity
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ambiguity
 → IF must-resolve: AskUserQuestion for resolution
 ```
 
@@ -193,7 +193,7 @@ Task(spec-assembler, haiku):
 AskUserQuestion: "Spec complete. Handle tmp folder?"
 Options: [Archive, Keep, Delete]
 
-Bash: ../../scripts/core/status-update.sh {sessionId} complete
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} complete
 ```
 
 ---

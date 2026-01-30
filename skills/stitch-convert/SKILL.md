@@ -15,12 +15,12 @@ Convert ASCII wireframes to high-fidelity HTML using Stitch MCP.
 Before using this skill, ensure Stitch MCP is configured:
 
 ```bash
-./scripts/verify-stitch-mcp.sh
+$HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/verify-stitch-mcp.sh
 ```
 
 If not configured:
 ```bash
-./scripts/setup-stitch-mcp.sh
+$HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-mcp.sh
 # Exit code 2 = Claude Code restart required
 ```
 
@@ -50,11 +50,11 @@ If not configured:
 ### Step 1: Verify Setup
 
 ```bash
-./scripts/verify-stitch-mcp.sh
+$HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/verify-stitch-mcp.sh
 ```
 
 - Exit 0: Continue
-- Exit 1: Run `./scripts/setup-stitch-mcp.sh`, may need restart
+- Exit 1: Run `$HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-mcp.sh`, may need restart
 - Exit 2: Inform user to restart Claude Code
 
 If MCP tools are not available, output error and stop.
@@ -195,9 +195,9 @@ See: tmp/{session-id}/02-screens/stitch-project.json
 ### Failure
 ```
 Failed: {reason}
-- MCP not configured: Run ./scripts/setup-stitch-mcp.sh
+- MCP not configured: Run $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-mcp.sh
 - No wireframes found: Generate wireframes first with ui-architect
-- OAuth required: Run node ./scripts/setup-stitch-oauth.mjs
+- OAuth required: Run node $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-oauth.mjs
 ```
 
 ---
