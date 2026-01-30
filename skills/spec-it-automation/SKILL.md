@@ -48,7 +48,7 @@ IF Stitch:
 
 ```
 Bash: scripts/core/session-init.sh {sessionId} {uiMode}
-Bash: scripts/open-dashboard.sh ./tmp/{sessionId}
+→ Auto-launches dashboard
 ```
 
 ### Step 0.R: Resume

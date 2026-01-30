@@ -52,6 +52,15 @@ cat > "$SESSION_DIR/_status.json" << EOF
 }
 EOF
 
+# Auto-launch dashboard in separate terminal
+DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"
+if [ -x "$DASHBOARD_SCRIPT" ]; then
+  "$DASHBOARD_SCRIPT" "$SESSION_DIR" &
+  echo "DASHBOARD:launched"
+else
+  echo "DASHBOARD:not_found"
+fi
+
 echo "SESSION_ID:$SESSION_ID"
 echo "SESSION_DIR:$SESSION_DIR"
 echo "UI_MODE:$UI_MODE"

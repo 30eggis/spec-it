@@ -39,8 +39,7 @@ IF Stitch:
 ```
 Bash: scripts/core/session-init.sh {sessionId} {uiMode}
 → Creates folders, _meta.json, _status.json
-
-Bash: scripts/open-dashboard.sh ./tmp/{sessionId}
+→ Auto-launches dashboard in separate terminal
 ```
 
 ### Step 0.R: Resume
