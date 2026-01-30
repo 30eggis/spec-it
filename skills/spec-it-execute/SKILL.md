@@ -42,6 +42,35 @@ Transform spec-it specifications into **working code** with **autonomous executi
 
 ---
 
+## Live Preview Mode (Chrome DevTools MCP)
+
+개발 과정을 실시간으로 브라우저에서 확인할 수 있습니다.
+
+### 사용 가능한 도구 (26개)
+
+| 카테고리 | 도구 |
+|----------|------|
+| **입력** | click, drag, fill, fill_form, hover, press_key, upload_file, handle_dialog |
+| **네비게이션** | navigate_page, new_page, close_page, list_pages, select_page, wait_for |
+| **디버깅** | evaluate_script, take_screenshot, take_snapshot, get_console_message, list_console_messages |
+| **성능** | performance_start_trace, performance_stop_trace, performance_analyze_insight |
+| **네트워크** | list_network_requests, get_network_request |
+| **에뮬레이션** | emulate, resize_page |
+
+### Live Preview 워크플로우
+
+```
+1. 개발 서버 시작 (npm run dev)
+2. Chrome DevTools MCP로 브라우저 열기
+3. 각 구현 단계마다:
+   - 페이지 이동 (navigate_page)
+   - 스크린샷 캡처 (take_screenshot)
+   - 콘솔 에러 확인 (list_console_messages)
+4. 테스트 시 사용자 인터랙션 시뮬레이션
+```
+
+---
+
 ## Smart Model Routing
 
 | Complexity | Model | Use Case |
@@ -84,7 +113,7 @@ GOTO Phase {currentPhase}, Step {currentStep}
 sessionId = $(date +%Y%m%d-%H%M%S)
 
 # 2. Create execution workspace
-mkdir -p .spec-it/execute/{sessionId}/{plans,logs,reviews}
+mkdir -p .spec-it/execute/{sessionId}/{plans,logs,reviews,screenshots}
 
 # 3. Initialize state
 ```
@@ -100,8 +129,51 @@ mkdir -p .spec-it/execute/{sessionId}/{plans,logs,reviews}
   "maxQaAttempts": 5,
   "completedPhases": [],
   "startedAt": "{ISO timestamp}",
-  "lastCheckpoint": "{ISO timestamp}"
+  "lastCheckpoint": "{ISO timestamp}",
+  "livePreview": false
 }
+```
+
+#### Phase 0.2: Live Preview 설정 (Optional)
+
+```
+AskUserQuestion(
+  questions: [{
+    question: "개발 과정을 브라우저에서 실시간으로 확인하시겠습니까?",
+    header: "Live Preview",
+    options: [
+      {label: "Yes", description: "Chrome DevTools MCP로 실시간 확인"},
+      {label: "No", description: "터미널 출력만 확인"}
+    ]
+  }]
+)
+
+IF "Yes":
+  # 1. 개발 서버 시작
+  Task(
+    subagent_type: "Bash",
+    model: "haiku",
+    run_in_background: true,
+    prompt: "npm run dev"
+  )
+
+  # 2. Chrome 브라우저 열기 (MCP)
+  # chrome-devtools MCP: new_page 도구 사용
+  MCP_CALL: new_page(url: "http://localhost:3000")
+
+  # 3. 상태 업데이트
+  _state.livePreview = true
+  _state.devServerPid = {pid}
+  _state.previewUrl = "http://localhost:3000"
+  Update(_state.json)
+
+  Output: "
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Live Preview 활성화
+  URL: http://localhost:3000
+  브라우저가 열렸습니다. 개발 과정이 실시간으로 반영됩니다.
+  ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  "
 ```
 
 ---
@@ -396,6 +468,30 @@ FOR task IN tasks (sorted by dependency):
   _state.lastCheckpoint = now()
   Update(_state.json)
 
+  # Live Preview 확인 (활성화된 경우)
+  IF _state.livePreview AND task involves UI changes:
+    # 1. 페이지 새로고침
+    MCP_CALL: navigate_page(url: _state.previewUrl + task.route)
+
+    # 2. 렌더링 대기
+    MCP_CALL: wait_for(selector: "body", timeout: 5000)
+
+    # 3. 스크린샷 캡처
+    MCP_CALL: take_screenshot(
+      path: ".spec-it/execute/{sessionId}/screenshots/task-{task.id}.png"
+    )
+
+    # 4. 콘솔 에러 확인
+    consoleMessages = MCP_CALL: list_console_messages(level: "error")
+    IF consoleMessages.length > 0:
+      Write(.spec-it/execute/{sessionId}/logs/console-errors-{task.id}.md, consoleMessages)
+
+    Output: "
+    [Live] Task {task.id} 완료
+    스크린샷: screenshots/task-{task.id}.png
+    콘솔 에러: {consoleMessages.length}개
+    "
+
   # Quick verification (via spec-executor agent)
   IF task.verification:
     Task(
@@ -600,6 +696,26 @@ Update(_state.json)
 ### Phase 6: COMPLETE
 
 ```
+# Live Preview 정리
+IF _state.livePreview:
+  # 최종 스크린샷 캡처 (전체 화면 목록)
+  FOR screen IN screens:
+    MCP_CALL: navigate_page(url: _state.previewUrl + screen.route)
+    MCP_CALL: wait_for(selector: "body", timeout: 3000)
+    MCP_CALL: take_screenshot(
+      path: ".spec-it/execute/{sessionId}/screenshots/final-{screen.name}.png"
+    )
+
+  # 브라우저 닫기
+  MCP_CALL: close_page()
+
+  # 개발 서버 종료
+  Task(
+    subagent_type: "Bash",
+    model: "haiku",
+    prompt: "kill {_state.devServerPid}"
+  )
+
 Output: "
 ════════════════════════════════════════════════════════════
                  SPEC-IT-EXECUTE COMPLETE
@@ -672,7 +788,10 @@ ELIF Delete:
   "lastCheckpoint": "2026-01-30T14:45:00Z",
   "completedAt": null,
   "uiMode": "ascii | stitch",
-  "htmlReferencePath": "tmp/{sessionId}/02-screens/html/"
+  "htmlReferencePath": "tmp/{sessionId}/02-screens/html/",
+  "livePreview": true,
+  "devServerPid": 12345,
+  "previewUrl": "http://localhost:3000"
 }
 ```
 
