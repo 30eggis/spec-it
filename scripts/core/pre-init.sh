@@ -2,11 +2,12 @@
 # pre-init.sh - Pre-initialize spec-it session before skill starts
 # Called by hooks when spec-it* skill is invoked
 
-PLUGIN_DIR="$HOME/.claude/plugins/frontend-skills"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SESSION_ID=$(date +%Y%m%d-%H%M%S)
-BASE_DIR="."
+WORK_DIR="$(pwd)"
 
-SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
+SESSION_DIR="$WORK_DIR/tmp/$SESSION_ID"
 
 # Create minimal folder structure
 mkdir -p "$SESSION_DIR"
@@ -42,11 +43,10 @@ cat > "$SESSION_DIR/_status.json" << EOF
 }
 EOF
 
-# Launch dashboard with absolute path
+# Launch dashboard
 DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"
-ABS_SESSION_DIR="$(pwd)/tmp/$SESSION_ID"
 if [ -x "$DASHBOARD_SCRIPT" ]; then
-  nohup "$DASHBOARD_SCRIPT" "$ABS_SESSION_DIR" > /dev/null 2>&1 &
+  nohup "$DASHBOARD_SCRIPT" "$SESSION_DIR" > /dev/null 2>&1 &
 fi
 
 # Output for Claude to use

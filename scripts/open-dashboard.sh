@@ -6,7 +6,8 @@
 #   ./open-dashboard.sh                           # Auto-detect latest session
 #   ./open-dashboard.sh ./tmp/20260130-123456     # Specific session
 
-DASHBOARD_SCRIPT="$HOME/.claude/plugins/frontend-skills/skills/shared/dashboard/spec-it-dashboard.sh"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+DASHBOARD_SCRIPT="$SCRIPT_DIR/../skills/shared/dashboard/spec-it-dashboard.sh"
 SESSION_PATH="${1:-}"
 
 # Detect OS and open new terminal
