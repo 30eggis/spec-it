@@ -10,285 +10,101 @@ permissionMode: bypassPermissions
 
 Modify wireframes with comprehensive impact analysis.
 
+## References
+
+- [Output Formats](references/output-formats.md) - Impact JSON, preview, plan, ASCII conventions
+
+---
+
 ## Workflow
 
 ```
-[Request] → [Locate Wireframe] → [Butterfly Analysis] → [Preview] → [Approve] → [Apply]
+[Request] → [Locate] → [Analyze Impact] → [Preview] → [Approve] → [Apply]
 ```
 
 ---
 
 ## Phase 0: Init
 
-### Step 0.1: Session Detection
-
 ```
-IF args contains sessionId:
-  SET sessionId = args.sessionId
-  Read: tmp/{sessionId}/_meta.json
-ELSE:
-  # Find most recent session
-  Bash: ls -t tmp/ | head -1
-  SET sessionId = result
+1. Session Detection
+   IF sessionId provided: use it
+   ELSE: find most recent in tmp/
 
-IF no session found:
-  Output: "ERROR: No session found. Run /spec-it first."
-  STOP
-```
+2. Locate Wireframe
+   Glob: tmp/{sessionId}/02-screens/wireframes/*{name}*.md
+   IF multiple: AskUserQuestion to select
+   IF none: show available wireframes
 
-### Step 0.2: Locate Wireframe
-
-```
-IF args contains wireframe-name:
-  SET wireframeName = args.wireframe-name
-
-  # Search for matching wireframe
-  Glob: tmp/{sessionId}/02-screens/wireframes/*{wireframeName}*.md
-
-  IF multiple matches:
-    AskUserQuestion: "Which wireframe?"
-    Options: [list of matches]
-  ELSE IF no matches:
-    Output: "ERROR: Wireframe not found: {wireframeName}"
-    Output: "Available wireframes:"
-    Glob: tmp/{sessionId}/02-screens/wireframes/*.md
-    STOP
-ELSE:
-  # List all wireframes for selection
-  Glob: tmp/{sessionId}/02-screens/wireframes/*.md
-  AskUserQuestion: "Which wireframe would you like to edit?"
-  Options: [list of wireframes]
-
-SET wireframePath = selected wireframe
-```
-
-### Step 0.3: Parse Change Request
-
-```
-IF args contains --change:
-  SET changeDescription = args.change
-ELSE:
-  Read: {wireframePath}
-  Output: [Display current wireframe]
-
-  AskUserQuestion: "What changes would you like to make?"
-  SET changeDescription = user response
+3. Parse Change
+   IF --change provided: use it
+   ELSE: display wireframe, ask for changes
 ```
 
 ---
 
-## Phase 1: Analysis (bypassPermissions)
-
-### Step 1.1: Current State Analysis
-
-```
-Read: {wireframePath}
-
-EXTRACT:
-  - Components used (from ASCII patterns)
-  - Layout structure
-  - Interactive elements
-  - Data bindings
-```
-
-### Step 1.2: Impact Analysis
+## Phase 1: Analysis
 
 ```
 Task(spec-butterfly, opus):
-  Input:
-    - wireframePath
-    - changeDescription
-    - sessionId
-  Output: tmp/{sessionId}/_analysis/wireframe-impact.json
+  Output: _analysis/wireframe-impact.json
 
-  Impact analysis includes:
+  Analyzes:
     - Components affected
-    - Other screens referencing same components
-    - Test specs that verify this wireframe
-    - Consistency with design system
+    - Other screens using same components
+    - Test specs to update
+    - Risk level
 
-  wireframe-impact.json:
-    {
-      "directImpact": {
-        "wireframe": "{wireframePath}",
-        "changeType": "add|remove|modify|restructure",
-        "affectedSections": [...]
-      },
-      "componentImpact": [
-        {
-          "component": "Button",
-          "change": "variant change",
-          "otherUsages": ["screen-a.md", "screen-b.md"]
-        }
-      ],
-      "testImpact": [
-        {
-          "test": "05-tests/scenarios/login-test.md",
-          "reason": "Tests button interaction"
-        }
-      ],
-      "riskLevel": "low|medium|high"
-    }
-```
-
-### Step 1.3: Check Stitch Mode
-
-```
-Read: tmp/{sessionId}/_meta.json
-
-IF uiMode == "stitch":
-  SET hasHtml = true
-  CHECK: tmp/{sessionId}/02-screens/html/{wireframeName}.html exists
-ELSE:
-  SET hasHtml = false
+Check Stitch Mode:
+  Read: _meta.json → uiMode
+  IF "stitch": SET hasHtml = true
 ```
 
 ---
 
-## Phase 2: Plan & Preview
-
-### Step 2.1: Generate Wireframe Preview
+## Phase 2: Preview & Approval
 
 ```
 Task(wireframe-editor, sonnet):
-  Input:
-    - Current wireframe content
-    - changeDescription
-    - wireframe-impact.json
   Output:
-    - tmp/{sessionId}/_analysis/wireframe-preview.md (before/after)
-    - tmp/{sessionId}/_analysis/wireframe-plan.md
+    - _analysis/wireframe-preview.md (before/after)
+    - _analysis/wireframe-plan.md
 
-  wireframe-preview.md:
-    ## Before
-    ```
-    [Current ASCII wireframe]
-    ```
-
-    ## After
-    ```
-    [Modified ASCII wireframe]
-    ```
-
-    ## Changes Made
-    1. {change 1}
-    2. {change 2}
-
-  wireframe-plan.md:
-    ## Change Plan
-
-    ### Primary Change
-    - File: {wireframePath}
-    - Action: {description}
-
-    ### Secondary Changes (if any)
-    - File: {component-spec}
-    - Reason: {why this needs update}
-
-    ### Test Updates (if any)
-    - File: {test-spec}
-    - Reason: {why this needs review}
-```
-
-### Step 2.2: User Approval
-
-```
-Read: tmp/{sessionId}/_analysis/wireframe-preview.md
-Output: [Display before/after comparison]
-
-Read: tmp/{sessionId}/_analysis/wireframe-plan.md
-Output: [Display change plan]
-
-AskUserQuestion: "Apply these wireframe changes?"
-Options: ["Yes, apply", "Modify", "Cancel"]
-
-IF "Modify":
-  AskUserQuestion: "What modifications?"
-  GOTO Step 2.1 with modifications
-
-IF "Cancel":
-  Output: "Changes cancelled."
-  STOP
+AskUserQuestion: "Apply changes?"
+  Options: ["Yes, apply", "Modify", "Cancel"]
 ```
 
 ---
 
-## Phase 3: Apply Changes (noAskUser)
-
-### Step 3.1: Update Wireframe
+## Phase 3: Apply
 
 ```
-Read: tmp/{sessionId}/_analysis/wireframe-preview.md
-EXTRACT: "After" section content
+1. Update Wireframe
+   Write: {wireframePath} with modified content
+   Checkpoint: meta-checkpoint.sh
 
-Write: {wireframePath}
-  Content: modified wireframe
+2. Regenerate HTML (if Stitch)
+   IF hasHtml:
+     Task(stitch-regenerate, sonnet)
 
-Bash: $SCRIPTS/core/meta-checkpoint.sh {sessionId} wireframe-edit
-```
-
-### Step 3.2: Update HTML (if Stitch mode)
-
-```
-IF hasHtml:
-  Output: "Stitch mode detected. Regenerating HTML..."
-
-  Task(stitch-regenerate, sonnet):
-    Input:
-      - Modified wireframe
-      - Original HTML path
-    Action:
-      - Call Stitch MCP to regenerate screen
-      - Update tmp/{sessionId}/02-screens/html/{wireframeName}.html
-    Output: "HTML regenerated"
-```
-
-### Step 3.3: Flag Affected Documents
-
-```
-Read: tmp/{sessionId}/_analysis/wireframe-impact.json
-
-FOR each affected in componentImpact:
-  IF requires component spec update:
-    Write: tmp/{sessionId}/03-components/{component}/_needs-review.md
-      Content: |
-        # Review Required
-
-        Wireframe change in: {wireframePath}
-        Change: {changeDescription}
-
-        Please review and update component spec if needed.
-
-FOR each affected in testImpact:
-  Write: tmp/{sessionId}/05-tests/scenarios/{test}/_needs-review.md
-    Content: |
-      # Review Required
-
-      Wireframe change in: {wireframePath}
-      This test may need updates.
+3. Flag Affected Files
+   FOR each component/test impact:
+     Write: {path}/_needs-review.md
 ```
 
 ---
 
 ## Phase 4: Completion
 
-### Step 4.1: Summary
-
 ```
-Output: "✓ Wireframe updated successfully!"
-Output: ""
-Output: "Modified: {wireframePath}"
+Output: "✓ Wireframe updated: {path}"
 
 IF hasHtml:
-  Output: "HTML updated: tmp/{sessionId}/02-screens/html/{wireframeName}.html"
+  Output: "HTML updated: 02-screens/html/{name}.html"
 
 IF flaggedFiles > 0:
-  Output: ""
-  Output: "⚠️  {N} files flagged for review:"
-  FOR each flagged file:
-    Output: "  - {path}"
-  Output: ""
-  Output: "Run /spec-change --verify {sessionId} to check consistency."
+  Output: "⚠️ {N} files flagged for review"
+  Output: "Run /spec-change --verify to check consistency"
 ```
 
 ---
@@ -296,20 +112,20 @@ IF flaggedFiles > 0:
 ## Output Structure
 
 ```
-tmp/{sessionId}/_analysis/
-├── wireframe-impact.json    # Impact analysis results
-├── wireframe-preview.md     # Before/after comparison
-└── wireframe-plan.md        # Change execution plan
-
-tmp/{sessionId}/02-screens/wireframes/
-└── {wireframe}.md           # Updated wireframe
-
-tmp/{sessionId}/02-screens/html/ (if Stitch mode)
-└── {wireframe}.html         # Regenerated HTML
-
-tmp/{sessionId}/{various}/
-└── _needs-review.md         # Flagged files for review
+tmp/{sessionId}/
+├── _analysis/
+│   ├── wireframe-impact.json
+│   ├── wireframe-preview.md
+│   └── wireframe-plan.md
+├── 02-screens/wireframes/
+│   └── {wireframe}.md          # Updated
+├── 02-screens/html/            # If Stitch
+│   └── {wireframe}.html        # Regenerated
+└── {various}/
+    └── _needs-review.md        # Flagged files
 ```
+
+See [Output Formats](references/output-formats.md) for detailed structures.
 
 ---
 
@@ -317,9 +133,9 @@ tmp/{sessionId}/{various}/
 
 | Agent | Model | Purpose |
 |-------|-------|---------|
-| spec-butterfly | opus | Impact analysis (shared with spec-change) |
+| spec-butterfly | opus | Impact analysis |
 | wireframe-editor | sonnet | Generate modified wireframe |
-| stitch-regenerate | sonnet | Regenerate HTML via Stitch MCP |
+| stitch-regenerate | sonnet | Regenerate HTML (Stitch mode) |
 
 ---
 
@@ -327,8 +143,8 @@ tmp/{sessionId}/{various}/
 
 | Arg | Required | Description |
 |-----|----------|-------------|
-| sessionId | Yes* | Session directory (*auto-detected) |
-| wireframe-name | No | Name of wireframe to edit (prompted if omitted) |
+| sessionId | No | Auto-detected if omitted |
+| wireframe-name | No | Prompted if omitted |
 | --change | No | Change description (prompted if omitted) |
 
 ---
@@ -336,29 +152,22 @@ tmp/{sessionId}/{various}/
 ## Examples
 
 ```bash
-# Interactive mode (prompts for wireframe and changes)
+# Interactive
 /spec-wireframe-edit
 
 # Specify wireframe
 /spec-wireframe-edit 20260130-123456 dashboard
 
 # Full specification
-/spec-wireframe-edit 20260130-123456 login --change "Add forgot password link below login button"
-
-# Complex change
-/spec-wireframe-edit 20260130-123456 checkout --change "Restructure the payment section to show card form inline instead of in a modal"
+/spec-wireframe-edit 20260130-123456 login --change "Add forgot password link"
 ```
 
 ---
 
-## Integration with spec-change
+## When to Use
 
-For changes that go beyond wireframe modifications (e.g., adding new requirements), use spec-change instead:
-
-```bash
-# Wireframe-only change → spec-wireframe-edit
-/spec-wireframe-edit dashboard --change "Move sidebar to right side"
-
-# Requirement change → spec-change
-/spec-change 20260130-123456 "Add a new dashboard widget for notifications"
-```
+| Change Type | Use |
+|-------------|-----|
+| Wireframe layout/elements | `/spec-wireframe-edit` |
+| New requirements | `/spec-change` |
+| Component logic | `/spec-change` |
