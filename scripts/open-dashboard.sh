@@ -7,7 +7,8 @@
 #   ./open-dashboard.sh ./tmp/20260130-123456     # Specific session
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-DASHBOARD_SCRIPT="$SCRIPT_DIR/../skills/shared/dashboard/spec-it-dashboard.sh"
+# Use Python curses dashboard (no flickering)
+DASHBOARD_SCRIPT="$SCRIPT_DIR/dashboard.py"
 SESSION_PATH="${1:-}"
 
 # Detect OS and open new terminal
@@ -18,26 +19,26 @@ case "$(uname -s)" in
       if ! osascript <<EOF
 tell application "Terminal"
   activate
-  do script "clear && '$DASHBOARD_SCRIPT' '$SESSION_PATH'"
+  do script "python3 '$DASHBOARD_SCRIPT' '$SESSION_PATH'"
   set custom title of front window to "spec-it Dashboard"
 end tell
 EOF
       then
         echo "ERROR: Failed to open dashboard terminal" >&2
-        echo "Try running manually: $DASHBOARD_SCRIPT $SESSION_PATH" >&2
+        echo "Try running manually: python3 $DASHBOARD_SCRIPT $SESSION_PATH" >&2
         exit 1
       fi
     else
       if ! osascript <<EOF
 tell application "Terminal"
   activate
-  do script "clear && '$DASHBOARD_SCRIPT'"
+  do script "python3 '$DASHBOARD_SCRIPT'"
   set custom title of front window to "spec-it Dashboard"
 end tell
 EOF
       then
         echo "ERROR: Failed to open dashboard terminal" >&2
-        echo "Try running manually: $DASHBOARD_SCRIPT" >&2
+        echo "Try running manually: python3 $DASHBOARD_SCRIPT" >&2
         exit 1
       fi
     fi
