@@ -106,35 +106,98 @@ MCP_CALL: set_workspace_project(
 
 ---
 
-## Phase 3: 화면 생성 (Screen Generation)
+## Phase 3: ASCII → Stitch Hi-Fi 변환
 
-### Step 3.1: 화면 목록 로드
+### Step 3.0: ASCII 와이어프레임 먼저 생성
 
 ```
+# ui-architect 에이전트로 ASCII 와이어프레임 생성
+Task(
+  subagent_type: "general-purpose",
+  model: "sonnet",
+  prompt: "
+    역할: ui-architect
+    sessionId: {sessionId}
+
+    입력: chapter-plan-final.md
+
+    작업:
+    1. 화면 목록 작성 (screen-list.md)
+    2. 각 화면별 ASCII 와이어프레임 생성
+    3. Desktop/Tablet/Mobile 반응형 고려
+
+    출력 경로:
+    - tmp/{sessionId}/02-screens/screen-list.md
+    - tmp/{sessionId}/02-screens/wireframes/wireframe-{screen}.md
+
+    OUTPUT: '완료. ASCII 와이어프레임 {N}개 생성됨.'
+  "
+)
+
+Output: "
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Step 1/2: ASCII 와이어프레임 생성 완료
+다음: Stitch Hi-Fi 변환 시작
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"
+```
+
+### Step 3.1: ASCII 와이어프레임 로드
+
+```
+# 생성된 ASCII 와이어프레임 로드
 Read(tmp/{sessionId}/02-screens/screen-list.md)
-# 또는
-Read(tmp/{sessionId}/01-chapters/chapter-plan-final.md)
+wireframes = Glob(tmp/{sessionId}/02-screens/wireframes/*.md)
 
-# 화면 목록 파싱
-screens = extract_screens(content)
+# 각 와이어프레임 내용 파싱
+FOR wireframe IN wireframes:
+  content = Read(wireframe)
+  screens.push({
+    name: extract_name(wireframe),
+    ascii: content,
+    path: wireframe
+  })
 ```
 
-### Step 3.2: 일괄 화면 생성
+### Step 3.2: 순차적 Stitch Hi-Fi 변환
 
 ```
-FOR screen IN screens:
+Output: "
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+Step 2/2: ASCII → Stitch Hi-Fi 변환 시작
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+"
+
+FOR index, screen IN screens:
+  Output: "[{index+1}/{screens.length}] {screen.name} 변환 중..."
+
+  # ASCII를 Stitch 프롬프트로 변환
   MCP_CALL: generate_screen_from_text(
     projectId: projectId,
     prompt: "
-      Screen: {screen.name}
-      Purpose: {screen.purpose}
-      Components: {screen.components}
-      Layout: {screen.layout}
+      Convert this ASCII wireframe to a high-fidelity UI design.
 
-      Design Direction:
-      - Style: Modern, clean
-      - Primary Color: From design tokens
-      - Responsive: Yes (Desktop/Tablet/Mobile)
+      Screen: {screen.name}
+
+      ASCII Wireframe:
+      ```
+      {screen.ascii}
+      ```
+
+      Instructions:
+      1. Follow the exact layout structure from ASCII
+      2. Replace ASCII boxes with proper UI components
+      3. Apply modern, clean design
+      4. Make it responsive (Desktop/Tablet/Mobile)
+      5. Use proper spacing, colors, typography
+
+      Component Mapping:
+      - [Button] → Modern button with hover state
+      - [Input] → Text input with label
+      - [Card] → Elevated card with shadow
+      - [Nav] → Navigation bar
+      - [Table] → Data table with headers
+      - [List] → Styled list items
     "
   )
 
@@ -143,6 +206,8 @@ FOR screen IN screens:
 
   # stitch-project.json 업데이트
   Update(stitch-project.json, add screen)
+
+  Output: "[{index+1}/{screens.length}] {screen.name} ✓ 완료"
 ```
 
 ### Step 3.3: 디자인 QA

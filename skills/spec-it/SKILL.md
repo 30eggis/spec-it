@@ -110,8 +110,12 @@ uiMode = _meta.uiMode  # "stitch" 또는 "ascii"
 
 IF uiMode == "stitch":
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # Google Stitch 모드 - stitch-controller가 모든 것을 자동 처리
+  # Google Stitch 모드 (ASCII → Hi-Fi 변환)
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  #
+  # Step 1: ASCII 와이어프레임 먼저 생성
+  # Step 2: ASCII를 Stitch Hi-Fi로 순차 변환
+  #
   Task(
     subagent_type: "general-purpose",
     model: "sonnet",
@@ -119,24 +123,24 @@ IF uiMode == "stitch":
       역할: stitch-controller
       sessionId: {sessionId}
 
-      Phase 2-4 실행 (프로젝트 생성 ~ HTML 내보내기):
-      1. Stitch 프로젝트 생성 (spec-it-{sessionId})
-      2. 화면 목록 로드 (chapter-plan-final.md에서)
-      3. 각 화면 생성 (generate_screen_from_text)
-      4. 디자인 QA 실행
-      5. HTML/CSS 내보내기
-      6. 프리뷰 페이지 생성
+      전체 워크플로우:
+      1. [ASCII] ui-architect로 와이어프레임 생성
+      2. [Stitch] 프로젝트 생성 (spec-it-{sessionId})
+      3. [Stitch] 각 ASCII를 순차적으로 Hi-Fi 변환
+      4. [Stitch] 디자인 QA 실행
+      5. [Stitch] HTML/CSS 내보내기
 
-      모든 단계는 사용자 승인 없이 자동 진행합니다.
+      ⚠️ 모든 단계는 사용자 승인 없이 자동 진행합니다.
 
-      OUTPUT: '완료. 화면 {N}개 생성됨. HTML: tmp/{sessionId}/02-screens/html/'
+      OUTPUT: '완료. ASCII {N}개 → Hi-Fi {N}개 변환됨.'
     "
   )
 
   Output:
   - tmp/{session-id}/02-screens/screen-list.md
+  - tmp/{session-id}/02-screens/wireframes/*.md      # ASCII 원본
   - tmp/{session-id}/02-screens/stitch-project.json
-  - tmp/{session-id}/02-screens/html/*.html
+  - tmp/{session-id}/02-screens/html/*.html          # Hi-Fi 결과
   - tmp/{session-id}/02-screens/assets/styles.css
   - tmp/{session-id}/02-screens/qa-report.md
 
