@@ -60,13 +60,13 @@ Transforms generated specs into working code with autonomous execution.
 | Skill | Description | Command |
 |-------|-------------|---------|
 | **spec-change** | Modify specs with validation | `/spec-change <session> <request>` |
-| **spec-it-api-mcp** | API doc → MCP server | `/spec-it-api-mcp <api-doc>` |
 | **spec-wireframe-edit** | Edit wireframes with impact analysis | `/spec-wireframe-edit <session>` |
 
 ### Utility Skills
 
 | Skill | Description | Command |
 |-------|-------------|---------|
+| **spec-it-api-mcp** | API doc → MCP server | `/spec-it-api-mcp <api-doc>` |
 | **init-spec-md** | SPEC-IT files for existing code | `/init-spec-md` |
 | **hack-2-prd** | Reverse-engineer PRD from code | `/hack-2-prd` |
 | **prd-mirror** | Compare PRD vs implementation | `/prd-mirror` |
@@ -118,26 +118,6 @@ A separate set of skills for **modifying existing specifications** with comprehe
 
 ---
 
-### spec-it-api-mcp: API Document Integration
-
-**Purpose**: Convert API documentation into a local MCP server for development.
-
-```bash
-/spec-it-api-mcp ./api/openapi.yaml
-/spec-it-api-mcp ./swagger.json --port 3200
-```
-
-**Use Case**: When you have a backend API spec and want Claude to use it during `spec-it-execute`.
-
-**Supported Formats**:
-- OpenAPI 3.0+ (recommended)
-- Swagger 2.0
-- Postman Collection (basic)
-
-**Output**: MCP server with mock endpoints that Claude can call during implementation.
-
----
-
 ### spec-wireframe-edit: Wireframe Modification
 
 **Purpose**: Modify wireframes with impact analysis on components and tests.
@@ -171,8 +151,6 @@ A separate set of skills for **modifying existing specifications** with comprehe
 | `spec-butterfly` | opus | Bidirectional impact analysis |
 | `change-planner` | opus | Generate change plan with diffs |
 | `rtm-updater` | haiku | Requirements Traceability Matrix |
-| `api-parser` | sonnet | OpenAPI/Swagger parser |
-| `mcp-generator` | sonnet | MCP server code generator |
 | `wireframe-editor` | sonnet | ASCII wireframe modifier |
 
 ---
