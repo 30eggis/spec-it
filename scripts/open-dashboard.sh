@@ -1,0 +1,66 @@
+#!/bin/bash
+# Open spec-it dashboard in a new terminal window
+# Usage: ./open-dashboard.sh [session_path]
+#
+# Examples:
+#   ./open-dashboard.sh                           # Auto-detect latest session
+#   ./open-dashboard.sh ./tmp/20260130-123456     # Specific session
+
+DASHBOARD_SCRIPT="$HOME/.claude/plugins/frontend-skills/skills/shared/dashboard/spec-it-dashboard.sh"
+SESSION_PATH="${1:-}"
+
+# Detect OS and open new terminal
+case "$(uname -s)" in
+  Darwin)
+    # macOS - use osascript to open new Terminal window
+    if [[ -n "$SESSION_PATH" ]]; then
+      osascript <<EOF
+tell application "Terminal"
+  activate
+  do script "clear && '$DASHBOARD_SCRIPT' '$SESSION_PATH'"
+  set custom title of front window to "spec-it Dashboard"
+end tell
+EOF
+    else
+      osascript <<EOF
+tell application "Terminal"
+  activate
+  do script "clear && '$DASHBOARD_SCRIPT'"
+  set custom title of front window to "spec-it Dashboard"
+end tell
+EOF
+    fi
+    ;;
+
+  Linux)
+    # Linux - try common terminal emulators
+    if command -v gnome-terminal &> /dev/null; then
+      gnome-terminal --title="spec-it Dashboard" -- bash -c "'$DASHBOARD_SCRIPT' '$SESSION_PATH'; exec bash"
+    elif command -v xterm &> /dev/null; then
+      xterm -title "spec-it Dashboard" -e "'$DASHBOARD_SCRIPT' '$SESSION_PATH'" &
+    elif command -v konsole &> /dev/null; then
+      konsole --new-tab -e "'$DASHBOARD_SCRIPT' '$SESSION_PATH'" &
+    else
+      echo "No supported terminal emulator found. Run manually:"
+      echo "$DASHBOARD_SCRIPT $SESSION_PATH"
+      exit 1
+    fi
+    ;;
+
+  MINGW*|CYGWIN*|MSYS*)
+    # Windows
+    if [[ -n "$SESSION_PATH" ]]; then
+      start cmd /k "$DASHBOARD_SCRIPT" "$SESSION_PATH"
+    else
+      start cmd /k "$DASHBOARD_SCRIPT"
+    fi
+    ;;
+
+  *)
+    echo "Unsupported OS. Run manually:"
+    echo "$DASHBOARD_SCRIPT $SESSION_PATH"
+    exit 1
+    ;;
+esac
+
+echo "Dashboard opened in new window"

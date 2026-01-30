@@ -163,11 +163,14 @@ Write(tmp/{sessionId}/_meta.json)
 # 4. _status.json 초기화 (대시보드용)
 Write(tmp/{sessionId}/_status.json)
 
-# 5. 인라인 진행률 출력
+# 5. 대시보드 별도 창에서 자동 실행
+Bash(~/.claude/plugins/frontend-skills/scripts/open-dashboard.sh ./tmp/{sessionId})
+
+# 6. 인라인 진행률 출력
 Output: "
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 Session: {sessionId} 시작
-대시보드: spec-it-dashboard.sh ./tmp/{sessionId}
+대시보드: 별도 창에서 실행됨
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 "
 ```

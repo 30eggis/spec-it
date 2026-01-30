@@ -76,6 +76,9 @@ IF 인자에 "--resume" 포함:
 ELSE:
   sessionId = $(date +%Y%m%d-%H%M%S)
   mkdir -p tmp/{sessionId}/{00-requirements,01-chapters/{decisions,alternatives},02-screens/wireframes,03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
+
+  # 대시보드 별도 창에서 자동 실행
+  Bash(~/.claude/plugins/frontend-skills/scripts/open-dashboard.sh ./tmp/{sessionId})
 ```
 
 ### Step 0.0: UI 구현 방식 선택
