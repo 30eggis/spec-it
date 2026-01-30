@@ -41,11 +41,29 @@ AskUserQuestion: "Select UI design mode"
 Options: ["ASCII Wireframe (Recommended)", "Google Stitch"]
 
 IF Stitch:
+  # Step 1: Verify MCP configuration
   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/verify-stitch-mcp.sh
+
   IF exit != 0:
+    # Step 2: Fix MCP configuration if needed
     Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-mcp.sh
-    IF exit == 2: RESTART_REQUIRED (MCP needs Claude restart)
-    IF exit == 1: Fallback to ASCII
+    IF exit == 2:
+      Output: "Claude Code 재시작 필요. 재시작 후 /spec-it-complex --resume {sessionId}"
+      STOP
+
+    # Step 3: Setup OAuth (interactive - opens browser)
+    Output: "OAuth 설정을 진행합니다. 브라우저에서 Google 로그인을 완료해주세요."
+    Bash: node $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-oauth.mjs
+
+    IF exit != 0:
+      Output: "OAuth 설정 실패. ASCII 모드로 전환합니다."
+      SET uiMode = "ascii"
+    ELSE:
+      # Re-verify after OAuth setup
+      Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/verify-stitch-mcp.sh
+      IF exit != 0:
+        Output: "Stitch 설정 실패. ASCII 모드로 전환합니다."
+        SET uiMode = "ascii"
 ```
 
 ### Step 0.1: Session Init
