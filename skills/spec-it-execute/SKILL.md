@@ -287,6 +287,13 @@ ELIF mockups exist in {spec-folder}/02-screens/wireframes/:
   _state.uiMode = "ascii"
   Update(_state.json)
 
+# Load design style from spec-it session
+IF _meta.designStyle exists:
+  _state.designStyle = _meta.designStyle
+  _state.designTrends = _meta.designTrends
+  _state.designTrendsPath = _meta.designTrendsPath OR "$HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026"
+  Update(_state.json)
+
 # Phase 1 complete
 _state.completedPhases += "1"
 _state.currentPhase = 2
@@ -434,6 +441,36 @@ FOR task IN tasks (sorted by dependency):
       Wireframes: {spec-folder}/02-screens/wireframes/
     "
 
+  # Build design reference context
+  IF _state.designStyle:
+    designRefContext = "
+      === DESIGN REFERENCE (MUST READ) ===
+
+      Design Style: {_state.designStyle}
+      Applied Trends: {_state.designTrends}
+
+      1. Read wireframe for this screen:
+         {spec-folder}/02-screens/wireframes/
+         → Extract 'Design Direction' section
+
+      2. Read templates based on Component Patterns:
+         - {_state.designTrendsPath}/templates/dashboard-templates.md
+         - {_state.designTrendsPath}/templates/card-templates.md
+         - {_state.designTrendsPath}/templates/form-templates.md
+         - {_state.designTrendsPath}/templates/navigation-templates.md
+
+      3. Read motion presets:
+         - {_state.designTrendsPath}/references/motion-presets.md
+
+      === IMPLEMENTATION RULES ===
+      1. Copy Tailwind classes from templates exactly
+      2. Add source comments: // Template: {path}#{section}
+      3. Apply Color Tokens from wireframe's Design Direction
+      4. Implement Motion Guidelines with Framer Motion
+    "
+  ELSE:
+    designRefContext = ""
+
   Task(
     subagent_type: "general-purpose",
     model: model,
@@ -446,12 +483,15 @@ FOR task IN tasks (sorted by dependency):
 
       {uiRefContext}
 
+      {designRefContext}
+
       Requirements:
       1. Implement exactly as specified
       2. Use TodoWrite for tracking
       3. Verify after each file change
       4. Record decisions in notepad
       5. IF HTML reference exists, match design exactly
+      6. IF designRefContext exists, follow template patterns
 
       Verification Command: {task.verification}
 
@@ -460,7 +500,8 @@ FOR task IN tasks (sorted by dependency):
       OUTPUT RULES:
       1. Write implementation to specified files
       2. Write log to output log path
-      3. Return: 'Done. Task {id}: {status}. Files: {count}'
+      3. Include template source comments in code
+      4. Return: 'Done. Task {id}: {status}. Files: {count}'
     "
   )
 

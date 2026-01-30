@@ -56,6 +56,50 @@ IF Stitch:
         SET uiMode = "ascii"
 ```
 
+### Step 0.0b: Design Style Selection
+
+```
+# Design Trends 2026 Integration
+# Reference: design-trends-2026/integration/spec-it-integration.md
+
+DESIGN_TRENDS_PATH = $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026
+
+AskUserQuestion(
+  questions: [{
+    question: "어떤 디자인 스타일을 적용하시겠습니까? (2026 Design Trends 기반)",
+    header: "Design Style",
+    options: [
+      {label: "Minimal (Recommended)", description: "깔끔한 SaaS: 밝은 테마, 미니멀 카드, 깔끔한 테이블"},
+      {label: "Immersive", description: "다크 테마: 그라데이션 카드, 네온 포인트, 풍부한 시각 효과"},
+      {label: "Organic", description: "유기적: Glassmorphism, 부드러운 곡선, 3D 요소"},
+      {label: "Custom", description: "직접 트렌드 선택"}
+    ]
+  }]
+)
+
+IF "Custom":
+  AskUserQuestion(
+    questions: [{
+      question: "적용할 디자인 트렌드를 선택하세요",
+      header: "Trends",
+      multiSelect: true,
+      options: [
+        {label: "Dark Mode+", description: "어두운 테마 + 적응형 색상"},
+        {label: "Light Skeuomorphism", description: "부드러운 그림자, Neumorphic"},
+        {label: "Glassmorphism", description: "반투명 배경 + blur"},
+        {label: "Micro-Animations", description: "의미있는 모션"},
+        {label: "3D Visuals", description: "3D 아이콘, WebGL"},
+        {label: "Gamification", description: "Progress rings, 배지"}
+      ]
+    }]
+  )
+
+# Save to session state
+_meta.designStyle = selectedStyle
+_meta.designTrends = selectedTrends (if Custom)
+_meta.designTrendsPath = DESIGN_TRENDS_PATH
+```
+
 ### Step 0.1: Session Init
 
 ```
@@ -120,9 +164,30 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/pha
 ### IF STITCH Mode
 
 ```
-# Step 1: Generate ASCII wireframes first
+# Step 1: Generate ASCII wireframes first (with Design Trends)
 Task(ui-architect, sonnet):
-  Output: screen-list.md, layouts/, wireframes/
+  prompt: "
+    Role: ui-architect
+
+    === DESIGN REFERENCE (MUST READ FIRST) ===
+    1. Read: {_meta.designTrendsPath}/references/trends-summary.md
+    2. Read: {_meta.designTrendsPath}/references/component-patterns.md
+    3. Read: {_meta.designTrendsPath}/templates/navigation-templates.md
+
+    Design Style: {_meta.designStyle}
+    Applied Trends: {_meta.designTrends}
+
+    === WIREFRAME REQUIREMENTS ===
+    Each wireframe MUST include '## Design Direction' section with:
+    - Applied Trends (Primary/Secondary)
+    - Component Patterns table (with Template Reference column)
+    - Color Tokens table
+    - Motion Guidelines table
+
+    See: design-trends-2026/integration/agent-prompts.md for full template
+
+    Output: screen-list.md, layouts/, wireframes/
+  "
 
 # Step 2: Convert to HTML via Stitch MCP (runs in main session)
 /stitch-convert {sessionId}
@@ -133,7 +198,20 @@ Output: 02-screens/html/, assets/
 
 ```
 1. Task(ui-architect, sonnet):
-   - Generate layout-system.md and screen-list.md
+   prompt: "
+     Role: ui-architect
+
+     === DESIGN REFERENCE (MUST READ FIRST) ===
+     1. Read: {_meta.designTrendsPath}/references/trends-summary.md
+     2. Read: {_meta.designTrendsPath}/references/component-patterns.md
+     3. Read: {_meta.designTrendsPath}/templates/navigation-templates.md
+
+     Design Style: {_meta.designStyle}
+     Applied Trends: {_meta.designTrends}
+
+     Generate layout-system.md and screen-list.md
+     Include design direction based on selected style
+   "
 
 2. Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
    → Creates screens.json
@@ -142,8 +220,35 @@ Output: 02-screens/html/, assets/
    Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/executors/batch-runner.sh {sessionId} wireframe {batchIndex}
 
    Task(ui-architect, sonnet, parallel):
-     - Generate wireframe-{screen}.md
-     - Include full layout (Header, Sidebar, etc.)
+     prompt: "
+       Role: ui-architect
+
+       === DESIGN REFERENCE (MUST READ) ===
+       Read: {_meta.designTrendsPath}/references/trends-summary.md
+       Read: {_meta.designTrendsPath}/references/component-patterns.md
+
+       Design Style: {_meta.designStyle}
+
+       === OUTPUT REQUIREMENTS ===
+       Each wireframe MUST include '## Design Direction' section:
+
+       ### Applied Trends
+       - Primary: {trend} - {application}
+       - Secondary: {trend} - {application}
+
+       ### Component Patterns
+       | Component | Pattern | Template Reference |
+       |-----------|---------|-------------------|
+       | Sidebar | {name} | navigation-templates.md#{section} |
+
+       ### Color Tokens
+       | Token | Value | Usage |
+
+       ### Motion Guidelines
+       | Interaction | Animation | Duration |
+
+       Generate wireframe-{screen}.md with full layout
+     "
 ```
 
 ### Step 2.2: Component Discovery
