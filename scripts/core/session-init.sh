@@ -54,8 +54,10 @@ EOF
 
 # Auto-launch dashboard in separate terminal
 DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"
+# Convert to absolute path for dashboard
+ABS_SESSION_DIR="$(cd "$BASE_DIR" && pwd)/tmp/$SESSION_ID"
 if [ -x "$DASHBOARD_SCRIPT" ]; then
-  "$DASHBOARD_SCRIPT" "$SESSION_DIR" &
+  nohup "$DASHBOARD_SCRIPT" "$ABS_SESSION_DIR" > /dev/null 2>&1 &
   echo "DASHBOARD:launched"
 else
   echo "DASHBOARD:not_found"
