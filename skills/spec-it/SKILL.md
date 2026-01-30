@@ -146,11 +146,29 @@ IF uiMode == "stitch":
 
 ELSE:
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # ASCII Wireframe 모드 (기본)
+  # ASCII Wireframe 모드 (Layout 기반 병렬 생성)
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  Agent: ui-architect (sonnet)
+  #
+  # Step A: Layout 시스템 + 화면 목록 (순차)
+  # Step B: 페이지 와이어프레임 (병렬)
+  #
+
+  # Step A: Layout 시스템 생성
+  Task(ui-architect, prompt: "Layout 시스템 + 화면 목록 생성")
+  → 출력: layouts/layout-system.md, screen-list.md
+  → 완료 대기
+
+  # Step B: 페이지 와이어프레임 병렬 생성
+  FOR screen IN screens (최대 4개씩 배치):
+    Task(ui-architect, prompt: "
+      Layout 참조하여 {screen} 전체 화면 와이어프레임 생성
+      ⚠️ Header, Sidebar 등 Layout 전체 포함 필수
+    ")
+  → 배치 단위 완료 대기
+
   Output:
   - tmp/{session-id}/02-screens/screen-list.md
+  - tmp/{session-id}/02-screens/layouts/layout-system.md
   - tmp/{session-id}/02-screens/wireframes/*.md
 ```
 
@@ -448,7 +466,7 @@ currentChapter = _meta.currentChapter
 
 ```bash
 sessionId = $(date +%Y%m%d-%H%M%S)
-mkdir -p tmp/{sessionId}/{00-requirements,01-chapters/decisions,02-screens/wireframes,03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
+mkdir -p tmp/{sessionId}/{00-requirements,01-chapters/decisions,02-screens/{wireframes,layouts},03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
 
 # 대시보드 별도 창에서 자동 실행
 Bash(~/.claude/plugins/frontend-skills/scripts/open-dashboard.sh ./tmp/{sessionId})

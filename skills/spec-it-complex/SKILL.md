@@ -75,7 +75,7 @@ IF 인자에 "--resume" 포함:
   GOTO _meta.currentStep
 ELSE:
   sessionId = $(date +%Y%m%d-%H%M%S)
-  mkdir -p tmp/{sessionId}/{00-requirements,01-chapters/{decisions,alternatives},02-screens/wireframes,03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
+  mkdir -p tmp/{sessionId}/{00-requirements,01-chapters/{decisions,alternatives},02-screens/{wireframes,layouts},03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
 
   # 대시보드 별도 창에서 자동 실행
   Bash(~/.claude/plugins/frontend-skills/scripts/open-dashboard.sh ./tmp/{sessionId})
@@ -276,16 +276,47 @@ IF uiMode == "stitch":
   )
 ELSE:
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # ASCII Wireframe 모드 (기본)
+  # ASCII Wireframe 모드 (Layout 기반 병렬 생성)
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+  # Step A: Layout 시스템 생성 (순차)
   Task(
     subagent_type: "general-purpose",
     model: "sonnet",
-    run_in_background: true,
-    prompt: "CH-02 + ui-architect 실행... OUTPUT RULES: (요약만 반환)"
-  )
+    prompt: "
+      역할: ui-architect (Layout 설계)
+      입력: chapter-plan-final.md
 
-Wait for both tasks
+      작업:
+      1. 화면 목록 작성 (screen-list.md) - 각 화면의 Layout 타입 지정
+      2. Layout 시스템 정의 (layout-system.md)
+         - Layout 타입별 구조 (Header, Sidebar, Footer 포함)
+         - {{MAIN_CONTENT}} 플레이스홀더
+
+      출력: layouts/layout-system.md, screen-list.md
+      OUTPUT RULES: (요약만 반환)
+    "
+  )
+  # → Layout 완료 대기
+
+  # Step B: 페이지 와이어프레임 병렬 생성
+  screens = extract_screens(screen-list.md)
+  FOR batch IN chunk(screens, 4):
+    FOR screen IN batch:
+      Task(
+        subagent_type: "general-purpose",
+        model: "sonnet",
+        run_in_background: true,
+        prompt: "
+          역할: ui-architect (페이지)
+          Layout 참조하여 {screen} 전체 화면 와이어프레임 생성
+          ⚠️ Header, Sidebar 등 Layout 전체 포함 필수
+          OUTPUT RULES: (요약만 반환)
+        "
+      )
+    Wait for batch
+
+Wait for CH-00, CH-01 task
 
 _meta.currentStep = "2.3"
 Update(_meta.json)

@@ -65,10 +65,87 @@ Auto-detect and apply framework idioms:
 - Entry/exit points
 - Error states
 
-### 4. Generate Wireframes
-- ASCII art for each screen
-- Desktop + Tablet + Mobile
-- Interaction states
+### 4. Layout System Design (신규 - 병렬화 지원)
+
+**⚠️ 와이어프레임 생성 전 반드시 Layout 먼저 정의**
+
+#### 4.1 Layout Types 정의
+```markdown
+| Layout | 사용 화면 | 특징 |
+|--------|----------|------|
+| auth-layout | 로그인, 회원가입, 비밀번호찾기 | 중앙 정렬, 최소 UI |
+| dashboard-layout | 대시보드, 목록, 상세 | Header + Sidebar + Main |
+| minimal-layout | 에러, 빈 페이지 | Header만 |
+```
+
+#### 4.2 공통 컴포넌트 와이어프레임
+```
+Header:
+┌─────────────────────────────────────────────────┐
+│ [Logo]     [Nav1] [Nav2] [Nav3]    [User ▼]    │
+└─────────────────────────────────────────────────┘
+
+Sidebar:
+┌──────────┐
+│ [Search] │
+├──────────┤
+│ Menu 1   │
+│ Menu 2   │
+│  └ Sub   │
+│ Menu 3   │
+├──────────┤
+│ [설정]   │
+└──────────┘
+```
+
+#### 4.3 Layout 템플릿 with Placeholder
+```
+dashboard-layout:
+┌─────────────────────────────────────────────────┐
+│ [Header]                                        │
+├──────────┬──────────────────────────────────────┤
+│          │                                      │
+│ [Sidebar]│       {{MAIN_CONTENT}}               │
+│          │                                      │
+│          │                                      │
+└──────────┴──────────────────────────────────────┘
+```
+
+#### 4.4 출력 파일
+- `02-screens/layouts/layout-system.md` - 전체 Layout 시스템
+- `02-screens/layouts/auth-layout.md`
+- `02-screens/layouts/dashboard-layout.md`
+
+### 5. Generate Wireframes (Layout 참조)
+
+**⚠️ 각 페이지는 Layout을 포함한 전체 화면으로 생성**
+
+```
+입력: layout-system.md + screen-list.md
+출력: wireframes/wireframe-{screen}.md
+
+각 와이어프레임은:
+1. 해당 Layout 전체 구조 포함
+2. {{MAIN_CONTENT}} 영역에 페이지 고유 컨텐츠
+3. Header/Sidebar의 active 상태 표시
+```
+
+예시 (대시보드 페이지):
+```
+┌─────────────────────────────────────────────────┐
+│ [Logo]     [대시보드] [설정]       [User ▼]    │
+├──────────┬──────────────────────────────────────┤
+│ [Search] │                                      │
+├──────────│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐│
+│ ●대시보드│  │ 통계1│ │ 통계2│ │ 통계3│ │ 통계4││
+│  목록    │  └──────┘ └──────┘ └──────┘ └──────┘│
+│  설정    │                                      │
+│          │  최근 활동                           │
+│          │  ├─ 항목 1                          │
+│          │  ├─ 항목 2                          │
+│          │  └─ 항목 3                          │
+└──────────┴──────────────────────────────────────┘
+```
 
 ## Typography Guidelines
 

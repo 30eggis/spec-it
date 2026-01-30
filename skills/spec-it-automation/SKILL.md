@@ -155,7 +155,7 @@ sessionId = $(date +%Y%m%d-%H%M%S)
 startTime = $(date -Iseconds)
 
 # 2. 폴더 구조 생성
-mkdir -p tmp/{sessionId}/{00-requirements,01-chapters/decisions,02-screens/wireframes,03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
+mkdir -p tmp/{sessionId}/{00-requirements,01-chapters/decisions,02-screens/{wireframes,layouts},03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
 
 # 3. _meta.json 초기화 (체크포인트용)
 Write(tmp/{sessionId}/_meta.json)
@@ -562,32 +562,82 @@ IF uiMode == "stitch":
   # → Stitch 완료 대기 후 component-auditor 실행
 ELSE:
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-  # ASCII Wireframe 모드 (기본)
+  # ASCII Wireframe 모드 (Layout 기반 병렬 생성)
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  #
+  # Step A: Layout 시스템 + 화면 목록 먼저 생성 (순차)
+  # Step B: 페이지 와이어프레임 병렬 생성 (Layout 참조)
+  #
+
+  # ── Step A: Layout 시스템 생성 (순차, 완료 대기) ──
   Task(
     subagent_type: "general-purpose",
     model: "sonnet",
-    run_in_background: true,
     prompt: "
-      역할: ui-architect
+      역할: ui-architect (Layout 설계)
 
-      입력: chapter-plan-final.md
+      입력: tmp/{sessionId}/01-chapters/chapter-plan-final.md
 
       작업:
       1. 화면 목록 작성 (screen-list.md)
-      2. 각 화면별 ASCII 와이어프레임 생성
+         - 각 화면의 Layout 타입 지정
+      2. Layout 시스템 정의 (layout-system.md)
+         - Layout 타입별 구조 (auth-layout, dashboard-layout 등)
+         - 공통 컴포넌트 (Header, Sidebar, Footer, Drawer)
+         - {{MAIN_CONTENT}} 플레이스홀더 포함
       3. Desktop/Tablet/Mobile 반응형 고려
 
       출력 경로:
       - tmp/{sessionId}/02-screens/screen-list.md
-      - tmp/{sessionId}/02-screens/wireframes/wireframe-{screen}.md (화면별)
+      - tmp/{sessionId}/02-screens/layouts/layout-system.md
 
-      각 wireframe 파일에 SPEC-IT-{HASH}.md 도 함께 생성
-      HASH = 파일경로 MD5 앞 8자리 대문자
-
-      OUTPUT RULES: (위와 동일)
+      OUTPUT RULES:
+      1. 모든 결과는 파일에 저장
+      2. 반환 시 '완료. 생성 파일: {경로} ({줄수}줄)' 형식만
+      3. 파일 내용을 응답에 절대 포함하지 않음
     "
   )
+  # → Layout 완료 대기
+
+  # ── Step B: 페이지 와이어프레임 병렬 생성 ──
+  # screen-list.md에서 화면 목록 추출 후 병렬 생성
+  Read(tmp/{sessionId}/02-screens/screen-list.md)
+  screens = extract_screens(screen-list.md)  # 예: [login, dashboard, list, detail, settings]
+
+  # 화면별 병렬 Task 생성 (최대 4개씩 배치)
+  FOR batch IN chunk(screens, 4):
+    FOR screen IN batch:
+      Task(
+        subagent_type: "general-purpose",
+        model: "sonnet",
+        run_in_background: true,
+        prompt: "
+          역할: ui-architect (페이지 와이어프레임)
+
+          입력:
+          - tmp/{sessionId}/02-screens/layouts/layout-system.md
+          - tmp/{sessionId}/02-screens/screen-list.md
+
+          대상 화면: {screen.name}
+          사용 Layout: {screen.layout_type}
+
+          작업:
+          1. layout-system.md에서 해당 Layout 구조 참조
+          2. Layout 전체를 포함한 완성된 와이어프레임 생성
+          3. {{MAIN_CONTENT}} 영역에 페이지 고유 컨텐츠 삽입
+          4. Header/Sidebar의 active 메뉴 표시
+          5. Desktop/Tablet/Mobile 반응형
+
+          ⚠️ Layout 없이 컨텐츠만 그리지 말 것!
+          ⚠️ 반드시 Header, Sidebar 등 전체 화면 구조 포함!
+
+          출력 경로:
+          - tmp/{sessionId}/02-screens/wireframes/wireframe-{screen.name}.md
+
+          OUTPUT RULES: (위와 동일)
+        "
+      )
+    Wait for batch  # 배치 단위로 완료 대기
 
 Task(
   subagent_type: "general-purpose",
@@ -612,8 +662,8 @@ Task(
   "
 )
 
-# 두 에이전트 완료 대기
-Wait for both tasks
+# component-auditor 완료 대기 (페이지 와이어프레임과 병렬 실행됨)
+Wait for component-auditor
 
 # 완료 후
 _meta.completedSteps += "2.1"
@@ -980,9 +1030,9 @@ tmp/{session-id}/
 ├── 02-screens/
 │   ├── _index.md
 │   ├── screen-list.md
-│   ├── 0-login-screen.md
-│   ├── 1-dashboard-screen.md
-│   ├── wireframes/            # ASCII 모드 (와이어프레임은 분리 제외)
+│   ├── layouts/               # Layout 시스템 (병렬 생성 지원)
+│   │   └── layout-system.md   # Header, Sidebar, Footer 등 공통 구조
+│   ├── wireframes/            # ASCII 모드 (Layout 포함된 전체 화면)
 │   │   ├── wireframe-{screen}.md
 │   │   └── SPEC-IT-{HASH}.md
 │   ├── html/                  # Stitch 모드
