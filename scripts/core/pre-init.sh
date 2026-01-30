@@ -42,10 +42,11 @@ cat > "$SESSION_DIR/_status.json" << EOF
 }
 EOF
 
-# Launch dashboard
+# Launch dashboard with absolute path
 DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"
+ABS_SESSION_DIR="$(pwd)/tmp/$SESSION_ID"
 if [ -x "$DASHBOARD_SCRIPT" ]; then
-  "$DASHBOARD_SCRIPT" "$SESSION_DIR" &
+  nohup "$DASHBOARD_SCRIPT" "$ABS_SESSION_DIR" > /dev/null 2>&1 &
 fi
 
 # Output for Claude to use
