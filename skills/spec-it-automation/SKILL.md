@@ -109,36 +109,42 @@ AskUserQuestion(
     header: "UI Mode",
     options: [
       {label: "ASCII Wireframe (Recommended)", description: "텍스트 기반 와이어프레임 (빠름, 오프라인 가능)"},
-      {label: "Google Stitch", description: "AI 기반 실제 UI 생성 (GCP 연동 필요)"}
+      {label: "Google Stitch", description: "AI 기반 실제 UI 생성 (자동 설정)"}
     ]
   }]
 )
 
 IF "Google Stitch" 선택:
-  # GCP 인증 확인
-  Bash(~/.claude/plugins/frontend-skills/scripts/setup-stitch-gcp.sh --check-only)
+  uiMode = "stitch"
 
-  IF 인증 실패:
-    AskUserQuestion(
-      questions: [{
-        question: "GCP 인증이 필요합니다. 지금 설정하시겠습니까?",
-        header: "GCP Setup",
-        options: [
-          {label: "Yes", description: "GCP 인증 설정 시작"},
-          {label: "No", description: "ASCII Wireframe으로 진행"}
-        ]
-      }]
-    )
+  # stitch-controller 에이전트 호출 (자동 승인, 사용자 개입 없음)
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    prompt: "
+      역할: stitch-controller
+      sessionId: {sessionId}
 
-    IF "Yes":
-      Bash(~/.claude/plugins/frontend-skills/scripts/setup-stitch-gcp.sh)
-      uiMode = "stitch"
-    ELSE:
-      uiMode = "ascii"
-  ELSE:
-    uiMode = "stitch"
+      Phase 1만 실행 (설치 및 인증):
+      1. Node.js/npm 확인
+      2. @_davideast/stitch-mcp 설치
+      3. OAuth 인증 확인/실행
+
+      모든 단계는 사용자 승인 없이 자동 진행합니다.
+      OAuth 브라우저 인증만 사용자 액션이 필요합니다.
+
+      OUTPUT: '완료. Stitch 준비됨.' 또는 '실패. 원인: {error}'
+    "
+  )
+
+  IF 실패:
+    Output: "Stitch 설정 실패. ASCII 모드로 전환합니다."
+    uiMode = "ascii"
+
 ELSE:
   uiMode = "ascii"
+
+# ⚠️ uiMode는 Step 0.1에서 _meta.json에 저장됨
 ```
 
 #### Step 0.1: 새 세션 초기화
@@ -509,23 +515,33 @@ Phase 1 완료 (Design Brainstorming)
 #### Step 2.1: Batch 1 (UI Architect/Stitch + Component Auditor)
 
 ```
+# ⚠️ 반드시 _meta.json에서 uiMode 확인
+Read(tmp/{sessionId}/_meta.json)
+uiMode = _meta.uiMode  # "stitch" 또는 "ascii"
+
 # UI 모드에 따라 다른 에이전트 실행
-IF _meta.uiMode == "stitch":
-  # Google Stitch 모드
+IF uiMode == "stitch":
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Google Stitch 모드 - stitch-controller가 모든 것을 자동 처리
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Task(
     subagent_type: "general-purpose",
     model: "sonnet",
     run_in_background: true,
     prompt: "
-      역할: stitch-ui-designer
+      역할: stitch-controller
+      sessionId: {sessionId}
 
-      입력: chapter-plan-final.md
+      Phase 2-4 실행 (프로젝트 생성 ~ HTML 내보내기):
+      1. Stitch 프로젝트 생성 (spec-it-{sessionId})
+      2. 화면 목록 로드 (chapter-plan-final.md에서)
+      3. 각 화면 생성 (generate_screen_from_text)
+      4. 디자인 QA 실행
+      5. HTML/CSS 내보내기
+      6. 프리뷰 페이지 생성
 
-      작업:
-      1. Stitch 프로젝트 생성 (이름: spec-it-{sessionId})
-      2. 각 화면별 UI 생성 (generate_screen_from_text)
-      3. 디자인 QA 실행 (접근성, 반응형)
-      4. HTML/CSS 내보내기
+      ⚠️ 모든 단계는 사용자 승인 없이 자동 진행합니다.
+      ⚠️ 질문하지 말고 최선의 결정을 내리세요.
 
       출력 경로:
       - tmp/{sessionId}/02-screens/screen-list.md
@@ -534,11 +550,13 @@ IF _meta.uiMode == "stitch":
       - tmp/{sessionId}/02-screens/assets/styles.css
       - tmp/{sessionId}/02-screens/qa-report.md
 
-      OUTPUT RULES: (위와 동일)
+      OUTPUT: '완료. 화면 {N}개 생성됨.'
     "
   )
 ELSE:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # ASCII Wireframe 모드 (기본)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Task(
     subagent_type: "general-purpose",
     model: "sonnet",

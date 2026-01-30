@@ -104,17 +104,46 @@ Output: `tmp/{session-id}/01-chapters/decisions/`
 ### Phase 2: UI Architecture
 
 ```
-IF _meta.uiMode == "stitch":
-  # Google Stitch 모드
-  Agent: stitch-ui-designer (sonnet)
+# ⚠️ 반드시 _meta.json에서 uiMode 확인
+Read(tmp/{sessionId}/_meta.json)
+uiMode = _meta.uiMode  # "stitch" 또는 "ascii"
+
+IF uiMode == "stitch":
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Google Stitch 모드 - stitch-controller가 모든 것을 자동 처리
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    prompt: "
+      역할: stitch-controller
+      sessionId: {sessionId}
+
+      Phase 2-4 실행 (프로젝트 생성 ~ HTML 내보내기):
+      1. Stitch 프로젝트 생성 (spec-it-{sessionId})
+      2. 화면 목록 로드 (chapter-plan-final.md에서)
+      3. 각 화면 생성 (generate_screen_from_text)
+      4. 디자인 QA 실행
+      5. HTML/CSS 내보내기
+      6. 프리뷰 페이지 생성
+
+      모든 단계는 사용자 승인 없이 자동 진행합니다.
+
+      OUTPUT: '완료. 화면 {N}개 생성됨. HTML: tmp/{sessionId}/02-screens/html/'
+    "
+  )
+
   Output:
   - tmp/{session-id}/02-screens/screen-list.md
   - tmp/{session-id}/02-screens/stitch-project.json
   - tmp/{session-id}/02-screens/html/*.html
   - tmp/{session-id}/02-screens/assets/styles.css
   - tmp/{session-id}/02-screens/qa-report.md
+
 ELSE:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # ASCII Wireframe 모드 (기본)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   Agent: ui-architect (sonnet)
   Output:
   - tmp/{session-id}/02-screens/screen-list.md
@@ -357,38 +386,47 @@ AskUserQuestion(
     header: "UI Mode",
     options: [
       {label: "ASCII Wireframe", description: "텍스트 기반 와이어프레임 (오프라인 가능)"},
-      {label: "Google Stitch", description: "AI 기반 실제 UI 생성 (GCP 연동 필요)"}
+      {label: "Google Stitch", description: "AI 기반 실제 UI 생성 (자동 설정)"}
     ]
   }]
 )
 
 IF "Google Stitch" 선택:
-  # GCP 인증 확인
-  Bash(~/.claude/plugins/frontend-skills/scripts/setup-stitch-gcp.sh --check-only)
+  uiMode = "stitch"
 
-  IF 인증 실패:
-    AskUserQuestion(
-      questions: [{
-        question: "GCP 인증이 필요합니다. 지금 설정하시겠습니까?",
-        header: "GCP Setup",
-        options: [
-          {label: "Yes", description: "GCP 인증 설정 시작"},
-          {label: "No", description: "ASCII Wireframe으로 진행"}
-        ]
-      }]
-    )
+  # ⚠️ 즉시 _meta.json에 저장 (잊지 않도록)
+  Write(tmp/{sessionId}/_meta.json, {..., "uiMode": "stitch"})
 
-    IF "Yes":
-      Bash(~/.claude/plugins/frontend-skills/scripts/setup-stitch-gcp.sh)
-    ELSE:
-      uiMode = "ascii"
-  ELSE:
-    uiMode = "stitch"
+  # stitch-controller 에이전트 호출 (자동 승인, 사용자 개입 없음)
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    prompt: "
+      역할: stitch-controller
+      sessionId: {sessionId}
+
+      Phase 1만 실행 (설치 및 인증):
+      1. Node.js/npm 확인
+      2. @_davideast/stitch-mcp 설치
+      3. OAuth 인증 확인/실행
+
+      Phase 2-4는 나중에 실행됨 (Phase 2: UI Architecture 단계에서)
+
+      OUTPUT: '완료. Stitch 준비됨.' 또는 '실패. 원인: {error}'
+    "
+  )
+
+  IF 실패:
+    Output: "Stitch 설정 실패. ASCII 모드로 전환합니다."
+    uiMode = "ascii"
+    Update(_meta.json, uiMode)
+
 ELSE:
   uiMode = "ascii"
-
-# _meta.json에 uiMode 저장
+  Write(tmp/{sessionId}/_meta.json, {..., "uiMode": "ascii"})
 ```
+
+**중요: uiMode는 선택 즉시 _meta.json에 저장되며, 이후 모든 Phase에서 이 값을 참조합니다.**
 
 #### Step 0.R: Resume 모드
 
