@@ -60,7 +60,9 @@ calc_duration() {
 
 # Helper: Get agent count from log
 get_agent_count() {
-  grep -c "^| [0-9]" "$RUNTIME_LOG" 2>/dev/null || echo 0
+  local count
+  count=$(grep -c "^| [0-9]" "$RUNTIME_LOG" 2>/dev/null) || count=0
+  echo "$count"
 }
 
 case "$ACTION" in
