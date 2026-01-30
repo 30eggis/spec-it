@@ -37,7 +37,7 @@ IF Stitch:
 ### Step 0.1: Session Init
 
 ```
-Bash: scripts/core/session-init.sh {sessionId} {uiMode}
+Bash: ../../scripts/core/session-init.sh {sessionId} {uiMode}
 → Creates folders, _meta.json, _status.json
 → Auto-launches dashboard in separate terminal
 ```
@@ -79,7 +79,7 @@ CH-07: Non-Functional Requirements
 3. AskUserQuestion: "Is this correct?"
    Options: [Yes, No, Questions]
 
-4. Bash: scripts/core/meta-checkpoint.sh {sessionId} {chapter}
+4. Bash: ../../scripts/core/meta-checkpoint.sh {sessionId} {chapter}
 
 5. IF No/Questions: Revise and re-ask
 ```
@@ -91,7 +91,7 @@ CH-07: Non-Functional Requirements
 ### Step 2.1: Dispatch
 
 ```
-Bash: scripts/core/phase-dispatcher.sh {sessionId} ui
+Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
 → Returns: DISPATCH:stitch-controller OR DISPATCH:ascii-wireframe
 ```
 
@@ -112,11 +112,11 @@ Task(stitch-controller, sonnet):
 1. Task(ui-architect, sonnet):
    - Generate layout-system.md and screen-list.md
 
-2. Bash: scripts/planners/screen-planner.sh {sessionId}
+2. Bash: ../../scripts/planners/screen-planner.sh {sessionId}
    → Creates screens.json
 
 3. FOR each batch (4 screens):
-   Bash: scripts/executors/batch-runner.sh {sessionId} wireframe {batchIndex}
+   Bash: ../../scripts/executors/batch-runner.sh {sessionId} wireframe {batchIndex}
 
    Task(ui-architect, sonnet, parallel):
      - Generate wireframe-{screen}.md
@@ -137,7 +137,7 @@ AskUserQuestion: "UI Architecture complete. Continue?"
 ## Phase 3: Component Specification
 
 ```
-Bash: scripts/planners/component-planner.sh {sessionId}
+Bash: ../../scripts/planners/component-planner.sh {sessionId}
 
 Task(component-builder, sonnet, parallel):
   Output: 03-components/new/spec-{component}.md
@@ -159,7 +159,7 @@ Task(critical-reviewer, opus):
 Task(ambiguity-detector, opus):
   Output: 04-review/ambiguities.md
 
-Bash: scripts/core/phase-dispatcher.sh {sessionId} ambiguity
+Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ambiguity
 → IF must-resolve: AskUserQuestion for resolution
 ```
 
@@ -188,7 +188,7 @@ Task(spec-assembler, haiku):
 AskUserQuestion: "Spec complete. Handle tmp folder?"
 Options: [Archive, Keep, Delete]
 
-Bash: scripts/core/status-update.sh {sessionId} complete
+Bash: ../../scripts/core/status-update.sh {sessionId} complete
 ```
 
 ---

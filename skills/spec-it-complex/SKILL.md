@@ -47,7 +47,7 @@ IF Stitch:
 ### Step 0.1: Session Init
 
 ```
-Bash: scripts/core/session-init.sh {sessionId} {uiMode}
+Bash: ../../scripts/core/session-init.sh {sessionId} {uiMode}
 → Auto-launches dashboard
 ```
 
@@ -69,7 +69,7 @@ IF --resume in args:
 Task(design-interviewer, opus):
   Output: 00-requirements/requirements.md
 
-Bash: scripts/core/meta-checkpoint.sh {sessionId} 1.1
+Bash: ../../scripts/core/meta-checkpoint.sh {sessionId} 1.1
 ```
 
 ### Step 1.2: Divergent Thinking + Critique
@@ -85,7 +85,7 @@ FOR round in [1, 2, 3]:
 Task(chapter-planner, opus):
   Output: 01-chapters/chapter-plan-final.md
 
-Bash: scripts/core/meta-checkpoint.sh {sessionId} 1.2
+Bash: ../../scripts/core/meta-checkpoint.sh {sessionId} 1.2
 ```
 
 ---
@@ -111,7 +111,7 @@ IF Modify: Revise plan
 Task(chapter-writer, sonnet, parallel):
   Output: 01-chapters/decisions/CH-00.md, CH-01.md
 
-Bash: scripts/core/phase-dispatcher.sh {sessionId} ui
+Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
 → DISPATCH:stitch-controller OR DISPATCH:ascii-wireframe
 ```
 
@@ -128,7 +128,7 @@ Task(stitch-controller, sonnet):
 Task(ui-architect, sonnet):
   Output: 02-screens/screen-list.md, layouts/layout-system.md
 
-Bash: scripts/planners/screen-planner.sh {sessionId}
+Bash: ../../scripts/planners/screen-planner.sh {sessionId}
 
 FOR each batch:
   Task(ui-architect, sonnet, parallel):
@@ -157,7 +157,7 @@ Task(chapter-writer, sonnet, parallel):
 Task(component-auditor, haiku):
   Output: 03-components/inventory.md, gap-analysis.md
 
-Bash: scripts/planners/component-planner.sh {sessionId}
+Bash: ../../scripts/planners/component-planner.sh {sessionId}
 
 Task(component-builder, sonnet, parallel):
   Output: 03-components/new/spec-{component}.md
@@ -191,7 +191,7 @@ Task(critical-reviewer, opus, parallel):
 Task(ambiguity-detector, opus, parallel):
   Output: 04-review/ambiguities.md
 
-Bash: scripts/core/phase-dispatcher.sh {sessionId} ambiguity
+Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ambiguity
 → IF must-resolve: AskUserQuestion
 ```
 
@@ -224,7 +224,7 @@ Task(spec-assembler, haiku):
 AskUserQuestion: "Spec complete. Handle tmp folder?"
 Options: [Archive, Keep, Delete]
 
-Bash: scripts/core/status-update.sh {sessionId} complete
+Bash: ../../scripts/core/status-update.sh {sessionId} complete
 ```
 
 ---

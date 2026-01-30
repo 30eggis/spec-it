@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "~/.claude/plugins/frontend-skills/scripts/core/pre-init.sh"
+            "command": "./scripts/core/pre-init.sh"
           }
         ]
       }

@@ -47,7 +47,7 @@ IF Stitch:
 ### Step 0.1: Session Init
 
 ```
-Bash: scripts/core/session-init.sh {sessionId} {uiMode}
+Bash: ../../scripts/core/session-init.sh {sessionId} {uiMode}
 → Auto-launches dashboard
 ```
 
@@ -66,13 +66,13 @@ IF --resume in args:
 ### Step 1.1: Requirements
 
 ```
-Bash: scripts/core/status-update.sh {sessionId} agent-start design-interviewer
+Bash: ../../scripts/core/status-update.sh {sessionId} agent-start design-interviewer
 
 Task(design-interviewer, opus):
   Output: 00-requirements/requirements.md
 
-Bash: scripts/core/status-update.sh {sessionId} agent-complete design-interviewer
-Bash: scripts/core/meta-checkpoint.sh {sessionId} 1.1
+Bash: ../../scripts/core/status-update.sh {sessionId} agent-complete design-interviewer
+Bash: ../../scripts/core/meta-checkpoint.sh {sessionId} 1.1
 ```
 
 ### Step 1.2: Divergent Thinking
@@ -108,7 +108,7 @@ Task(critic-moderator, opus):
 Task(chapter-planner, opus):
   Output: 01-chapters/chapter-plan-final.md
 
-Bash: scripts/core/status-update.sh {sessionId} progress 16 1.4 1
+Bash: ../../scripts/core/status-update.sh {sessionId} progress 16 1.4 1
 ```
 
 ---
@@ -118,7 +118,7 @@ Bash: scripts/core/status-update.sh {sessionId} progress 16 1.4 1
 ### Step 2.1: UI Architecture
 
 ```
-Bash: scripts/core/phase-dispatcher.sh {sessionId} ui
+Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
 → Returns: DISPATCH:stitch-controller OR DISPATCH:ascii-wireframe
 ```
 
@@ -139,10 +139,10 @@ Task(stitch-controller, sonnet):
 Task(ui-architect, sonnet):
   Output: screen-list.md, layouts/layout-system.md
 
-Bash: scripts/planners/screen-planner.sh {sessionId}
+Bash: ../../scripts/planners/screen-planner.sh {sessionId}
 
 FOR each batch (4 screens):
-  Bash: scripts/executors/batch-runner.sh {sessionId} wireframe {i}
+  Bash: ../../scripts/executors/batch-runner.sh {sessionId} wireframe {i}
 
   Task(ui-architect, sonnet, parallel x4):
     Output: wireframes/wireframe-{screen}.md
@@ -156,7 +156,7 @@ Task(component-auditor, haiku, parallel):
 
 WAIT
 
-Bash: scripts/planners/component-planner.sh {sessionId}
+Bash: ../../scripts/planners/component-planner.sh {sessionId}
 
 Task(component-builder, sonnet, parallel):
   Output: 03-components/new/spec-{component}.md
@@ -164,7 +164,7 @@ Task(component-builder, sonnet, parallel):
 Task(component-migrator, sonnet, parallel):
   Output: 03-components/migrations/migration-plan.md
 
-Bash: scripts/core/status-update.sh {sessionId} progress 33 2.2 2
+Bash: ../../scripts/core/status-update.sh {sessionId} progress 33 2.2 2
 ```
 
 ---
@@ -186,7 +186,7 @@ WAIT for both
 ### Step 3.2: Ambiguity Resolution
 
 ```
-Bash: scripts/core/phase-dispatcher.sh {sessionId} ambiguity
+Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ambiguity
 
 IF DISPATCH:user-question:
   Read: 04-review/ambiguities.md
@@ -200,7 +200,7 @@ IF DISPATCH:user-question:
 ELSE:
   Auto-proceed
 
-Bash: scripts/core/status-update.sh {sessionId} progress 50 3.2 3
+Bash: ../../scripts/core/status-update.sh {sessionId} progress 50 3.2 3
 ```
 
 ---
@@ -216,7 +216,7 @@ Task(test-spec-writer, sonnet, parallel):
 
 WAIT for both
 
-Bash: scripts/core/status-update.sh {sessionId} progress 66 4.1 4
+Bash: ../../scripts/core/status-update.sh {sessionId} progress 66 4.1 4
 ```
 
 ---
@@ -230,7 +230,7 @@ Task(spec-assembler, haiku):
   - 06-final/dev-tasks.md
   - 06-final/SPEC-SUMMARY.md
 
-Bash: scripts/core/status-update.sh {sessionId} progress 83 5.1 5
+Bash: ../../scripts/core/status-update.sh {sessionId} progress 83 5.1 5
 ```
 
 ---
@@ -246,7 +246,7 @@ Options: [Archive, Keep, Delete]
 IF Archive: mv tmp/{sessionId} archive/
 IF Delete: rm -rf tmp/{sessionId}
 
-Bash: scripts/core/status-update.sh {sessionId} complete
+Bash: ../../scripts/core/status-update.sh {sessionId} complete
 ```
 
 ---
