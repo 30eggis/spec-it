@@ -35,11 +35,11 @@ Transform vibe-coding/PRD into **production-ready frontend specifications** with
 
 ### Three Generation Modes
 
-| Command | Mode | User Approval | Best For |
-|---------|------|---------------|----------|
-| `/frontend-skills:spec-it` | Manual | Every chapter | Small projects, learning |
-| `/frontend-skills:spec-it-complex` | Hybrid | 4 milestones | Medium projects |
-| `/frontend-skills:spec-it-automation` | Full Auto | Final only | Large projects |
+| 이렇게 말하면... | Mode | 승인 시점 | 추천 상황 |
+|-----------------|------|----------|----------|
+| "단계별로 논의하면서" | Manual | 매 챕터 | 소규모, 학습용 |
+| "큰 틀만 확인하면서" | Hybrid | 4개 마일스톤 | 중규모 프로젝트 |
+| "자동으로 만들어줘" | Full Auto | 최종만 | 대규모 프로젝트 |
 
 ### Workflow Phases
 
@@ -64,21 +64,27 @@ Phase 6: Final Assembly     → final-spec.md, dev-tasks.md
 
 자연어로 말하면 자동으로 skill이 로딩됩니다.
 
-| 이렇게 말하면... | 로딩되는 skill |
-|-----------------|---------------|
-| "프론트엔드 스펙 작성해줘" | spec-it-automation |
-| "이 PRD로 명세서 만들어줘" | spec-it-automation |
-| "spec-it으로 명세서 만들어줘" | spec-it |
-| "이어서 진행해줘" / "--resume" | 마지막 세션 재개 |
+| 이렇게 말하면... | 로딩되는 skill | 특징 |
+|-----------------|---------------|------|
+| "단계별로 논의하면서 스펙 만들자" | spec-it | 매 챕터 승인 |
+| "하나씩 확인하면서 진행해줘" | spec-it | 꼼꼼한 검토 |
+| "큰 틀만 확인하면서 스펙 만들어줘" | spec-it-complex | 마일스톤 승인 |
+| "주요 포인트만 논의하자" | spec-it-complex | 중간 검토 |
+| "자동으로 스펙 만들어줘" | spec-it-automation | 최종만 승인 |
+| "알아서 다 만들어줘" | spec-it-automation | 완전 자동 |
 
 ```
-💬 "대시보드 앱의 프론트엔드 스펙을 작성해줘"
-   → spec-it-automation 자동 로딩
-   → 요구사항 분석 시작
+💬 "단계별로 같이 논의하면서 스펙 만들자"
+   → spec-it (Manual) 로딩
+   → 매 챕터마다 "이 내용 맞아?" 확인
 
-💬 "아까 하던 스펙 작업 이어서 해줘"
-   → 마지막 세션 자동 감지
-   → 중단된 Phase부터 재개
+💬 "큰 흐름만 확인할게, 나머지는 알아서 해줘"
+   → spec-it-complex (Hybrid) 로딩
+   → Phase 완료 시점에만 확인
+
+💬 "자동으로 스펙 만들어줘, 끝나면 알려줘"
+   → spec-it-automation (Full Auto) 로딩
+   → 최종 결과물만 확인
 ```
 
 ---
