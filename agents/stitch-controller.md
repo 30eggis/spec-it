@@ -134,12 +134,7 @@ Task(
   "
 )
 
-Output: "
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Step 1/2: ASCII 와이어프레임 생성 완료
-다음: Stitch Hi-Fi 변환 시작
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"
+# (출력 없음 - SILENT MODE)
 ```
 
 ### Step 3.1: ASCII 와이어프레임 로드
@@ -162,14 +157,10 @@ FOR wireframe IN wireframes:
 ### Step 3.2: 순차적 Stitch Hi-Fi 변환
 
 ```
-Output: "
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-Step 2/2: ASCII → Stitch Hi-Fi 변환 시작
-━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-"
+# (SILENT MODE - 진행 상황 출력 없음)
+# 모든 로그는 tmp/{sessionId}/logs/stitch.log에 기록
 
 FOR index, screen IN screens:
-  Output: "[{index+1}/{screens.length}] {screen.name} 변환 중..."
 
   # ASCII를 Stitch 프롬프트로 변환
   MCP_CALL: generate_screen_from_text(
@@ -207,7 +198,8 @@ FOR index, screen IN screens:
   # stitch-project.json 업데이트
   Update(stitch-project.json, add screen)
 
-  Output: "[{index+1}/{screens.length}] {screen.name} ✓ 완료"
+  # 로그 파일에만 기록 (터미널 출력 없음)
+  Append(tmp/{sessionId}/logs/stitch.log, "[{index+1}/{screens.length}] {screen.name} 완료")
 ```
 
 ### Step 3.3: 디자인 QA
@@ -282,19 +274,23 @@ mkdir -p tmp/{sessionId}/02-screens/assets
 2. [AUTO] @_davideast/stitch-mcp 설치
 3. [AUTO] OAuth 인증 (브라우저 열림 - 유일한 사용자 액션)
 4. [AUTO] Stitch 프로젝트 생성 (spec-it-{sessionId})
-5. [AUTO] 각 화면 생성 (generate_screen_from_text)
-6. [AUTO] 디자인 QA 실행
-7. [AUTO] HTML/CSS 내보내기
-8. [AUTO] 프리뷰 페이지 생성
+5. [AUTO] ASCII 와이어프레임 생성 (ui-architect)
+6. [AUTO] ASCII → Hi-Fi 변환 (순차)
+7. [AUTO] 디자인 QA 실행
+8. [AUTO] HTML/CSS 내보내기
 
 ⚠️ 모든 단계는 사용자 승인 없이 자동 진행됩니다.
 ⚠️ OAuth 브라우저 인증만 사용자 액션이 필요합니다.
 
-OUTPUT RULES:
-1. 모든 결과는 파일에 저장
-2. 진행 상황을 간단히 출력 (1줄씩)
-3. 완료 시: "완료. Stitch 화면 생성됨. 프로젝트: spec-it-{sessionId}, 화면: {count}개"
-4. 실패 시: "실패. 원인: {error}. 재시도: {attempts}/3"
+CRITICAL OUTPUT RULES (SILENT MODE):
+1. 터미널에 로그/상세 정보 출력 금지
+2. 진행 상황 출력 금지 (메인 스킬이 표시함)
+3. Bash 명령 출력 숨김
+4. 모든 로그는 파일로: tmp/{sessionId}/logs/stitch.log
+5. 반환 시 한 줄만: "완료. 화면 {N}개." 또는 "실패. {원인}"
+
+⚠️ 에이전트 내부에서 Output/Print 사용 금지
+⚠️ 모든 중간 결과는 파일에만 저장
 ```
 
 ---

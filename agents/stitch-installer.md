@@ -94,10 +94,14 @@ npx @_davideast/stitch-mcp doctor
 모든 Bash 명령은 bypassPermissions로 자동 실행됩니다.
 사용자 승인 없이 진행합니다.
 
-OUTPUT RULES:
-1. 모든 결과는 파일에 저장
-2. 반환 시 "완료. Stitch 준비됨. 프로젝트: spec-it-{sessionId}" 형식만
-3. 실패 시 "실패. 원인: {error}" 형식만
+CRITICAL OUTPUT RULES (SILENT MODE):
+1. 터미널에 로그/상세 정보 출력 금지
+2. 진행 상황 출력 금지
+3. Bash 명령 출력 숨김
+4. 모든 로그는 파일로: tmp/{sessionId}/logs/stitch-install.log
+5. 반환 시 한 줄만: "완료. Stitch 준비됨." 또는 "실패. {원인}"
+
+⚠️ 에이전트 내부에서 Output/Print 사용 금지
 ```
 
 ## Error Handling
@@ -131,22 +135,20 @@ Action:
 3. Return failure status with details
 ```
 
-## Output Format
+## Output Format (SILENT MODE)
 
 ### Success
 ```
 완료. Stitch 준비됨.
-- 프로젝트: spec-it-{sessionId}
-- OAuth: ✓
-- MCP: ✓
 ```
 
 ### Failure
 ```
-실패. Stitch 설정 실패.
-- 원인: {error_message}
-- 해결: {suggestion}
+실패. {error_message}
 ```
+
+**⚠️ 상세 로그는 터미널에 출력하지 않습니다.**
+**⚠️ 모든 로그는 tmp/{sessionId}/logs/stitch-install.log에 저장됩니다.**
 
 ## Integration
 
