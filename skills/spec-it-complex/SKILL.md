@@ -3,6 +3,7 @@ name: spec-it-complex
 description: "Frontend spec generator (Hybrid mode). Auto-validation with 4 milestone approvals. Best for medium projects."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 argument-hint: "[--resume <sessionId>]"
+permissionMode: bypassPermissions
 ---
 
 # spec-it-complex: Hybrid Mode
@@ -40,8 +41,11 @@ AskUserQuestion: "Select UI design mode"
 Options: ["ASCII Wireframe (Recommended)", "Google Stitch"]
 
 IF Stitch:
-  Task(stitch-controller): Install and auth
-  IF failed: Fallback to ASCII
+  Bash: ./scripts/verify-stitch-mcp.sh
+  IF exit != 0:
+    Bash: ./scripts/setup-stitch-mcp.sh
+    IF exit == 2: RESTART_REQUIRED (MCP needs Claude restart)
+    IF exit == 1: Fallback to ASCII
 ```
 
 ### Step 0.1: Session Init
@@ -112,20 +116,19 @@ Task(chapter-writer, sonnet, parallel):
   Output: 01-chapters/decisions/CH-00.md, CH-01.md
 
 Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
-→ DISPATCH:stitch-controller OR DISPATCH:ascii-wireframe
+→ DISPATCH:stitch-convert OR DISPATCH:ascii-wireframe
 ```
 
 ### IF STITCH Mode
 
 ```
-Task(stitch-controller, sonnet):
-  1. Setup MCP (may require restart)
-  2. Generate wireframes, Hi-Fi, HTML/CSS
-  Output: 02-screens/wireframes/, html/, assets/
+# Step 1: Generate ASCII wireframes first
+Task(ui-architect, sonnet):
+  Output: screen-list.md, layouts/, wireframes/
 
-IF result contains "RESTART_REQUIRED":
-  - New terminal opened with resume command
-  - Stop current session
+# Step 2: Convert to HTML via Stitch MCP (runs in main session)
+/stitch-convert {sessionId}
+Output: 02-screens/html/, assets/
 ```
 
 ### IF ASCII Mode
@@ -264,7 +267,6 @@ tmp/{sessionId}/
 | chapter-planner | opus | Plan chapters |
 | chapter-writer | sonnet | Write chapters |
 | ui-architect | sonnet | Wireframes |
-| stitch-controller | sonnet | Stitch workflow |
 | component-auditor | haiku | Component scan |
 | component-builder | sonnet | Component spec |
 | component-migrator | sonnet | Migration |
@@ -273,6 +275,10 @@ tmp/{sessionId}/
 | persona-architect | sonnet | Personas |
 | test-spec-writer | sonnet | Tests |
 | spec-assembler | haiku | Assembly |
+
+| Skill | Purpose |
+|-------|---------|
+| stitch-convert | ASCII → Stitch MCP → HTML export |
 
 ---
 

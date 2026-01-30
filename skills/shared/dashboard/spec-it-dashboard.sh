@@ -20,8 +20,26 @@ BOLD='\033[1m'
 if [ -n "$1" ]; then
     SESSION_PATH="$1"
 else
-    # Auto-detect latest session
-    SESSION_PATH=$(find . -maxdepth 3 -name "_status.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+    # Auto-detect latest session using absolute paths
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    PLUGIN_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+    # Get project directory (parent of plugin's .claude directory)
+    PROJECT_DIR="${PLUGIN_DIR%/.claude/*}"
+    if [ "$PROJECT_DIR" = "$PLUGIN_DIR" ]; then
+        # Fallback: plugin may not be in .claude, search from current directory
+        PROJECT_DIR="$(pwd)"
+    fi
+
+    # Search for session in project's tmp directory
+    SESSION_PATH=$(find "$PROJECT_DIR" -maxdepth 5 -path "*/tmp/*" -name "_status.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+    if [ -z "$SESSION_PATH" ]; then
+        SESSION_PATH=$(find "$PROJECT_DIR" -maxdepth 5 -path "*/tmp/*" -name "_meta.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+    fi
+
+    # Fallback to current directory search
+    if [ -z "$SESSION_PATH" ]; then
+        SESSION_PATH=$(find . -maxdepth 3 -name "_status.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+    fi
     if [ -z "$SESSION_PATH" ]; then
         SESSION_PATH=$(find . -maxdepth 3 -name "_meta.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
     fi

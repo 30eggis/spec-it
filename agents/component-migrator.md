@@ -2,8 +2,11 @@
 name: component-migrator
 description: "Migrates scattered components to common folder and updates all references. Use for migrating local components to common folder."
 model: sonnet
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Edit, Glob, Grep, Bash]
+allowedTools: [Read, Write, Edit, Bash]
+templates:
+  - skills/spec-it/assets/templates/MIGRATION_REPORT_TEMPLATE.md
 ---
 
 # Component Migrator

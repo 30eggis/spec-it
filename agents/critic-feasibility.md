@@ -2,8 +2,9 @@
 name: critic-feasibility
 description: "Validates feasibility of chapter structure. Checks for independent definition, clear criteria, testable deliverables. Use in parallel with other critics."
 model: sonnet
+context: none
 permissionMode: bypassPermissions
-disallowedTools: [Write, Edit]
+allowedTools: [Read]
 ---
 
 # Critic: Feasibility

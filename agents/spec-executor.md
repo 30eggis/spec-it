@@ -2,8 +2,9 @@
 name: spec-executor
 description: "Complex multi-file task executor. Handles architectural changes, dependency mapping, and cross-file refactoring. Use for implementing specs that span multiple files."
 model: opus
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Edit, Glob, Grep, Bash]
+allowedTools: [Read, Write, Edit, Glob, Grep, Bash]
 ---
 
 # Spec Executor

@@ -2,8 +2,11 @@
 name: persona-architect
 description: "Persona definition. User type characteristics and scenarios. Use for creating detailed user personas for test scenarios."
 model: sonnet
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write]
+allowedTools: [Read, Write]
+templates:
+  - skills/spec-it/assets/templates/PERSONA_TEMPLATE.md
 ---
 
 # Persona Architect

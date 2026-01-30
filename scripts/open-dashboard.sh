@@ -15,21 +15,31 @@ case "$(uname -s)" in
   Darwin)
     # macOS - use osascript to open new Terminal window
     if [[ -n "$SESSION_PATH" ]]; then
-      osascript <<EOF
+      if ! osascript <<EOF
 tell application "Terminal"
   activate
   do script "clear && '$DASHBOARD_SCRIPT' '$SESSION_PATH'"
   set custom title of front window to "spec-it Dashboard"
 end tell
 EOF
+      then
+        echo "ERROR: Failed to open dashboard terminal" >&2
+        echo "Try running manually: $DASHBOARD_SCRIPT $SESSION_PATH" >&2
+        exit 1
+      fi
     else
-      osascript <<EOF
+      if ! osascript <<EOF
 tell application "Terminal"
   activate
   do script "clear && '$DASHBOARD_SCRIPT'"
   set custom title of front window to "spec-it Dashboard"
 end tell
 EOF
+      then
+        echo "ERROR: Failed to open dashboard terminal" >&2
+        echo "Try running manually: $DASHBOARD_SCRIPT" >&2
+        exit 1
+      fi
     fi
     ;;
 

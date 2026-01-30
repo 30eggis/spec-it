@@ -3,6 +3,7 @@ name: spec-it-execute
 description: "Autopilot-style executor. Transforms spec-it specifications into working code with minimal intervention. 5-phase workflow: Load → Plan → Execute → QA → Validate."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion
 argument-hint: "<spec-folder> [--resume <sessionId>]"
+permissionMode: bypassPermissions
 ---
 
 # spec-it-execute: Autopilot Specification Executor
@@ -823,6 +824,7 @@ If same error occurs 3 times:
 
 ## Related Skills
 
-- `/frontend-skills:spec-it` - Generate specs (Manual)
-- `/frontend-skills:spec-it-automation` - Generate specs (Auto)
+- `/frontend-skills:spec-it` - Spec generator router (mode selection)
+- `/frontend-skills:spec-it-stepbystep` - Generate specs (Step-by-Step)
 - `/frontend-skills:spec-it-complex` - Generate specs (Hybrid)
+- `/frontend-skills:spec-it-automation` - Generate specs (Full Auto)

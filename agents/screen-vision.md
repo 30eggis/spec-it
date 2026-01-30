@@ -2,8 +2,9 @@
 name: screen-vision
 description: "Visual analyzer for screenshots, mockups, and UI designs. Extracts layout, components, and design patterns. Use for design-to-spec conversion."
 model: sonnet
+context: none
 permissionMode: bypassPermissions
-tools: [Read]
+allowedTools: [Read]
 ---
 
 # Screen Vision

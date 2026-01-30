@@ -2,8 +2,9 @@
 name: critic-frontend
 description: "Validates frontend-specific aspects of chapter structure. Checks UI/UX, component reusability, responsive/accessibility. Use in parallel with other critics."
 model: sonnet
+context: none
 permissionMode: bypassPermissions
-disallowedTools: [Write, Edit]
+allowedTools: [Read]
 ---
 
 # Critic: Frontend

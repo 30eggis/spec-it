@@ -2,8 +2,13 @@
 name: critical-reviewer
 description: "Thorough scenario/IA/exception review. Use for comprehensive review of scenarios, information architecture, and exception handling."
 model: opus
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write]
+allowedTools: [Read, Write]
+templates:
+  - skills/spec-it/assets/templates/SCENARIO_TEMPLATE.md
+  - skills/spec-it/assets/templates/IA_REVIEW_TEMPLATE.md
+  - skills/spec-it/assets/templates/EXCEPTION_TEMPLATE.md
 ---
 
 # Critical Reviewer

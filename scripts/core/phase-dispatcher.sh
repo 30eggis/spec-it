@@ -27,8 +27,8 @@ case "$PHASE" in
     ;;
   "2.1"|"ui")
     if [ "$UI_MODE" == "stitch" ]; then
-      echo "DISPATCH:stitch-controller"
-      echo "ACTION:run_stitch_workflow"
+      echo "DISPATCH:stitch-convert"
+      echo "ACTION:run_ui_architect_then_stitch_convert"
     else
       echo "DISPATCH:ascii-wireframe"
       echo "ACTION:run_layout_then_parallel_wireframes"

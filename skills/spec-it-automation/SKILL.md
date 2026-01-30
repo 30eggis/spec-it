@@ -3,6 +3,7 @@ name: spec-it-automation
 description: "Frontend spec generator (Full Auto mode). Maximum automation with minimal approval. Best for large projects."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 argument-hint: "[--resume <sessionId>]"
+permissionMode: bypassPermissions
 ---
 
 # spec-it-automation: Full Auto Mode
@@ -40,8 +41,11 @@ AskUserQuestion: "Select UI design mode"
 Options: ["ASCII Wireframe (Recommended)", "Google Stitch"]
 
 IF Stitch:
-  Task(stitch-controller): Install and auth
-  IF failed: Fallback to ASCII
+  Bash: ./scripts/verify-stitch-mcp.sh
+  IF exit != 0:
+    Bash: ./scripts/setup-stitch-mcp.sh
+    IF exit == 2: RESTART_REQUIRED (MCP needs Claude restart)
+    IF exit == 1: Fallback to ASCII
 ```
 
 ### Step 0.1: Session Init
@@ -119,24 +123,31 @@ Bash: ../../scripts/core/status-update.sh {sessionId} progress 16 1.4 1
 
 ```
 Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
-→ Returns: DISPATCH:stitch-controller OR DISPATCH:ascii-wireframe
+→ Returns: DISPATCH:stitch-convert OR DISPATCH:ascii-wireframe
 ```
 
 ### IF STITCH Mode
 
 ```
-Task(stitch-controller, sonnet):
-  1. Setup MCP (may require restart)
-  2. ASCII wireframes via ui-architect
-  3. Create Stitch project
-  4. Convert to Hi-Fi
-  5. Export HTML/CSS
-  Output: 02-screens/wireframes/, html/, assets/, qa-report.md
+# Step 1: Verify Stitch MCP setup
+Bash: ./scripts/verify-stitch-mcp.sh
 
-IF result contains "RESTART_REQUIRED":
-  - New terminal opened with resume command
-  - Stop current session (Claude will restart)
-  - User runs resume command in new terminal
+IF exit code != 0:
+  Bash: ./scripts/setup-stitch-mcp.sh
+  IF exit code == 2:
+    # MCP added, restart required
+    Bash: ./scripts/core/restart-with-resume.sh {sessionId} spec-it-automation {workingDir}
+    STOP (user will resume after restart)
+
+# Step 2: Generate ASCII wireframes first
+Task(ui-architect, sonnet):
+  Output: screen-list.md, layouts/, wireframes/
+
+# Step 3: Convert to HTML via Stitch MCP
+# This runs in main session so MCP tools are available
+/stitch-convert {sessionId}
+
+Output: 02-screens/wireframes/, html/, assets/
 ```
 
 ### IF ASCII Mode
@@ -292,7 +303,6 @@ tmp/{sessionId}/
 | critic-moderator | opus | Synthesize critiques |
 | chapter-planner | opus | Plan chapters |
 | ui-architect | sonnet | Wireframes |
-| stitch-controller | sonnet | Stitch workflow |
 | component-auditor | haiku | Scan components |
 | component-builder | sonnet | Build specs |
 | component-migrator | sonnet | Migration plan |
@@ -301,6 +311,10 @@ tmp/{sessionId}/
 | persona-architect | sonnet | Personas |
 | test-spec-writer | sonnet | Test specs |
 | spec-assembler | haiku | Final assembly |
+
+| Skill | Purpose |
+|-------|---------|
+| stitch-convert | ASCII → Stitch MCP → HTML export |
 
 ---
 

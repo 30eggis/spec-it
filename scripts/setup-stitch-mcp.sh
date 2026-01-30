@@ -5,7 +5,7 @@
 SETTINGS_FILE="$HOME/.claude/settings.json"
 STITCH_CONFIG='{
   "command": "npx",
-  "args": ["-y", "@anthropic/stitch-mcp"]
+  "args": ["-y", "@_davideast/stitch-mcp"]
 }'
 
 # Color codes

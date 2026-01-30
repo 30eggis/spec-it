@@ -2,8 +2,7 @@
 name: bash-executor
 description: "Internal script executor for spec-it workflows. Executes plugin scripts with bypass permissions."
 allowed-tools: Bash(~/.claude/plugins/frontend-skills/scripts/**)
-bypassPermissions:
-  - Bash(~/.claude/plugins/frontend-skills/scripts/**)
+permissionMode: bypassPermissions
 ---
 
 # bash-executor

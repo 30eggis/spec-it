@@ -2,8 +2,9 @@
 name: critic-logic
 description: "Validates logical consistency of chapter structure. Checks for overlaps, gaps, and dependency order. Use in parallel with other critics."
 model: sonnet
+context: none
 permissionMode: bypassPermissions
-disallowedTools: [Write, Edit]
+allowedTools: [Read]
 ---
 
 # Critic: Logic

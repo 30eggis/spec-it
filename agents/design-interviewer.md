@@ -2,6 +2,7 @@
 name: design-interviewer
 description: "Brainstorming Q&A facilitator. Superpowers-style chunk-based conversation. Use for interactive requirements gathering and chapter-by-chapter design refinement."
 model: opus
+context: fork
 permissionMode: bypassPermissions
 disallowedTools: [Write, Edit]
 ---

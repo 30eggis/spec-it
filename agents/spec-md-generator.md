@@ -2,8 +2,12 @@
 name: spec-md-generator
 description: "SPEC-IT-{HASH}.md file generation. Progressive context loading support. Use for creating SPEC-IT metadata files for existing code."
 model: haiku
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Write, Glob, Grep]
+allowedTools: [Read, Write, Glob, Grep]
+templates:
+  - skills/spec-it/assets/templates/SPEC_IT_COMPONENT_TEMPLATE.md
+  - skills/spec-it/assets/templates/SPEC_IT_PAGE_TEMPLATE.md
 ---
 
 # SPEC-IT Generator

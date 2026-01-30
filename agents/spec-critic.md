@@ -2,8 +2,9 @@
 name: spec-critic
 description: "Work plan and specification critic. Reviews plans for clarity, verifiability, completeness, and big picture understanding. Use before execution to validate plans."
 model: opus
+context: none
 permissionMode: bypassPermissions
-tools: [Read, Glob]
+allowedTools: [Read, Glob]
 ---
 
 # Spec Critic

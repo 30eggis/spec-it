@@ -2,8 +2,9 @@
 name: code-reviewer
 description: "Expert code reviewer. Two-stage review: spec compliance first, then code quality. Use for PR reviews and quality assurance."
 model: opus
+context: fork
 permissionMode: bypassPermissions
-tools: [Read, Glob, Grep, Bash]
+allowedTools: [Read, Glob, Grep, Bash]
 ---
 
 # Code Reviewer
