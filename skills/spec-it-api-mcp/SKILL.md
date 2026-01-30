@@ -73,6 +73,7 @@ Task(api-parser, sonnet):
   Output:
     - tmp/_api-mcp/{project-name}/endpoints.json
     - tmp/_api-mcp/{project-name}/schemas.json
+    - tmp/_api-mcp/{project-name}/metadata.json  # NEW: For meta tools
 
   endpoints.json structure:
     {
@@ -98,13 +99,37 @@ Task(api-parser, sonnet):
         }
       }
     }
+
+  metadata.json structure:  # NEW
+    {
+      "apiInfo": {
+        "title": "Pet Store API",
+        "version": "1.0.0",
+        "description": "...",
+        "baseUrl": "https://api.example.com/v1"
+      },
+      "searchIndex": [
+        {
+          "operationId": "getUsers",
+          "method": "GET",
+          "path": "/users",
+          "summary": "List all users",
+          "tags": ["users", "list"],
+          "keywords": ["user", "list", "all", "fetch", "get"]
+        }
+      ],
+      "entityMap": {
+        "user": ["getUsers", "getUserById", "createUser", "updateUser", "deleteUser"],
+        "order": ["getOrders", "createOrder", "cancelOrder"]
+      }
+    }
 ```
 
 ### Step 1.2: Generate MCP Server
 
 ```
 Task(mcp-generator, sonnet):
-  Input: endpoints.json, schemas.json
+  Input: endpoints.json, schemas.json, metadata.json
   Output: tmp/_api-mcp/{project-name}/
 
   Generated files:
@@ -112,9 +137,39 @@ Task(mcp-generator, sonnet):
     package.json     # Dependencies
     tsconfig.json    # TypeScript config
     handlers/
+      index.ts       # Handler registry
       {endpoint}.ts  # Handler per endpoint
+      _meta.ts       # NEW: Meta tool handlers
     mocks/
       {schema}.ts    # Mock data generators
+```
+
+### Step 1.3: Generate Meta Tools
+
+The MCP server includes **meta tools** for API discovery:
+
+```
+Meta Tools (auto-generated):
+
+1. listEndpoints()
+   → Returns all available API endpoints
+   → Output: [{ method, path, operationId, summary }]
+
+2. searchEndpoints({ keyword, tag?, method? })
+   → Search endpoints by keyword, tag, or method
+   → Output: [{ method, path, operationId, summary, matchScore }]
+
+3. getEndpointSchema({ operationId })
+   → Get detailed schema for an endpoint
+   → Output: { request: { params, query, body }, response: { 200: {...} } }
+
+4. getApiInfo()
+   → Get API metadata (title, version, baseUrl)
+   → Output: { title, version, description, baseUrl, totalEndpoints }
+
+5. findEndpointsByEntity({ entity })
+   → Find all endpoints related to an entity (e.g., "user")
+   → Output: [{ operationId, method, path, action }]
 ```
 
 ### Step 1.3: Generate Mock Data
@@ -241,9 +296,11 @@ tmp/_api-mcp/{project-name}/
 ├── tsconfig.json       # TypeScript config
 ├── endpoints.json      # Parsed endpoint definitions
 ├── schemas.json        # Parsed schema definitions
+├── metadata.json       # API metadata + search index
 ├── handlers/
 │   ├── index.ts        # Handler registry
-│   └── {endpoint}.ts   # Individual handlers
+│   ├── {endpoint}.ts   # Individual endpoint handlers
+│   └── _meta.ts        # Meta tool handlers
 ├── mocks/
 │   ├── index.ts        # Mock data registry
 │   └── {schema}.ts     # Schema-specific mocks
@@ -308,9 +365,41 @@ tmp/_api-mcp/{project-name}/
 Once registered, the MCP server can be used in spec-it-execute:
 
 ```
-# In spec-it-execute, Claude can call:
-mcp__api-{project-name}__getUser(id: "123")
-mcp__api-{project-name}__createOrder(data: {...})
+# Discovery: "Is there an API for users?"
+mcp__api-petstore__searchEndpoints({ keyword: "user" })
+→ [{ operationId: "getUsers", method: "GET", path: "/users", summary: "List users" }, ...]
 
-# Mock responses are returned based on schema definitions
+# Schema lookup: "What does the response look like?"
+mcp__api-petstore__getEndpointSchema({ operationId: "getUsers" })
+→ { request: { query: { limit: "number" } }, response: { 200: { users: [...], total: 1 } } }
+
+# Entity discovery: "What can I do with orders?"
+mcp__api-petstore__findEndpointsByEntity({ entity: "order" })
+→ [{ operationId: "createOrder", method: "POST", action: "create" }, ...]
+
+# Actual API call with mock data:
+mcp__api-petstore__getUsers({ limit: 10 })
+→ { users: [{ id: "1", name: "John" }, ...], total: 10 }
+```
+
+### Workflow Example
+
+```
+spec-it-execute developing a user list component:
+
+1. "사용자 목록 API 있나?"
+   → searchEndpoints({ keyword: "user list" })
+   → Found: GET /users
+
+2. "응답 형식이 뭐지?"
+   → getEndpointSchema({ operationId: "getUsers" })
+   → { users: User[], total: number }
+
+3. "User 스키마는?"
+   → getEndpointSchema({ operationId: "getUsers" })
+   → User: { id, name, email, role, createdAt }
+
+4. Mock 데이터로 개발
+   → getUsers({ limit: 5 })
+   → Returns realistic mock data
 ```

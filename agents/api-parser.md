@@ -55,7 +55,81 @@ For each schema in components/definitions:
 - Resolve $ref references
 - Generate mock data based on type
 
+### 5. Generate Search Index (metadata.json)
+
+For each endpoint, extract searchable keywords:
+- From path segments: `/users/{id}` → ["users", "user", "id"]
+- From operation summary/description
+- From parameter names
+- From response schema names
+- From tags
+
+Build entity map by grouping endpoints:
+- `getUsers`, `getUserById`, `createUser` → entity: "user"
+- `getOrders`, `createOrder` → entity: "order"
+
 ## Output
+
+### metadata.json
+
+```json
+{
+  "apiInfo": {
+    "title": "Pet Store API",
+    "version": "1.0.0",
+    "description": "A sample API for pet store",
+    "baseUrl": "https://api.example.com/v1",
+    "totalEndpoints": 15
+  },
+  "searchIndex": [
+    {
+      "operationId": "getUsers",
+      "method": "GET",
+      "path": "/users",
+      "summary": "List all users",
+      "tags": ["users"],
+      "keywords": ["user", "users", "list", "all", "fetch", "get", "retrieve"],
+      "entities": ["user"],
+      "parameters": ["limit", "offset", "sort"]
+    },
+    {
+      "operationId": "getUserById",
+      "method": "GET",
+      "path": "/users/{id}",
+      "summary": "Get user by ID",
+      "tags": ["users"],
+      "keywords": ["user", "get", "id", "single", "one", "find", "retrieve"],
+      "entities": ["user"],
+      "parameters": ["id"]
+    }
+  ],
+  "entityMap": {
+    "user": {
+      "endpoints": ["getUsers", "getUserById", "createUser", "updateUser", "deleteUser"],
+      "actions": {
+        "list": "getUsers",
+        "get": "getUserById",
+        "create": "createUser",
+        "update": "updateUser",
+        "delete": "deleteUser"
+      }
+    },
+    "order": {
+      "endpoints": ["getOrders", "getOrderById", "createOrder", "cancelOrder"],
+      "actions": {
+        "list": "getOrders",
+        "get": "getOrderById",
+        "create": "createOrder",
+        "cancel": "cancelOrder"
+      }
+    }
+  },
+  "tags": {
+    "users": ["getUsers", "getUserById", "createUser", "updateUser", "deleteUser"],
+    "orders": ["getOrders", "getOrderById", "createOrder", "cancelOrder"]
+  }
+}
+```
 
 ### endpoints.json
 
