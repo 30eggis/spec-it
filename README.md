@@ -62,15 +62,23 @@ Phase 6: Final Assembly     → final-spec.md, dev-tasks.md
 
 ### Usage Examples
 
-```bash
-# Start new specification
-/frontend-skills:spec-it-automation
+자연어로 말하면 자동으로 skill이 로딩됩니다.
 
-# Resume interrupted session
-/frontend-skills:spec-it-automation --resume 20260130-123456
+| 이렇게 말하면... | 로딩되는 skill |
+|-----------------|---------------|
+| "프론트엔드 스펙 작성해줘" | spec-it-automation |
+| "이 PRD로 명세서 만들어줘" | spec-it-automation |
+| "spec-it으로 명세서 만들어줘" | spec-it |
+| "이어서 진행해줘" / "--resume" | 마지막 세션 재개 |
 
-# Monitor progress (separate terminal)
-~/.claude/plugins/frontend-skills/skills/shared/dashboard/spec-it-dashboard.sh
+```
+💬 "대시보드 앱의 프론트엔드 스펙을 작성해줘"
+   → spec-it-automation 자동 로딩
+   → 요구사항 분석 시작
+
+💬 "아까 하던 스펙 작업 이어서 해줘"
+   → 마지막 세션 자동 감지
+   → 중단된 Phase부터 재개
 ```
 
 ---
@@ -79,9 +87,17 @@ Phase 6: Final Assembly     → final-spec.md, dev-tasks.md
 
 Transform spec-it output into **working code** with autonomous execution.
 
-```bash
-/frontend-skills:spec-it-execute <spec-folder>
-/frontend-skills:spec-it-execute tmp/20260130-123456 --resume abc123
+| 이렇게 말하면... | 동작 |
+|-----------------|------|
+| "스펙대로 구현해줘" | spec-it-execute 로딩 |
+| "명세서 기반으로 코드 작성해줘" | spec-it-execute 로딩 |
+| "spec-it-execute 실행해줘" | 직접 실행 |
+
+```
+💬 "방금 만든 스펙대로 구현해줘"
+   → spec-it-execute 자동 로딩
+   → 최근 spec 폴더 감지
+   → 자동 구현 시작
 ```
 
 ### Execution Phases
@@ -108,11 +124,17 @@ Phase 5: VALIDATE → Code review + security audit
 
 Generate `SPEC-IT-{HASH}.md` metadata files for existing UI code to enable **progressive context loading**.
 
-```bash
-/frontend-skills:init-spec-md                    # Full project scan
-/frontend-skills:init-spec-md src/components     # Specific path
-/frontend-skills:init-spec-md --dry-run          # Preview mode
-/frontend-skills:init-spec-md --force            # Overwrite existing
+| 이렇게 말하면... | 동작 |
+|-----------------|------|
+| "기존 컴포넌트들 문서화해줘" | 전체 프로젝트 스캔 |
+| "이 프로젝트에 SPEC-IT 적용해줘" | init-spec-md 실행 |
+| "init-spec-md 실행해줘" | 직접 실행 |
+
+```
+💬 "기존 코드에 SPEC-IT 메타데이터 추가해줘"
+   → init-spec-md 자동 로딩
+   → 컴포넌트/페이지 스캔
+   → SPEC-IT-{HASH}.md 생성
 ```
 
 ### Purpose
@@ -127,6 +149,19 @@ Generate `SPEC-IT-{HASH}.md` metadata files for existing UI code to enable **pro
 
 Visual API binding tool for connecting UI elements to REST APIs in React/Next.js projects.
 
+| 이렇게 말하면... | 동작 |
+|-----------------|------|
+| "UI에서 API 연결하고 싶어" | prompt-inspector 로딩 |
+| "버튼에 API 바인딩해줘" | prompt-inspector 로딩 |
+| "prompt-inspector 적용해줘" | 직접 실행 |
+
+```
+💬 "이 버튼 클릭하면 API 호출되게 해줘"
+   → prompt-inspector 자동 로딩
+   → UI 요소 선택 모드
+   → API 엔드포인트 연결
+```
+
 ### Features
 
 - **Visual Element Selection** - Click any UI element
@@ -134,24 +169,23 @@ Visual API binding tool for connecting UI elements to REST APIs in React/Next.js
 - **Binding Configuration** - Set trigger, success/error handlers
 - **Export to Markdown** - Generate specs for implementation
 
-### Setup
-
-```bash
-# Auto-install (detects Next.js App/Pages Router)
-python scripts/setup.py /path/to/your-project
-
-# Discover APIs
-python scripts/discover_apis.py /path/to/your-project
-```
-
 ---
 
 ## hack-2-prd
 
 Analyze services/projects and systematically generate documentation.
 
-```bash
-/frontend-skills:hack-2-prd
+| 이렇게 말하면... | 동작 |
+|-----------------|------|
+| "이 코드 분석해서 PRD 만들어줘" | hack-2-prd 로딩 |
+| "프로젝트 문서화해줘" | hack-2-prd 로딩 |
+| "hack-2-prd 실행해줘" | 직접 실행 |
+
+```
+💬 "이 서비스 분석해서 기획서 만들어줘"
+   → hack-2-prd 자동 로딩
+   → 코드베이스 분석
+   → PRD/SPEC/TASKS 생성
 ```
 
 ### Output Structure
@@ -182,8 +216,17 @@ docs/
 
 Compare original PRD against actual implementation to verify spec compliance.
 
-```bash
-/frontend-skills:prd-mirror
+| 이렇게 말하면... | 동작 |
+|-----------------|------|
+| "PRD랑 구현 비교해줘" | prd-mirror 로딩 |
+| "스펙대로 구현됐는지 확인해줘" | prd-mirror 로딩 |
+| "prd-mirror 실행해줘" | 직접 실행 |
+
+```
+💬 "기획서랑 실제 코드 비교해서 빠진거 찾아줘"
+   → prd-mirror 자동 로딩
+   → PRD vs 코드 분석
+   → 누락/초과/일치 항목 리포트
 ```
 
 ### Workflow
