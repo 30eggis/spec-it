@@ -67,8 +67,9 @@ jq --argjson stitch "$STITCH_CONFIG" '.mcpServers.stitch = $stitch' "$SETTINGS_F
 
 if [[ $? -eq 0 ]]; then
   echo -e "${GREEN}✓ Stitch MCP configured successfully${NC}"
-  echo -e "${YELLOW}⚠️ Please restart Claude Code for changes to take effect${NC}"
-  exit 0
+  echo -e "${YELLOW}⚠️ Claude Code restart required for MCP to take effect${NC}"
+  echo "RESTART_REQUIRED"
+  exit 2  # Exit code 2 = restart required
 else
   echo -e "${RED}Error: Failed to update settings.json${NC}"
   mv "$SETTINGS_FILE.backup" "$SETTINGS_FILE"

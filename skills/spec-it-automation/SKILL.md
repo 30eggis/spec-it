@@ -126,11 +126,17 @@ Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
 
 ```
 Task(stitch-controller, sonnet):
-  1. ASCII wireframes via ui-architect
-  2. Create Stitch project
-  3. Convert to Hi-Fi
-  4. Export HTML/CSS
+  1. Setup MCP (may require restart)
+  2. ASCII wireframes via ui-architect
+  3. Create Stitch project
+  4. Convert to Hi-Fi
+  5. Export HTML/CSS
   Output: 02-screens/wireframes/, html/, assets/, qa-report.md
+
+IF result contains "RESTART_REQUIRED":
+  - New terminal opened with resume command
+  - Stop current session (Claude will restart)
+  - User runs resume command in new terminal
 ```
 
 ### IF ASCII Mode

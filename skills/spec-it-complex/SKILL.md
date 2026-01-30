@@ -119,7 +119,13 @@ Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
 
 ```
 Task(stitch-controller, sonnet):
+  1. Setup MCP (may require restart)
+  2. Generate wireframes, Hi-Fi, HTML/CSS
   Output: 02-screens/wireframes/, html/, assets/
+
+IF result contains "RESTART_REQUIRED":
+  - New terminal opened with resume command
+  - Stop current session
 ```
 
 ### IF ASCII Mode
