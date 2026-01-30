@@ -44,6 +44,8 @@ Transforms generated specs into working code with autonomous execution.
 
 ## All Skills
 
+### Spec Generation Skills
+
 | Skill | Description | Command |
 |-------|-------------|---------|
 | **spec-it** | Specification generator (router) | `/spec-it` |
@@ -52,10 +54,126 @@ Transforms generated specs into working code with autonomous execution.
 | **spec-it-stepbystep** | Step-by-step mode | `/spec-it-stepbystep` |
 | **spec-it-execute** | Spec to code executor | `/spec-it-execute <folder>` |
 | **stitch-convert** | ASCII → HTML via Stitch MCP | `/stitch-convert <session>` |
+
+### Spec Modification Skills
+
+| Skill | Description | Command |
+|-------|-------------|---------|
+| **spec-change** | Modify specs with validation | `/spec-change <session> <request>` |
+| **spec-it-api-mcp** | API doc → MCP server | `/spec-it-api-mcp <api-doc>` |
+| **spec-wireframe-edit** | Edit wireframes with impact analysis | `/spec-wireframe-edit <session>` |
+
+### Utility Skills
+
+| Skill | Description | Command |
+|-------|-------------|---------|
 | **init-spec-md** | SPEC-IT files for existing code | `/init-spec-md` |
 | **hack-2-prd** | Reverse-engineer PRD from code | `/hack-2-prd` |
 | **prd-mirror** | Compare PRD vs implementation | `/prd-mirror` |
 | **prompt-inspector** | Visual API binding tool | `/prompt-inspector` |
+
+---
+
+## Spec Modification Skills
+
+A separate set of skills for **modifying existing specifications** with comprehensive validation and impact analysis.
+
+> These skills are designed for **post-creation spec management**, not initial spec generation.
+
+### Why Separate Skills?
+
+| Concern | spec-it (Generation) | Spec Modification Skills |
+|---------|---------------------|--------------------------|
+| Purpose | Create new specs from scratch | Modify existing specs safely |
+| Focus | Completeness | Change validation |
+| Workflow | Linear phases | Parallel analysis + approval |
+| Key Risk | Missing requirements | Breaking existing specs |
+
+---
+
+### spec-change: Spec Modification Router
+
+**Purpose**: Safely modify specifications with pre-flight validation checks.
+
+```bash
+/spec-change <sessionId> "Add 2FA feature to authentication section"
+/spec-change <sessionId> --target 01-chapters/CH-02.md "Change login to OAuth"
+```
+
+**Validation Pipeline** (runs in parallel):
+
+| Analyzer | Model | What it checks |
+|----------|-------|----------------|
+| `spec-doppelganger` | sonnet | Duplicate/similar features already exist? |
+| `spec-conflict` | sonnet | Contradicts existing requirements? |
+| `spec-clarity` | sonnet | Is the change well-defined? (QuARS methodology) |
+| `spec-consistency` | haiku | Uses consistent terminology? |
+| `spec-coverage` | sonnet | Missing edge cases or error handling? |
+| `spec-butterfly` | opus | What other docs are affected? (RTM) |
+
+**Workflow**:
+```
+[Request] → [Parallel Analysis] → [Change Plan] → [User Approval] → [Apply]
+```
+
+---
+
+### spec-it-api-mcp: API Document Integration
+
+**Purpose**: Convert API documentation into a local MCP server for development.
+
+```bash
+/spec-it-api-mcp ./api/openapi.yaml
+/spec-it-api-mcp ./swagger.json --port 3200
+```
+
+**Use Case**: When you have a backend API spec and want Claude to use it during `spec-it-execute`.
+
+**Supported Formats**:
+- OpenAPI 3.0+ (recommended)
+- Swagger 2.0
+- Postman Collection (basic)
+
+**Output**: MCP server with mock endpoints that Claude can call during implementation.
+
+---
+
+### spec-wireframe-edit: Wireframe Modification
+
+**Purpose**: Modify wireframes with impact analysis on components and tests.
+
+```bash
+/spec-wireframe-edit <sessionId> login
+/spec-wireframe-edit <sessionId> dashboard --change "Add notification bell to header"
+```
+
+**Workflow**:
+```
+[Locate Wireframe] → [Butterfly Analysis] → [Before/After Preview] → [Approve] → [Apply]
+```
+
+**Features**:
+- ASCII wireframe modification with visual diff
+- Auto-regenerates HTML if Stitch mode is active
+- Flags affected components and tests for review
+
+---
+
+### Spec Modification Agents
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `spec-doppelganger` | sonnet | Semantic duplicate detection |
+| `spec-conflict` | sonnet | Contradiction finder |
+| `spec-clarity` | sonnet | Quality assessment (completeness, ambiguity) |
+| `spec-consistency` | haiku | Terminology consistency |
+| `spec-coverage` | sonnet | Gap analysis (edge cases, errors) |
+| `spec-butterfly` | opus | Bidirectional impact analysis |
+| `change-planner` | opus | Generate change plan with diffs |
+| `rtm-updater` | haiku | Requirements Traceability Matrix |
+| `api-parser` | sonnet | OpenAPI/Swagger parser |
+| `mcp-generator` | sonnet | MCP server code generator |
+| `wireframe-editor` | sonnet | ASCII wireframe modifier |
 
 ---
 
