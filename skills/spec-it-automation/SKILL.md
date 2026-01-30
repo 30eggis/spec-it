@@ -41,9 +41,9 @@ AskUserQuestion: "Select UI design mode"
 Options: ["ASCII Wireframe (Recommended)", "Google Stitch"]
 
 IF Stitch:
-  Bash: ./scripts/verify-stitch-mcp.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/verify-stitch-mcp.sh
   IF exit != 0:
-    Bash: ./scripts/setup-stitch-mcp.sh
+    Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-mcp.sh
     IF exit == 2: RESTART_REQUIRED (MCP needs Claude restart)
     IF exit == 1: Fallback to ASCII
 ```
@@ -51,7 +51,7 @@ IF Stitch:
 ### Step 0.1: Session Init
 
 ```
-Bash: ../../scripts/core/session-init.sh {sessionId} {uiMode}
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh {sessionId} {uiMode}
 → Auto-launches dashboard
 ```
 
@@ -70,13 +70,13 @@ IF --resume in args:
 ### Step 1.1: Requirements
 
 ```
-Bash: ../../scripts/core/status-update.sh {sessionId} agent-start design-interviewer
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} agent-start design-interviewer
 
 Task(design-interviewer, opus):
   Output: 00-requirements/requirements.md
 
-Bash: ../../scripts/core/status-update.sh {sessionId} agent-complete design-interviewer
-Bash: ../../scripts/core/meta-checkpoint.sh {sessionId} 1.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} agent-complete design-interviewer
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 1.1
 ```
 
 ### Step 1.2: Divergent Thinking
@@ -112,7 +112,7 @@ Task(critic-moderator, opus):
 Task(chapter-planner, opus):
   Output: 01-chapters/chapter-plan-final.md
 
-Bash: ../../scripts/core/status-update.sh {sessionId} progress 16 1.4 1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 16 1.4 1
 ```
 
 ---
@@ -122,7 +122,7 @@ Bash: ../../scripts/core/status-update.sh {sessionId} progress 16 1.4 1
 ### Step 2.1: UI Architecture
 
 ```
-Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ui
 → Returns: DISPATCH:stitch-convert OR DISPATCH:ascii-wireframe
 ```
 
@@ -130,13 +130,13 @@ Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ui
 
 ```
 # Step 1: Verify Stitch MCP setup
-Bash: ./scripts/verify-stitch-mcp.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/verify-stitch-mcp.sh
 
 IF exit code != 0:
-  Bash: ./scripts/setup-stitch-mcp.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-mcp.sh
   IF exit code == 2:
     # MCP added, restart required
-    Bash: ./scripts/core/restart-with-resume.sh {sessionId} spec-it-automation {workingDir}
+    Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/restart-with-resume.sh {sessionId} spec-it-automation {workingDir}
     STOP (user will resume after restart)
 
 # Step 2: Generate ASCII wireframes first
@@ -156,10 +156,10 @@ Output: 02-screens/wireframes/, html/, assets/
 Task(ui-architect, sonnet):
   Output: screen-list.md, layouts/layout-system.md
 
-Bash: ../../scripts/planners/screen-planner.sh {sessionId}
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
 
 FOR each batch (4 screens):
-  Bash: ../../scripts/executors/batch-runner.sh {sessionId} wireframe {i}
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/executors/batch-runner.sh {sessionId} wireframe {i}
 
   Task(ui-architect, sonnet, parallel x4):
     Output: wireframes/wireframe-{screen}.md
@@ -173,7 +173,7 @@ Task(component-auditor, haiku, parallel):
 
 WAIT
 
-Bash: ../../scripts/planners/component-planner.sh {sessionId}
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/component-planner.sh {sessionId}
 
 Task(component-builder, sonnet, parallel):
   Output: 03-components/new/spec-{component}.md
@@ -181,7 +181,7 @@ Task(component-builder, sonnet, parallel):
 Task(component-migrator, sonnet, parallel):
   Output: 03-components/migrations/migration-plan.md
 
-Bash: ../../scripts/core/status-update.sh {sessionId} progress 33 2.2 2
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 33 2.2 2
 ```
 
 ---
@@ -203,7 +203,7 @@ WAIT for both
 ### Step 3.2: Ambiguity Resolution
 
 ```
-Bash: ../../scripts/core/phase-dispatcher.sh {sessionId} ambiguity
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ambiguity
 
 IF DISPATCH:user-question:
   Read: 04-review/ambiguities.md
@@ -217,7 +217,7 @@ IF DISPATCH:user-question:
 ELSE:
   Auto-proceed
 
-Bash: ../../scripts/core/status-update.sh {sessionId} progress 50 3.2 3
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 50 3.2 3
 ```
 
 ---
@@ -233,7 +233,7 @@ Task(test-spec-writer, sonnet, parallel):
 
 WAIT for both
 
-Bash: ../../scripts/core/status-update.sh {sessionId} progress 66 4.1 4
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 66 4.1 4
 ```
 
 ---
@@ -247,7 +247,7 @@ Task(spec-assembler, haiku):
   - 06-final/dev-tasks.md
   - 06-final/SPEC-SUMMARY.md
 
-Bash: ../../scripts/core/status-update.sh {sessionId} progress 83 5.1 5
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} progress 83 5.1 5
 ```
 
 ---
@@ -263,7 +263,7 @@ Options: [Archive, Keep, Delete]
 IF Archive: mv tmp/{sessionId} archive/
 IF Delete: rm -rf tmp/{sessionId}
 
-Bash: ../../scripts/core/status-update.sh {sessionId} complete
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionId} complete
 ```
 
 ---
