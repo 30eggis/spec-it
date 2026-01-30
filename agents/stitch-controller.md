@@ -32,6 +32,21 @@ tools: [Read, Write, Edit, Bash, Glob, Grep]
 
 ## Phase 1: 설치 및 인증 (Installation & Auth)
 
+### Step 1.0: MCP 서버 자동 설정
+
+```bash
+# Stitch MCP 서버 자동 설정
+# 이미 설정되어 있으면 스킵, 없으면 자동 추가
+~/.claude/plugins/frontend-skills/scripts/setup-stitch-mcp.sh
+
+# 설정 결과 확인
+# - 성공 시: "✓ Stitch MCP configured successfully"
+# - 이미 있음: "✓ Stitch MCP already configured"
+# - 실패 시: exit code 1
+```
+
+**⚠️ 중요**: MCP 서버 설정 후 Claude Code 재시작이 필요할 수 있습니다.
+
 ### Step 1.1: 환경 확인
 
 ```bash
@@ -74,7 +89,10 @@ fi
 
 ```
 # Stitch MCP 도구 사용
-MCP_CALL: create_project(
+# ⚠️ MCP 서버 이름이 "stitch"로 등록되어 있어야 함
+# ~/.claude/settings.json의 mcpServers에 "stitch" 키로 등록
+
+mcp__stitch__create_project(
   name: "spec-it-{sessionId}"
 )
 
@@ -85,7 +103,7 @@ projectId = response.projectId
 ### Step 2.2: 워크스페이스 연결
 
 ```
-MCP_CALL: set_workspace_project(
+mcp__stitch__set_workspace_project(
   projectId: projectId
 )
 ```
@@ -163,7 +181,7 @@ FOR wireframe IN wireframes:
 FOR index, screen IN screens:
 
   # ASCII를 Stitch 프롬프트로 변환
-  MCP_CALL: generate_screen_from_text(
+  mcp__stitch__generate_screen_from_text(
     projectId: projectId,
     prompt: "
       Convert this ASCII wireframe to a high-fidelity UI design.
@@ -205,7 +223,7 @@ FOR index, screen IN screens:
 ### Step 3.3: 디자인 QA
 
 ```
-MCP_CALL: design_qa(
+mcp__stitch__design_qa(
   projectId: projectId,
   checks: ["accessibility", "responsive"]
 )
@@ -221,7 +239,7 @@ Write(tmp/{sessionId}/02-screens/qa-report.md, qaResults)
 ### Step 4.1: 디자인 시스템 내보내기
 
 ```
-MCP_CALL: export_design_system(
+mcp__stitch__export_design_system(
   projectId: projectId,
   format: "html"
 )

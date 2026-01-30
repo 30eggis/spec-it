@@ -78,6 +78,54 @@ ELSE:
   mkdir -p tmp/{sessionId}/{00-requirements,01-chapters/{decisions,alternatives},02-screens/wireframes,03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
 ```
 
+### Step 0.0: UI 구현 방식 선택
+
+```
+AskUserQuestion(
+  questions: [{
+    question: "UI 디자인 방식을 선택해 주세요.",
+    header: "UI Mode",
+    options: [
+      {label: "ASCII Wireframe (Recommended)", description: "텍스트 기반 와이어프레임 (빠름, 오프라인 가능)"},
+      {label: "Google Stitch", description: "AI 기반 실제 UI 생성 (자동 설정)"}
+    ]
+  }]
+)
+
+IF "Google Stitch" 선택:
+  uiMode = "stitch"
+
+  # stitch-controller 에이전트 호출 (설치 및 인증만)
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    prompt: "
+      역할: stitch-controller
+      sessionId: {sessionId}
+
+      Phase 1만 실행 (설치 및 인증):
+      1. Node.js/npm 확인
+      2. @_davideast/stitch-mcp 설치
+      3. OAuth 인증 확인/실행
+
+      모든 단계는 사용자 승인 없이 자동 진행합니다.
+      OAuth 브라우저 인증만 사용자 액션이 필요합니다.
+
+      OUTPUT: '완료. Stitch 준비됨.' 또는 '실패. 원인: {error}'
+    "
+  )
+
+  IF 실패:
+    Output: "Stitch 설정 실패. ASCII 모드로 전환합니다."
+    uiMode = "ascii"
+
+ELSE:
+  uiMode = "ascii"
+
+# _meta.json에 uiMode 저장
+Write(tmp/{sessionId}/_meta.json, {..., "uiMode": uiMode})
+```
+
 ### Step 1: Requirements Analysis
 
 ```
@@ -187,12 +235,52 @@ Task(
   prompt: "CH-00, CH-01 작성... OUTPUT RULES: (요약만 반환)"
 )
 
-Task(
-  subagent_type: "general-purpose",
-  model: "sonnet",
-  run_in_background: true,
-  prompt: "CH-02 + ui-architect 실행... OUTPUT RULES: (요약만 반환)"
-)
+# ⚠️ _meta.json에서 uiMode 확인
+Read(tmp/{sessionId}/_meta.json)
+uiMode = _meta.uiMode  # "stitch" 또는 "ascii"
+
+IF uiMode == "stitch":
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # Google Stitch 모드 (ASCII → Hi-Fi 변환)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    run_in_background: true,
+    prompt: "
+      역할: stitch-controller
+      sessionId: {sessionId}
+
+      전체 워크플로우:
+      1. [ASCII] ui-architect로 와이어프레임 생성
+      2. [Stitch] 프로젝트 생성 (spec-it-{sessionId})
+      3. [Stitch] 각 ASCII를 순차적으로 Hi-Fi 변환
+      4. [Stitch] 디자인 QA 실행
+      5. [Stitch] HTML/CSS 내보내기
+
+      ⚠️ 모든 단계는 사용자 승인 없이 자동 진행합니다.
+
+      출력 경로:
+      - tmp/{sessionId}/02-screens/screen-list.md
+      - tmp/{sessionId}/02-screens/wireframes/*.md      # ASCII 원본
+      - tmp/{sessionId}/02-screens/stitch-project.json
+      - tmp/{sessionId}/02-screens/html/*.html          # Hi-Fi 결과
+      - tmp/{sessionId}/02-screens/assets/styles.css
+      - tmp/{sessionId}/02-screens/qa-report.md
+
+      OUTPUT: '완료. ASCII {N}개 → Hi-Fi {N}개 변환됨.'
+    "
+  )
+ELSE:
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  # ASCII Wireframe 모드 (기본)
+  # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    run_in_background: true,
+    prompt: "CH-02 + ui-architect 실행... OUTPUT RULES: (요약만 반환)"
+  )
 
 Wait for both tasks
 

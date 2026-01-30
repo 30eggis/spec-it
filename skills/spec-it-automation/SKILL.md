@@ -525,13 +525,12 @@ IF uiMode == "stitch":
   # Google Stitch 모드 (ASCII → Hi-Fi 변환)
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   #
-  # Step 1: ASCII 와이어프레임 먼저 생성
-  # Step 2: ASCII를 Stitch Hi-Fi로 순차 변환
+  # ⚠️ Stitch는 순차 작업이 많으므로 완료 대기 필수
+  # ⚠️ run_in_background 사용하지 않음
   #
   Task(
     subagent_type: "general-purpose",
     model: "sonnet",
-    run_in_background: true,
     prompt: "
       역할: stitch-controller
       sessionId: {sessionId}
@@ -557,6 +556,7 @@ IF uiMode == "stitch":
       OUTPUT: '완료. ASCII {N}개 → Hi-Fi {N}개 변환됨.'
     "
   )
+  # → Stitch 완료 대기 후 component-auditor 실행
 ELSE:
   # ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
   # ASCII Wireframe 모드 (기본)
