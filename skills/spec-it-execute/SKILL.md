@@ -1,6 +1,6 @@
 ---
 name: spec-it-execute
-description: "Autopilot-style executor. Transforms spec-it specifications into working code with minimal intervention. 5-phase workflow: Load → Plan → Execute → QA → Validate."
+description: "Autopilot-style executor. Transforms spec-it specifications into working code with minimal intervention. 9-phase workflow: Load → Plan → Execute → QA → Spec-Mirror → Unit-Test → Scenario-Test → Validate → Complete."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion
 argument-hint: "<spec-folder> [--resume <sessionId>]"
 permissionMode: bypassPermissions
@@ -15,18 +15,23 @@ Transform spec-it specifications into **working code** with **autonomous executi
 ## Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                    spec-it-execute                          │
-├─────────────────────────────────────────────────────────────┤
-│  Input: spec-it output (tmp/{sessionId}/06-final/)          │
-│  Output: Working implementation with tests                   │
-├─────────────────────────────────────────────────────────────┤
-│  Phase 1: LOAD      → Load specs, validate completeness     │
-│  Phase 2: PLAN      → Generate execution plan + critique    │
-│  Phase 3: EXECUTE   → Implement with spec-executor          │
-│  Phase 4: QA        → Build/test loop (max 5 cycles)        │
-│  Phase 5: VALIDATE  → Code review + security audit          │
-└─────────────────────────────────────────────────────────────┘
+┌─────────────────────────────────────────────────────────────────┐
+│                    spec-it-execute                               │
+├─────────────────────────────────────────────────────────────────┤
+│  Input: spec-it output (tmp/{sessionId}/06-final/)               │
+│  Output: Working implementation with tests                       │
+├─────────────────────────────────────────────────────────────────┤
+│  Phase 0: INITIALIZE   → Session setup, dashboard launch        │
+│  Phase 1: LOAD         → Load specs, validate completeness      │
+│  Phase 2: PLAN         → Generate execution plan + critique     │
+│  Phase 3: EXECUTE      → Implement with spec-executor           │
+│  Phase 4: QA           → Build/test loop (max 5 cycles)         │
+│  Phase 5: SPEC-MIRROR  → 실행 화면 기반 Spec 검증 (신규)         │
+│  Phase 6: UNIT-TEST    → 테스트 구현 + 95% 커버리지 (신규)       │
+│  Phase 7: SCENARIO-TEST→ Playwright E2E 100% 통과 (신규)        │
+│  Phase 8: VALIDATE     → Code review + security audit           │
+│  Phase 9: COMPLETE     → Final cleanup and summary              │
+└─────────────────────────────────────────────────────────────────┘
 ```
 
 ---
@@ -37,8 +42,14 @@ Transform spec-it specifications into **working code** with **autonomous executi
 |-------|-------|-------|------|
 | `spec-critic` | Opus | 2 | Plan validation |
 | `spec-executor` | Opus | 3 | Multi-file implementation |
-| `code-reviewer` | Opus | 5 | Code quality review |
-| `security-reviewer` | Opus | 5 | Security audit |
+| `spec-mirror-analyst` | Opus | 5 | Spec 일치 분석, 누락 항목 식별 |
+| `test-implementer` | Opus | 6 | Unit Test 코드 구현 |
+| `test-critic` | Opus | 6 | 테스트 품질 비판적 검수 |
+| `e2e-implementer` | Opus | 7 | Playwright E2E 테스트 구현 |
+| `scenario-recommender` | Sonnet | 7 | 추가 시나리오 추천 |
+| `regression-checker` | Haiku | 7 | Unit Test regression 확인 |
+| `code-reviewer` | Opus | 8 | Code quality review |
+| `security-reviewer` | Opus | 8 | Security audit |
 | `screen-vision` | Sonnet | 1 | Mockup analysis (if provided) |
 
 ---
@@ -154,7 +165,20 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/open-das
   "completedPhases": [],
   "startedAt": "{ISO timestamp}",
   "lastCheckpoint": "{ISO timestamp}",
-  "livePreview": false
+  "livePreview": false,
+
+  "mirrorAttempts": 0,
+  "maxMirrorAttempts": 5,
+  "lastMirrorReport": { "matchCount": 0, "missingCount": 0, "overCount": 0 },
+
+  "coverageAttempts": 0,
+  "maxCoverageAttempts": 5,
+  "targetCoverage": 95,
+  "currentCoverage": { "statements": 0, "branches": 0, "functions": 0, "lines": 0 },
+
+  "scenarioAttempts": 0,
+  "maxScenarioAttempts": 5,
+  "scenarioResults": { "total": 0, "passed": 0, "failed": 0 }
 }
 ```
 
@@ -660,7 +684,7 @@ IF _state.qaAttempts >= _state.maxQaAttempts AND NOT allPassed:
       header: "QA Failed",
       options: [
         {label: "Fix manually", description: "I'll fix remaining issues"},
-        {label: "Continue anyway", description: "Proceed to validation"},
+        {label: "Continue anyway", description: "Proceed to spec-mirror"},
         {label: "Abort", description: "Stop execution"}
       ]
     }]
@@ -675,9 +699,573 @@ Update(_state.json)
 
 ---
 
-### Phase 5: VALIDATE (Final Review)
+### Phase 5: SPEC-MIRROR (실행 화면 기반 검증)
 
-#### Step 5.1: Code Review
+**목적:** 개발 결과물이 Spec과 100% 일치하는지 **실제 화면**으로 검증
+
+**왜 실행 화면 기반인가:**
+- 코드베이스 검색으로는 구현 여부를 정확히 확인 불가능
+- 실제 렌더링된 화면을 보고 검증해야 정확한 판단 가능
+
+#### Step 5.1: Start Dev Server
+```
+# 개발 서버 실행 (아직 실행되지 않은 경우)
+IF NOT _state.livePreview:
+  Task(
+    subagent_type: "Bash",
+    model: "haiku",
+    run_in_background: true,
+    prompt: "npm run dev"
+  )
+
+  # Chrome 브라우저 열기
+  MCP_CALL: new_page(url: "http://localhost:3000")
+
+  _state.devServerPid = {pid}
+  _state.previewUrl = "http://localhost:3000"
+  Update(_state.json)
+```
+
+#### Step 5.2: Screen-by-Screen Verification
+```
+WHILE _state.mirrorAttempts < _state.maxMirrorAttempts:
+
+  _state.mirrorAttempts += 1
+
+  # Load spec for screens
+  Read({spec-folder}/02-screens/screen-list.md)
+  screens = parse_screens(screen-list)
+
+  missingItems = []
+  matchedItems = []
+  overSpecItems = []
+
+  FOR screen IN screens:
+    # 1. Navigate to screen
+    MCP_CALL: navigate_page(url: _state.previewUrl + screen.route)
+
+    # 2. Wait for load
+    MCP_CALL: wait_for(text: screen.expectedText, timeout: 10000)
+
+    # 3. Take screenshot
+    MCP_CALL: take_screenshot(
+      path: ".spec-it/execute/{sessionId}/screenshots/mirror-{screen.name}.png"
+    )
+
+    # 4. Get DOM snapshot
+    snapshot = MCP_CALL: take_snapshot()
+
+    # 5. Test interactions (if defined)
+    FOR interaction IN screen.interactions:
+      MCP_CALL: click(uid: interaction.element)
+      MCP_CALL: fill(uid: interaction.input, value: interaction.testValue)
+      # Verify expected result
+
+    # 6. Analyze match with spec
+    Task(
+      subagent_type: "general-purpose",
+      model: "opus",
+      prompt: "
+        Role: spec-mirror-analyst
+
+        Compare:
+        - Original Spec: {spec-folder}/02-screens/wireframes/{screen.name}.md
+        - Screenshot: .spec-it/execute/{sessionId}/screenshots/mirror-{screen.name}.png
+        - DOM Snapshot: {snapshot}
+
+        Analyze:
+        1. 모든 Spec 요소가 화면에 존재하는가?
+        2. 레이아웃이 일치하는가?
+        3. 인터랙션이 정상 동작하는가?
+        4. 추가 구현된 기능이 있는가? (over-spec, 허용됨)
+
+        Output:
+        - MATCHED: [list of matched items]
+        - MISSING: [list of missing items] → FAIL 조건
+        - OVER_SPEC: [list of over-spec items] → 허용됨
+
+        OUTPUT RULES: (standard)
+      "
+    )
+
+    # Aggregate results
+    matchedItems += screen.matched
+    missingItems += screen.missing
+    overSpecItems += screen.overSpec
+
+  # Generate MIRROR_REPORT
+  Task(
+    subagent_type: "general-purpose",
+    model: "sonnet",
+    prompt: "
+      Generate MIRROR_REPORT using template:
+      skills/spec-mirror/assets/templates/MIRROR_REPORT_TEMPLATE.md
+
+      Data:
+      - matchCount: {matchedItems.length}
+      - missingCount: {missingItems.length}
+      - overCount: {overSpecItems.length}
+      - matched: {matchedItems}
+      - missing: {missingItems}
+      - over: {overSpecItems}
+
+      Output: .spec-it/execute/{sessionId}/reviews/MIRROR_REPORT.md
+    "
+  )
+
+  # Update state
+  _state.lastMirrorReport = {
+    matchCount: matchedItems.length,
+    missingCount: missingItems.length,
+    overCount: overSpecItems.length
+  }
+  Update(_state.json)
+
+  # Check result
+  IF missingItems.length == 0:
+    Output: "
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    SPEC-MIRROR: PASS
+    - 일치: {matchedItems.length}건
+    - 누락: 0건
+    - Over-spec: {overSpecItems.length}건 (허용됨)
+    ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+    "
+    BREAK
+
+  # Missing items exist - need to fix
+  Output: "
+  SPEC-MIRROR: FAIL (Attempt {_state.mirrorAttempts}/{_state.maxMirrorAttempts})
+  - 누락 항목: {missingItems.length}건
+  - 재개발 진행...
+  "
+
+  # Fix missing items
+  Task(
+    subagent_type: "general-purpose",
+    model: "opus",
+    prompt: "
+      Role: spec-executor
+
+      누락된 Spec 항목을 구현하세요:
+      {missingItems}
+
+      각 항목에 대해:
+      1. 해당 컴포넌트/화면 스펙 로딩
+         Skill(spec-component-loader {spec-folder} --name {component} --with-deps)
+      2. 구현
+      3. 검증
+
+      Output: .spec-it/execute/{sessionId}/logs/mirror-fix-{attempt}.md
+    "
+  )
+
+  # Re-run QA before next mirror check
+  GOTO Phase 4 (QA check only, no phase update)
+
+IF _state.mirrorAttempts >= _state.maxMirrorAttempts AND missingItems.length > 0:
+  AskUserQuestion(
+    questions: [{
+      question: "Spec-Mirror failed after 5 attempts. {missingItems.length} items still missing.",
+      header: "Mirror Failed",
+      options: [
+        {label: "Fix manually", description: "I'll implement missing items"},
+        {label: "Continue anyway", description: "Proceed to unit tests"},
+        {label: "Abort", description: "Stop execution"}
+      ]
+    }]
+  )
+
+# Phase 5 complete
+_state.completedPhases += "5"
+_state.currentPhase = 6
+_state.currentStep = "6.1"
+Update(_state.json)
+
+Output: "
+Phase 5 Complete (SPEC-MIRROR)
+- Mirror attempts: {_state.mirrorAttempts}
+- Final result: {verdict}
+- Moving to Unit Test phase
+"
+```
+
+---
+
+### Phase 6: UNIT-TEST (95% 커버리지 목표)
+
+**목적:** Unit Test 구현 및 95% 이상 코드 커버리지 달성
+
+#### Step 6.1: Initial Test Implementation
+```
+# Load test specs
+Task(
+  subagent_type: "general-purpose",
+  model: "opus",
+  prompt: "
+    Role: test-implementer
+
+    # Step 1: 테스트 목록 확인
+    Skill(spec-test-loader {spec-folder} --list)
+
+    # Step 2: P0 우선순위 테스트부터 시작
+    Skill(spec-test-loader {spec-folder} --priority P0)
+
+    각 테스트 스펙에 대해:
+    1. Read test specification
+    2. Create test file in appropriate location
+    3. Implement all test cases
+    4. Use AAA pattern (Arrange-Act-Assert)
+
+    # Step 3: P1 우선순위
+    Skill(spec-test-loader {spec-folder} --priority P1)
+
+    # Step 4: P2 우선순위
+    Skill(spec-test-loader {spec-folder} --priority P2)
+
+    Output: .spec-it/execute/{sessionId}/logs/test-implementation.md
+  "
+)
+```
+
+#### Step 6.2: Coverage Loop
+```
+WHILE _state.coverageAttempts < _state.maxCoverageAttempts:
+
+  _state.coverageAttempts += 1
+
+  # Run coverage
+  Task(
+    subagent_type: "Bash",
+    model: "haiku",
+    prompt: "
+      npm run test:coverage -- --reporter=json --outputFile=coverage.json
+
+      Extract and return:
+      STATEMENTS: {X}%
+      BRANCHES: {X}%
+      FUNCTIONS: {X}%
+      LINES: {X}%
+
+      Return: Coverage summary
+    "
+  )
+
+  # Parse coverage results
+  _state.currentCoverage = parse_coverage(result)
+  Update(_state.json)
+
+  # Check if target reached
+  avgCoverage = (_state.currentCoverage.statements +
+                 _state.currentCoverage.branches +
+                 _state.currentCoverage.functions +
+                 _state.currentCoverage.lines) / 4
+
+  IF avgCoverage >= _state.targetCoverage:
+    Output: "Coverage target reached: {avgCoverage}%"
+    GOTO Step 6.3 (Quality Review)
+
+  # Analyze gaps and add tests
+  Task(
+    subagent_type: "general-purpose",
+    model: "opus",
+    prompt: "
+      Role: test-implementer
+
+      Current Coverage: {_state.currentCoverage}
+      Target: {_state.targetCoverage}%
+      Gap: {_state.targetCoverage - avgCoverage}%
+
+      # 커버리지 갭 분석
+      Skill(spec-test-loader {spec-folder} --coverage-gap)
+
+      분석:
+      1. 미커버리지 파일/함수 식별
+      2. 해당 부분의 테스트 스펙 로딩
+      3. 추가 테스트 작성
+
+      우선순위:
+      1. P0 컴포넌트 커버리지 100%
+      2. Critical path 함수 커버리지 100%
+      3. 나머지 95% 달성까지
+
+      Output: .spec-it/execute/{sessionId}/logs/coverage-improvement-{attempt}.md
+    "
+  )
+
+  Update(_state.json)
+
+IF _state.coverageAttempts >= _state.maxCoverageAttempts AND avgCoverage < _state.targetCoverage:
+  AskUserQuestion(
+    questions: [{
+      question: "Coverage is {avgCoverage}% after 5 attempts. Target: 95%",
+      header: "Coverage Gap",
+      options: [
+        {label: "Add tests manually", description: "I'll write more tests"},
+        {label: "Accept current", description: "Proceed with {avgCoverage}%"},
+        {label: "Abort", description: "Stop execution"}
+      ]
+    }]
+  )
+```
+
+#### Step 6.3: Test Quality Review
+```
+Task(
+  subagent_type: "general-purpose",
+  model: "opus",
+  prompt: "
+    Role: test-critic
+
+    Analyze all test files for quality issues:
+
+    검사 항목:
+    1. 의미 없는 테스트 (항상 통과, assertion 없음)
+    2. Edge case 누락
+    3. Mock 남용 (실제 동작 테스트 부족)
+    4. 테스트 격리 문제
+    5. 불안정한 테스트 (flaky tests)
+
+    각 문제에 대해:
+    - 파일 경로
+    - 문제 설명
+    - 개선 제안
+
+    Output: .spec-it/execute/{sessionId}/reviews/test-quality.md
+
+    Verdict: [PASS] or [NEEDS_IMPROVEMENT]
+  "
+)
+
+IF verdict == "[NEEDS_IMPROVEMENT]":
+  # Fix quality issues
+  Task(
+    subagent_type: "general-purpose",
+    model: "opus",
+    prompt: "
+      Role: test-implementer
+
+      Fix test quality issues from test-quality.md
+
+      Focus on:
+      1. Add meaningful assertions
+      2. Add edge case tests
+      3. Reduce mock abuse
+
+      Output: .spec-it/execute/{sessionId}/logs/test-quality-fix.md
+    "
+  )
+
+# Phase 6 complete
+_state.completedPhases += "6"
+_state.currentPhase = 7
+_state.currentStep = "7.1"
+Update(_state.json)
+
+Output: "
+Phase 6 Complete (UNIT-TEST)
+- Final coverage: {_state.currentCoverage}
+- Test quality: {verdict}
+- Moving to Scenario Test phase
+"
+```
+
+---
+
+### Phase 7: SCENARIO-TEST (Playwright E2E 100% 통과)
+
+**목적:** Playwright E2E 시나리오 테스트 100% 통과
+
+#### Step 7.1: E2E Test Implementation
+```
+# Load scenarios
+Task(
+  subagent_type: "general-purpose",
+  model: "opus",
+  prompt: "
+    Role: e2e-implementer
+
+    # Step 1: Critical Path 먼저 구현
+    Skill(spec-scenario-loader {spec-folder} --critical-path)
+
+    각 시나리오에 대해:
+    1. Read scenario specification (Given/When/Then)
+    2. Create Playwright test file
+    3. Implement all steps
+    4. Add proper assertions
+
+    # Step 2: 화면별 시나리오
+    FOR screen IN [dashboard, stock-detail, settings, search]:
+      Skill(spec-scenario-loader {spec-folder} --screen {screen})
+      → Implement E2E tests
+
+    Output: .spec-it/execute/{sessionId}/logs/e2e-implementation.md
+  "
+)
+```
+
+#### Step 7.2: Additional Scenario Recommendations
+```
+Task(
+  subagent_type: "general-purpose",
+  model: "sonnet",
+  prompt: "
+    Role: scenario-recommender
+
+    Analyze existing scenarios and recommend additional ones:
+
+    고려 사항:
+    1. Edge cases not covered
+    2. Error scenarios
+    3. Performance scenarios
+    4. Accessibility scenarios
+    5. Mobile responsiveness
+
+    Output format:
+    | Priority | Scenario | Rationale |
+
+    Output: .spec-it/execute/{sessionId}/logs/scenario-recommendations.md
+  "
+)
+
+# Ask user which recommendations to implement
+AskUserQuestion(
+  questions: [{
+    question: "추가 시나리오 추천이 있습니다. 구현할 항목을 선택하세요.",
+    header: "Scenarios",
+    multiSelect: true,
+    options: [
+      {label: "Edge cases", description: "경계 조건 테스트"},
+      {label: "Error scenarios", description: "에러 핸들링 테스트"},
+      {label: "All recommended", description: "모든 추천 시나리오"},
+      {label: "Skip", description: "추가 시나리오 건너뛰기"}
+    ]
+  }]
+)
+
+IF selected != "Skip":
+  Task(e2e-implementer: implement selected scenarios)
+```
+
+#### Step 7.3: E2E Execution Loop
+```
+WHILE _state.scenarioAttempts < _state.maxScenarioAttempts:
+
+  _state.scenarioAttempts += 1
+
+  # Run Playwright tests
+  Task(
+    subagent_type: "Bash",
+    model: "haiku",
+    prompt: "
+      npx playwright test --reporter=json 2>&1
+
+      Return:
+      TOTAL: {N}
+      PASSED: {N}
+      FAILED: {N}
+      SKIPPED: {N}
+
+      If failures, list:
+      - Test name
+      - Error message
+      - Screenshot path (if available)
+    "
+  )
+
+  # Parse results
+  _state.scenarioResults = parse_results(result)
+  Update(_state.json)
+
+  # Write results to file for --failed loader
+  Write(.spec-it/execute/{sessionId}/logs/e2e-results.json, {
+    timestamp: now(),
+    total: _state.scenarioResults.total,
+    passed: _state.scenarioResults.passed,
+    failed: _state.scenarioResults.failed,
+    failures: [failure details]
+  })
+
+  IF _state.scenarioResults.failed == 0:
+    Output: "All E2E scenarios passed!"
+    BREAK
+
+  # Fix failures
+  Output: "
+  E2E Results (Attempt {_state.scenarioAttempts}/{_state.maxScenarioAttempts}):
+  - Passed: {_state.scenarioResults.passed}/{_state.scenarioResults.total}
+  - Failed: {_state.scenarioResults.failed}
+  "
+
+  # Load failed scenarios
+  Task(
+    subagent_type: "general-purpose",
+    model: "opus",
+    prompt: "
+      Role: spec-executor
+
+      # 실패한 시나리오 로딩
+      Skill(spec-scenario-loader {spec-folder} --failed)
+
+      각 실패에 대해:
+      1. 원인 분석 (스크린샷, 에러 메시지)
+      2. 코드 수정
+      3. 로컬 검증
+
+      Output: .spec-it/execute/{sessionId}/logs/e2e-fix-{attempt}.md
+    "
+  )
+
+  # Check for unit test regression
+  Task(
+    subagent_type: "Bash",
+    model: "haiku",
+    prompt: "
+      Role: regression-checker
+
+      npm run test 2>&1
+
+      Return: [PASS] or [REGRESSION: {details}]
+    "
+  )
+
+  IF regression detected:
+    Task(spec-executor: fix regression)
+
+  Update(_state.json)
+
+IF _state.scenarioAttempts >= _state.maxScenarioAttempts AND _state.scenarioResults.failed > 0:
+  AskUserQuestion(
+    questions: [{
+      question: "{_state.scenarioResults.failed} E2E tests still failing after 5 attempts.",
+      header: "E2E Failed",
+      options: [
+        {label: "Fix manually", description: "I'll fix remaining failures"},
+        {label: "Continue anyway", description: "Proceed to validation"},
+        {label: "Abort", description: "Stop execution"}
+      ]
+    }]
+  )
+
+# Phase 7 complete
+_state.completedPhases += "7"
+_state.currentPhase = 8
+_state.currentStep = "8.1"
+Update(_state.json)
+
+Output: "
+Phase 7 Complete (SCENARIO-TEST)
+- E2E attempts: {_state.scenarioAttempts}
+- Final result: {_state.scenarioResults.passed}/{_state.scenarioResults.total} passed
+- Moving to Validation phase
+"
+```
+
+---
+
+### Phase 8: VALIDATE (Final Review)
+
+#### Step 8.1: Code Review
 ```
 Task(
   subagent_type: "general-purpose",
@@ -701,7 +1289,7 @@ Task(
 )
 ```
 
-#### Step 5.2: Security Review
+#### Step 8.2: Security Review
 ```
 Task(
   subagent_type: "general-purpose",
@@ -749,20 +1337,20 @@ IF codeReview.verdict == "REQUEST CHANGES" OR securityReview.verdict == "FAIL":
   # Re-run QA
   GOTO Phase 4
 
-# Phase 5 complete
-_state.status = "completed"
-_state.completedPhases += "5"
-_state.completedAt = now()
+# Phase 8 complete
+_state.completedPhases += "8"
+_state.currentPhase = 9
+_state.currentStep = "9.1"
 Update(_state.json)
 ```
 
 ---
 
-### Phase 6: COMPLETE
+### Phase 9: COMPLETE
 
 ```
 # Live Preview 정리
-IF _state.livePreview:
+IF _state.livePreview OR _state.devServerPid:
   # 최종 스크린샷 캡처 (전체 화면 목록)
   FOR screen IN screens:
     MCP_CALL: navigate_page(url: _state.previewUrl + screen.route)
@@ -781,6 +1369,11 @@ IF _state.livePreview:
     prompt: "kill {_state.devServerPid}"
   )
 
+# Update final state
+_state.status = "completed"
+_state.completedAt = now()
+Update(_state.json)
+
 Output: "
 ════════════════════════════════════════════════════════════
                  SPEC-IT-EXECUTE COMPLETE
@@ -788,7 +1381,12 @@ Output: "
 
 Session: {sessionId}
 Duration: {duration}
-QA Attempts: {qaAttempts}
+
+Phase Summary:
+- QA Attempts: {qaAttempts}
+- Mirror Attempts: {mirrorAttempts} → {lastMirrorReport.missingCount == 0 ? 'PASS' : 'PARTIAL'}
+- Coverage: {currentCoverage.lines}% (Target: {targetCoverage}%)
+- E2E: {scenarioResults.passed}/{scenarioResults.total} passed
 
 Files Created/Modified:
 {fileList}
@@ -799,6 +1397,7 @@ Reviews:
 
 Logs: .spec-it/execute/{sessionId}/logs/
 Reviews: .spec-it/execute/{sessionId}/reviews/
+Screenshots: .spec-it/execute/{sessionId}/screenshots/
 
 Next Steps:
 1. Review generated code
@@ -843,7 +1442,7 @@ ELIF Delete:
   "sessionId": "20260130-143022",
   "specSource": "tmp/20260129-120000",
   "status": "in_progress | completed | failed",
-  "currentPhase": 1-5,
+  "currentPhase": 1-9,
   "currentStep": "1.1",
   "qaAttempts": 0,
   "maxQaAttempts": 5,
@@ -856,7 +1455,33 @@ ELIF Delete:
   "htmlReferencePath": "tmp/{sessionId}/02-screens/html/",
   "livePreview": true,
   "devServerPid": 12345,
-  "previewUrl": "http://localhost:3000"
+  "previewUrl": "http://localhost:3000",
+
+  "mirrorAttempts": 0,
+  "maxMirrorAttempts": 5,
+  "lastMirrorReport": {
+    "matchCount": 0,
+    "missingCount": 0,
+    "overCount": 0
+  },
+
+  "coverageAttempts": 0,
+  "maxCoverageAttempts": 5,
+  "targetCoverage": 95,
+  "currentCoverage": {
+    "statements": 0,
+    "branches": 0,
+    "functions": 0,
+    "lines": 0
+  },
+
+  "scenarioAttempts": 0,
+  "maxScenarioAttempts": 5,
+  "scenarioResults": {
+    "total": 0,
+    "passed": 0,
+    "failed": 0
+  }
 }
 ```
 
@@ -886,9 +1511,50 @@ If same error occurs 3 times:
 
 ---
 
+## Loader Skill Integration
+
+### Agent + Loader Skill 연동 패턴
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│                  Agent + Loader Skill 연동                       │
+├─────────────────────────────────────────────────────────────────┤
+│                                                                  │
+│  Phase 5: SPEC-MIRROR                                            │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ Task(spec-mirror-analyst, opus):                           │ │
+│  │   → Skill(spec-component-loader {spec-folder} --list)      │ │
+│  │   → 실제 화면 캡처 및 비교                                   │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  Phase 6: UNIT-TEST                                              │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ Task(test-implementer, opus):                              │ │
+│  │   Skill(spec-test-loader {spec-folder} --list)             │ │
+│  │   Skill(spec-test-loader {spec-folder} --priority P0)      │ │
+│  │   Skill(spec-test-loader {spec-folder} --coverage-gap)     │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+│  Phase 7: SCENARIO-TEST                                          │
+│  ┌────────────────────────────────────────────────────────────┐ │
+│  │ Task(e2e-implementer, opus):                               │ │
+│  │   Skill(spec-scenario-loader {spec-folder} --critical-path)│ │
+│  │   Skill(spec-scenario-loader {spec-folder} --screen X)     │ │
+│  │   Skill(spec-scenario-loader {spec-folder} --failed)       │ │
+│  └────────────────────────────────────────────────────────────┘ │
+│                                                                  │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+---
+
 ## Related Skills
 
 - `/frontend-skills:spec-it` - Spec generator router (mode selection)
 - `/frontend-skills:spec-it-stepbystep` - Generate specs (Step-by-Step)
 - `/frontend-skills:spec-it-complex` - Generate specs (Hybrid)
 - `/frontend-skills:spec-it-automation` - Generate specs (Full Auto)
+- `/frontend-skills:spec-mirror` - Spec vs Implementation comparison
+- `/frontend-skills:spec-test-loader` - Progressive test spec loading
+- `/frontend-skills:spec-scenario-loader` - Progressive scenario loading
+- `/frontend-skills:spec-component-loader` - Progressive component spec loading
