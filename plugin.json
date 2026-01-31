@@ -3,6 +3,14 @@
   "version": "1.0.0",
   "description": "A collection of useful skills for frontend development and documentation",
   "skills": "./skills/",
+  "postInstall": {
+    "message": "Run ./scripts/setup-permissions.sh to auto-register MCP tool permissions (chrome-devtools, stitch)",
+    "script": "./scripts/setup-permissions.sh"
+  },
+  "requiredMcpPermissions": [
+    "mcp__chrome-devtools__*",
+    "mcp__stitch__*"
+  ],
   "hooks": {
     "PreToolUse": [
       {
