@@ -114,16 +114,66 @@ case "$ACTION" in
   "agent-complete")
     AGENT_NAME="${ARGS[0]}"
     OUTPUT="${ARGS[1]:-}"
+    STEP="${ARGS[2]:-}"  # Optional step to mark as completed
 
     # Get start time from _status.json
     START_TS=$(jq -r --arg name "$AGENT_NAME" '.agents[] | select(.name == $name) | .startedAt' "$STATUS_FILE")
     DURATION=$(calc_duration "$START_TS" "$TIMESTAMP")
 
-    # Update _status.json
+    # Update _status.json - agent status
     jq --arg name "$AGENT_NAME" --arg ts "$TIMESTAMP" --arg out "$OUTPUT" --arg dur "$DURATION" '
       (.agents[] | select(.name == $name)) |= . + {"status": "completed", "completedAt": $ts, "output": $out, "duration": $dur} |
       .lastUpdate = $ts
     ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+
+    # If step is provided, also update step progress
+    if [ -n "$STEP" ]; then
+      # Calculate progress based on step (same logic as meta-checkpoint.sh)
+      case "$STEP" in
+        "1.1") PROG=4 ;;
+        "1.2") PROG=8 ;;
+        "1.3") PROG=12 ;;
+        "1.4") PROG=16 ;;
+        "2.1") PROG=24 ;;
+        "2.2") PROG=33 ;;
+        "3.1") PROG=41 ;;
+        "3.2") PROG=50 ;;
+        "4.1") PROG=58 ;;
+        "4.2") PROG=66 ;;
+        "5.1") PROG=75 ;;
+        "5.2") PROG=83 ;;
+        "6.1") PROG=91 ;;
+        "6.2") PROG=100 ;;
+        *) PROG=0 ;;
+      esac
+
+      PHASE="${STEP%%.*}"
+
+      # Update _status.json with step progress
+      jq --arg step "$STEP" --argjson phase "$PHASE" --argjson prog "$PROG" --arg ts "$TIMESTAMP" '
+        .currentStep = $step |
+        .currentPhase = $phase |
+        .progress = $prog |
+        .completedSteps += [$step] |
+        .completedSteps |= unique |
+        .lastUpdate = $ts
+      ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+
+      # Also update _meta.json
+      META_FILE="$SESSION_DIR/_meta.json"
+      if [ -f "$META_FILE" ]; then
+        jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
+          .currentStep = $step |
+          .currentPhase = $phase |
+          .lastCheckpoint = $ts |
+          .completedSteps += [$step] |
+          .completedSteps |= unique
+        ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+      fi
+
+      echo "STEP_COMPLETED:$STEP"
+      echo "PROGRESS:$PROG"
+    fi
 
     # Update runtime-log.md (replace pending row with completed)
     # Find the line with this agent and ⏳, replace with completed info

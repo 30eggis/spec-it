@@ -166,6 +166,8 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/met
 ### Step 2.1: Screen List + Layout
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect
+
 Task(ui-architect, sonnet):
   prompt: "
     Role: ui-architect (Fast Mode)
@@ -191,7 +193,7 @@ Task(ui-architect, sonnet):
        - Include Design Direction section
   "
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 2.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect "" 2.1
 ```
 
 ### Step 2.2: Wireframes (Parallel)
@@ -200,6 +202,8 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/met
 # Get screen count from screen-list.md
 Read: 02-screens/screen-list.md
 Extract: screen IDs
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect-wireframes
 
 FOR each screen (parallel, max 4):
   Task(ui-architect, sonnet):
@@ -246,7 +250,7 @@ FOR each screen (parallel, max 4):
       Output: 02-screens/wireframes/{screenId}.yaml
     "
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 2.2
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect-wireframes "" 2.2
 ```
 
 ---
@@ -256,6 +260,8 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/met
 ### Step 3.1: Summary
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start spec-assembler
+
 Task(spec-assembler, haiku):
   prompt: "
     Role: spec-assembler (Fast Mode)
@@ -277,6 +283,7 @@ Task(spec-assembler, haiku):
        - Color token summary
   "
 
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete spec-assembler "" 3.1
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
 ```
 

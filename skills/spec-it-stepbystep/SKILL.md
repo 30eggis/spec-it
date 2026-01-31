@@ -153,18 +153,21 @@ CH-07: Non-Functional Requirements
 ### For Each Chapter
 
 ```
-1. Task(design-interviewer, opus):
+1. Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start design-interviewer
+
+2. Task(design-interviewer, opus):
    - Conduct Q&A for chapter
    - Output: 01-chapters/decisions/decision-{chapter}.md
 
-2. Show chapter summary to user
+3. Show chapter summary to user
 
-3. AskUserQuestion: "Is this correct?"
+4. AskUserQuestion: "Is this correct?"
    Options: [Yes, No, Questions]
 
-4. Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} {chapter}
+5. Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete design-interviewer "" {stepNum}
+   # stepNum: 1.1 (CH-00), 1.2 (CH-01~CH-03), 1.3 (CH-04~CH-05), 1.4 (CH-06~CH-07)
 
-5. IF No/Questions: Revise and re-ask
+6. IF No/Questions: Revise and re-ask
 ```
 
 ---
@@ -174,6 +177,8 @@ CH-07: Non-Functional Requirements
 ### Step 2.1: Layout System + Screen List
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect
+
 Task(ui-architect, sonnet):
   prompt: "
     Role: ui-architect
@@ -244,13 +249,19 @@ FOR each batch (4 screens):
       - Use components array with typed elements
       - Include testId for all interactive elements
     "
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect "" 2.1
 ```
 
 ### Step 2.2: Component Discovery
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start component-auditor
+
 Task(component-auditor, haiku):
   Output: 03-components/inventory.md, gap-analysis.md
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete component-auditor "" 2.2
 
 AskUserQuestion: "UI Architecture complete. Continue?"
 ```
@@ -261,6 +272,7 @@ AskUserQuestion: "UI Architecture complete. Continue?"
 
 ```
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/component-planner.sh {sessionId}
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "component-builder,component-migrator"
 
 Task(component-builder, sonnet, parallel):
   prompt: "
@@ -285,6 +297,8 @@ Task(component-builder, sonnet, parallel):
 Task(component-migrator, sonnet):
   Output: 03-components/migrations/migration-plan.md
 
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "component-builder,component-migrator" "" 3.1
+
 AskUserQuestion: "Components complete. Continue?"
 ```
 
@@ -293,11 +307,15 @@ AskUserQuestion: "Components complete. Continue?"
 ## Phase 4: Critical Review
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "critical-reviewer,ambiguity-detector"
+
 Task(critical-reviewer, opus):
   Output: 04-review/scenarios/, ia-review.md, exceptions/
 
 Task(ambiguity-detector, opus):
   Output: 04-review/ambiguities.md
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "critical-reviewer,ambiguity-detector" "" 4.1
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ambiguity
 → IF must-resolve: AskUserQuestion for resolution
@@ -308,11 +326,15 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/pha
 ## Phase 5: Test Specification
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "persona-architect,test-spec-writer"
+
 Task(persona-architect, sonnet):
   Output: 05-tests/personas/
 
 Task(test-spec-writer, sonnet):
   Output: 05-tests/scenarios/, components/, coverage-map.md
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "persona-architect,test-spec-writer" "" 5.1
 
 AskUserQuestion: "Tests complete. Continue?"
 ```
@@ -322,8 +344,12 @@ AskUserQuestion: "Tests complete. Continue?"
 ## Phase 6: Final Assembly
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start spec-assembler
+
 Task(spec-assembler, haiku):
   Output: 06-final/final-spec.md, dev-tasks.md, SPEC-SUMMARY.md
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete spec-assembler "" 6.1
 
 AskUserQuestion: "Spec complete. Handle tmp folder?"
 Options: [Archive, Keep, Delete]

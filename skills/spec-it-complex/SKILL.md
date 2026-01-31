@@ -118,26 +118,36 @@ IF --resume in args:
 ### Step 1.1: Requirements Analysis
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start design-interviewer
+
 Task(design-interviewer, opus):
   Output: 00-requirements/requirements.md
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 1.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete design-interviewer "" 1.1
 ```
 
 ### Step 1.2: Divergent Thinking + Critique
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start divergent-thinker
+
 Task(divergent-thinker, sonnet):
   Output: 01-chapters/alternatives/*.md
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete divergent-thinker "" 1.2
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start chapter-critic
 
 FOR round in [1, 2, 3]:
   Task(chapter-critic, opus):
     Output: 01-chapters/critique-round{round}.md
 
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete chapter-critic "" 1.3
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start chapter-planner
+
 Task(chapter-planner, opus):
   Output: 01-chapters/chapter-plan-final.md
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 1.2
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete chapter-planner "" 1.4
 ```
 
 ---
@@ -160,6 +170,8 @@ IF Modify: Revise plan
 ### Step 2.1: Batch 1 (CH-00~02) + UI Architecture
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "chapter-writer,ui-architect"
+
 Task(chapter-writer, sonnet, parallel):
   Output: 01-chapters/decisions/CH-00.md, CH-01.md
 
@@ -206,6 +218,8 @@ FOR each batch:
       - Use grid.areas for layout (CSS Grid syntax)
       - Include testId for all interactive elements
     "
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "chapter-writer,ui-architect" "" 2.1
 ```
 
 ---
@@ -224,19 +238,25 @@ Options: [Yes, Review]
 ### Step 3.1: Batch 2 (CH-03~04)
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "chapter-writer,component-auditor"
+
 Task(chapter-writer, sonnet, parallel):
   Output: 01-chapters/decisions/CH-03.md, CH-04.md
 
 Task(component-auditor, haiku):
   Output: 03-components/inventory.md, gap-analysis.md
 
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "chapter-writer,component-auditor"
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/component-planner.sh {sessionId}
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "component-builder,component-migrator"
 
 Task(component-builder, sonnet, parallel):
   Output: 03-components/new/spec-{component}.md
 
 Task(component-migrator, sonnet):
   Output: 03-components/migrations/migration-plan.md
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "component-builder,component-migrator" "" 3.1
 ```
 
 ---
@@ -255,6 +275,8 @@ Options: [Yes, Review]
 ### Step 4.1: Batch 3 (CH-05~07) + Review
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "chapter-writer,critical-reviewer,ambiguity-detector"
+
 Task(chapter-writer, sonnet, parallel):
   Output: CH-05.md, CH-06.md, CH-07.md
 
@@ -263,6 +285,8 @@ Task(critical-reviewer, opus, parallel):
 
 Task(ambiguity-detector, opus, parallel):
   Output: 04-review/ambiguities.md
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "chapter-writer,critical-reviewer,ambiguity-detector" "" 4.1
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ambiguity
 → IF must-resolve: AskUserQuestion
@@ -273,11 +297,15 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/pha
 ## Phase 5: Test Specification
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "persona-architect,test-spec-writer"
+
 Task(persona-architect, sonnet, parallel):
   Output: 05-tests/personas/
 
 Task(test-spec-writer, sonnet, parallel):
   Output: 05-tests/scenarios/, components/, coverage-map.md
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "persona-architect,test-spec-writer" "" 5.1
 ```
 
 ---
@@ -285,8 +313,12 @@ Task(test-spec-writer, sonnet, parallel):
 ## Phase 6: Final Assembly
 
 ```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start spec-assembler
+
 Task(spec-assembler, haiku):
   Output: 06-final/final-spec.md, dev-tasks.md, SPEC-SUMMARY.md
+
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete spec-assembler "" 6.1
 ```
 
 ---
