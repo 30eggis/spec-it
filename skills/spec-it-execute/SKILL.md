@@ -62,6 +62,36 @@ Supports both YAML (preferred) and Markdown (legacy) spec formats:
 
 ---
 
+## ⛔ CRITICAL EXECUTION RULES (절대 위반 금지)
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│  ⛔ PHASE SKIPPING IS STRICTLY FORBIDDEN                        │
+│                                                                  │
+│  1. ALL 10 PHASES (0-9) MUST BE EXECUTED IN ORDER               │
+│  2. NO PHASE CAN BE SKIPPED FOR ANY REASON                      │
+│  3. "MVP", "demo", "simple" are NOT valid reasons to skip       │
+│  4. Phase N+1 can ONLY start after Phase N completes            │
+│  5. Each phase completion MUST update _state.json via           │
+│     status-update.sh phase-complete action                      │
+│                                                                  │
+│  VIOLATION = EXECUTION FAILURE                                   │
+│                                                                  │
+│  If a phase seems unnecessary:                                   │
+│  → Still execute it                                              │
+│  → Report "no issues found" if applicable                       │
+│  → NEVER skip                                                    │
+└─────────────────────────────────────────────────────────────────┘
+```
+
+**Phase 순서 강제**:
+- Phase 4 (QA) 완료 → Phase 5 (SPEC-MIRROR) 시작 (필수)
+- Phase 5 완료 → Phase 6 (UNIT-TEST) 시작 (필수)
+- Phase 6 완료 → Phase 7 (SCENARIO-TEST) 시작 (필수)
+- Phase 7 완료 → Phase 8 (VALIDATE) 시작 (필수)
+
+---
+
 ## Agents Used
 
 | Agent | Model | Phase | Role |
@@ -266,11 +296,9 @@ IF "Yes":
   # chrome-devtools MCP: new_page 도구 사용
   MCP_CALL: new_page(url: "http://localhost:3000")
 
-  # 3. 상태 업데이트
-  _state.livePreview = true
-  _state.devServerPid = {pid}
-  _state.previewUrl = "http://localhost:3000"
-  Update(_state.json)
+  # 3. 상태 업데이트 - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "livePreview" "true"
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "previewUrl" '"http://localhost:3000"'
 
   Output: "
   ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
@@ -317,10 +345,8 @@ Task(
   "
 )
 
-# Update state
-_state.currentStep = "1.3"
-_state.lastCheckpoint = now()
-Update(_state.json)
+# Update state - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" step-update "1.3"
 ```
 
 #### Step 1.3: UI Reference Analysis
@@ -354,21 +380,16 @@ IF wireframes exist in {spec-folder}/02-screens/wireframes/:
     "
   )
 
-  _state.uiMode = "yaml"
-  Update(_state.json)
+  # Update uiMode - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "uiMode" '"yaml"'
 
 # Load design style from spec-it session
 IF _meta.designStyle exists:
-  _state.designStyle = _meta.designStyle
-  _state.designTrends = _meta.designTrends
-  _state.designTrendsPath = _meta.designTrendsPath OR "$HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026"
-  Update(_state.json)
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "designStyle" "{_meta.designStyle}"
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "designTrends" "{_meta.designTrends}"
 
-# Phase 1 complete
-_state.completedPhases += "1"
-_state.currentPhase = 2
-_state.currentStep = "2.1"
-Update(_state.json)
+# Phase 1 complete - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 1 2 "2.1"
 
 Output: "
 Phase 1 Complete (LOAD)
@@ -413,8 +434,8 @@ Task(
   "
 )
 
-_state.currentStep = "2.2"
-Update(_state.json)
+# Update step - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" step-update "2.2"
 ```
 
 #### Step 2.2: Plan Critique
@@ -461,11 +482,8 @@ IF verdict == "[REJECT]":
       }]
     )
 
-# Phase 2 complete
-_state.completedPhases += "2"
-_state.currentPhase = 3
-_state.currentStep = "3.1"
-Update(_state.json)
+# Phase 2 complete - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 2 3 "3.1"
 
 Output: "
 Phase 2 Complete (PLAN)
@@ -596,12 +614,8 @@ FOR batch IN batches:
   # Wait for all parallel tasks in this batch to complete
   AWAIT ALL parallelTasks
 
-  # Update progress for batch
-  FOR task IN batch.tasks:
-    _state.completedTasks += task.id
-
-  _state.lastCheckpoint = now()
-  Update(_state.json)
+  # Update progress for batch - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" step-update "3.1"
 
   Output: "Batch {batch.index} complete: {batch.tasks.length} tasks"
 
@@ -643,11 +657,8 @@ FOR batch IN batches:
       # Log failure, continue (QA phase will catch it)
       Write(.spec-it/execute/{sessionId}/logs/failures.md, append)
 
-# Phase 3 complete
-_state.completedPhases += "3"
-_state.currentPhase = 4
-_state.currentStep = "4.1"
-Update(_state.json)
+# Phase 3 complete - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 3 4 "4.1"
 
 Output: "
 Phase 3 Complete (EXECUTE)
@@ -745,7 +756,8 @@ WHILE _state.qaAttempts < _state.maxQaAttempts:
       "
     )
 
-  Update(_state.json)
+  # Update QA attempts - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "qaAttempts" "{_state.qaAttempts}"
 
 IF _state.qaAttempts >= _state.maxQaAttempts AND NOT allPassed:
   AskUserQuestion(
@@ -760,11 +772,8 @@ IF _state.qaAttempts >= _state.maxQaAttempts AND NOT allPassed:
     }]
   )
 
-# Phase 4 complete
-_state.completedPhases += "4"
-_state.currentPhase = 5
-_state.currentStep = "5.1"
-Update(_state.json)
+# Phase 4 complete - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 4 5 "5.1"
 ```
 
 ---
@@ -791,9 +800,9 @@ IF NOT _state.livePreview:
   # Chrome 브라우저 열기
   MCP_CALL: new_page(url: "http://localhost:3000")
 
-  _state.devServerPid = {pid}
-  _state.previewUrl = "http://localhost:3000"
-  Update(_state.json)
+  # Update state - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "livePreview" "true"
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "previewUrl" '"http://localhost:3000"'
 ```
 
 #### Step 5.2: Screen-by-Screen Verification (Batched)
@@ -895,13 +904,9 @@ WHILE _state.mirrorAttempts < _state.maxMirrorAttempts:
     "
   )
 
-  # Update state
-  _state.lastMirrorReport = {
-    matchCount: matchedItems.length,
-    missingCount: missingItems.length,
-    overCount: overSpecItems.length
-  }
-  Update(_state.json)
+  # Update state - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "mirrorAttempts" "{_state.mirrorAttempts}"
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "lastMirrorReport" '{"matchCount":{matchedItems.length},"missingCount":{missingItems.length},"overCount":{overSpecItems.length}}'
 
   # Check result
   IF missingItems.length == 0:
@@ -958,11 +963,8 @@ IF _state.mirrorAttempts >= _state.maxMirrorAttempts AND missingItems.length > 0
     }]
   )
 
-# Phase 5 complete
-_state.completedPhases += "5"
-_state.currentPhase = 6
-_state.currentStep = "6.1"
-Update(_state.json)
+# Phase 5 complete - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 5 6 "6.1"
 
 Output: "
 Phase 5 Complete (SPEC-MIRROR)
@@ -1033,9 +1035,9 @@ WHILE _state.coverageAttempts < _state.maxCoverageAttempts:
     "
   )
 
-  # Parse coverage results
-  _state.currentCoverage = parse_coverage(result)
-  Update(_state.json)
+  # Parse coverage results and update state - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "coverageAttempts" "{_state.coverageAttempts}"
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "currentCoverage" '{"statements":{statements},"branches":{branches},"functions":{functions},"lines":{lines}}'
 
   # Check if target reached
   avgCoverage = (_state.currentCoverage.statements +
@@ -1075,7 +1077,8 @@ WHILE _state.coverageAttempts < _state.maxCoverageAttempts:
     "
   )
 
-  Update(_state.json)
+  # Update coverage attempts - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "coverageAttempts" "{_state.coverageAttempts}"
 
 IF _state.coverageAttempts >= _state.maxCoverageAttempts AND avgCoverage < _state.targetCoverage:
   AskUserQuestion(
@@ -1138,11 +1141,8 @@ IF verdict == "[NEEDS_IMPROVEMENT]":
     "
   )
 
-# Phase 6 complete
-_state.completedPhases += "6"
-_state.currentPhase = 7
-_state.currentStep = "7.1"
-Update(_state.json)
+# Phase 6 complete - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 6 7 "7.1"
 
 Output: "
 Phase 6 Complete (UNIT-TEST)
@@ -1255,9 +1255,9 @@ WHILE _state.scenarioAttempts < _state.maxScenarioAttempts:
     "
   )
 
-  # Parse results
-  _state.scenarioResults = parse_results(result)
-  Update(_state.json)
+  # Parse results and update state - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "scenarioAttempts" "{_state.scenarioAttempts}"
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "scenarioResults" '{"total":{total},"passed":{passed},"failed":{failed}}'
 
   # Write results to file for --failed loader
   Write(.spec-it/execute/{sessionId}/logs/e2e-results.json, {
@@ -1314,7 +1314,8 @@ WHILE _state.scenarioAttempts < _state.maxScenarioAttempts:
   IF regression detected:
     Task(spec-executor: fix regression)
 
-  Update(_state.json)
+  # Update scenario attempts - use unified status-update.sh
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "scenarioAttempts" "{_state.scenarioAttempts}"
 
 IF _state.scenarioAttempts >= _state.maxScenarioAttempts AND _state.scenarioResults.failed > 0:
   AskUserQuestion(
@@ -1329,11 +1330,8 @@ IF _state.scenarioAttempts >= _state.maxScenarioAttempts AND _state.scenarioResu
     }]
   )
 
-# Phase 7 complete
-_state.completedPhases += "7"
-_state.currentPhase = 8
-_state.currentStep = "8.1"
-Update(_state.json)
+# Phase 7 complete - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 7 8 "8.1"
 
 Output: "
 Phase 7 Complete (SCENARIO-TEST)
@@ -1419,11 +1417,8 @@ IF codeReview.verdict == "REQUEST CHANGES" OR securityReview.verdict == "FAIL":
   # Re-run QA
   GOTO Phase 4
 
-# Phase 8 complete
-_state.completedPhases += "8"
-_state.currentPhase = 9
-_state.currentStep = "9.1"
-Update(_state.json)
+# Phase 8 complete - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 8 9 "9.1"
 ```
 
 ---
@@ -1451,10 +1446,8 @@ IF _state.livePreview OR _state.devServerPid:
     prompt: "kill {_state.devServerPid}"
   )
 
-# Update final state
-_state.status = "completed"
-_state.completedAt = now()
-Update(_state.json)
+# Update final state - use unified status-update.sh
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" complete
 
 Output: "
 ════════════════════════════════════════════════════════════
