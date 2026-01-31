@@ -121,38 +121,28 @@ GOTO Phase {currentPhase}, Step {currentStep}
 
 #### Phase 0.1: New Session
 ```bash
-# 1. Generate session ID
-sessionId = $(date +%Y%m%d-%H%M%S)
+# Use execute-session-init.sh to initialize session and auto-launch dashboard
+# This script creates:
+# - .spec-it/execute/{sessionId}/ folder structure
+# - _meta.json (with parentTerminal info for 'r' key feature)
+# - _state.json (for resume support)
+# - _status.json (for dashboard display)
+# - Auto-launches dashboard in separate terminal
 
-# 2. Create execution workspace
-mkdir -p .spec-it/execute/{sessionId}/{plans,logs,reviews,screenshots}
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/execute-session-init.sh "{sessionId}" "{spec-folder}" "$(pwd)"
 
-# 3. Initialize state file (_status.json for dashboard)
-Write(.spec-it/execute/{sessionId}/_status.json):
+# Parse output to get session info
+# Output format:
+# SESSION_ID:{id}
+# SESSION_DIR:{path}
+# SPEC_FOLDER:{path}
+# DASHBOARD:launched
+
+# Verify initialization
+Read(.spec-it/execute/{sessionId}/_state.json)
 ```
 
-```json
-{
-  "sessionId": "{sessionId}",
-  "specSource": "{spec-folder}",
-  "status": "in_progress",
-  "currentPhase": 1,
-  "currentStep": "1.1",
-  "qaAttempts": 0,
-  "progress": 0,
-  "agents": [],
-  "startTime": "{ISO timestamp}",
-  "lastUpdate": "{ISO timestamp}"
-}
-```
-
-```bash
-# 4. Launch dashboard in separate terminal
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/open-dashboard.sh .spec-it/execute/{sessionId}
-
-# 5. Initialize _state.json for resume support
-```
-
+**State file schema (_state.json):**
 ```json
 {
   "sessionId": "{sessionId}",

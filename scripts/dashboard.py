@@ -7,6 +7,7 @@ Usage: python3 dashboard.py [session_path]
 import curses
 import json
 import os
+import subprocess
 import sys
 from datetime import datetime
 from pathlib import Path
@@ -261,32 +262,45 @@ class Dashboard:
         self.safe_addstr(stdscr, y, 34, f"{qa_attempts}/{max_qa}", qa_color)
         y += 2
 
-        # Footer
+        # Footer line (footer is handled by render_footer)
         self.safe_addstr(stdscr, y, 0, "═" * (width - 1), GREEN)
-        self.safe_addstr(stdscr, height - 1, 2, "Press 'q' to quit")
 
         return y
 
     def render_spec_it(self, stdscr, data, width, height):
-        """Render SPEC-IT mode dashboard (original)"""
+        """Render SPEC-IT mode dashboard with phase progress bars"""
         CYAN = curses.color_pair(1)
         GREEN = curses.color_pair(2)
         YELLOW = curses.color_pair(3)
+        RED = curses.color_pair(4)
         WHITE = curses.color_pair(5)
 
+        # Phase definitions
         PHASES = {
-            1: 'Design Brainstorming',
-            2: 'UI Architecture',
-            3: 'Component Spec',
-            4: 'Critical Review',
-            5: 'Test Specification',
-            6: 'Final Assembly'
+            1: {'name': 'BRAINSTORM', 'desc': 'Design Brainstorming'},
+            2: {'name': 'UI-ARCH', 'desc': 'UI Architecture'},
+            3: {'name': 'REVIEW', 'desc': 'Critical Review'},
+            4: {'name': 'TEST-SPEC', 'desc': 'Test Specification'},
+            5: {'name': 'ASSEMBLY', 'desc': 'Final Assembly'},
+            6: {'name': 'APPROVAL', 'desc': 'Final Approval'}
+        }
+
+        # Steps per phase for progress calculation
+        PHASE_STEPS = {
+            1: ['1.1', '1.2', '1.3', '1.4'],
+            2: ['2.1', '2.2'],
+            3: ['3.1', '3.2'],
+            4: ['4.1'],
+            5: ['5.1'],
+            6: ['6.1']
         }
 
         session_id = data.get('sessionId', 'unknown')
         current_phase = data.get('currentPhase', 1)
         current_step = data.get('currentStep', '1.1')
-        phase_name = PHASES.get(current_phase, 'Initializing')
+        completed_steps = data.get('completedSteps', [])
+        completed_phases = data.get('completedPhases', [])
+        status = data.get('status', 'in_progress')
 
         start_time_str = data.get('startTime', data.get('lastCheckpoint', ''))
         if start_time_str:
@@ -295,28 +309,12 @@ class Dashboard:
         else:
             runtime = 0
 
-        # Calculate progress from folder structure
-        folders = ['00-requirements', '01-chapters', '02-screens',
-                   '03-components', '04-review', '05-tests', '06-final']
-        weights = [10, 15, 25, 20, 15, 10, 5]
-        progress = 0
-        file_counts = []
-
-        for folder in folders:
-            folder_path = self.session_path / folder
-            count = len(list(folder_path.glob('**/*.md'))) if folder_path.exists() else 0
-            file_counts.append(count)
-
-        for i, count in enumerate(file_counts):
-            if count > 0:
-                progress += weights[i]
-        if file_counts[6] > 0:
-            progress = 100
-
-        files_count = sum(file_counts)
+        # Calculate stats
+        files_count = 0
         lines_count = 0
         for md_file in self.session_path.glob('**/*.md'):
             if not md_file.name.startswith('_'):
+                files_count += 1
                 try:
                     lines_count += sum(1 for _ in open(md_file))
                 except:
@@ -325,36 +323,117 @@ class Dashboard:
         y = 0
 
         # Header
-        self.safe_addstr(stdscr, y, 0, "=" * (width - 1))
+        self.safe_addstr(stdscr, y, 0, "═" * (width - 1), CYAN)
         y += 1
         self.safe_addstr(stdscr, y, 2, "SPEC-IT DASHBOARD", CYAN | curses.A_BOLD)
         runtime_str = f"Runtime: {self.format_duration(runtime)}"
         self.safe_addstr(stdscr, y, width - len(runtime_str) - 3, runtime_str, curses.A_BOLD)
         y += 1
-        self.safe_addstr(stdscr, y, 0, "=" * (width - 1))
+        self.safe_addstr(stdscr, y, 0, "═" * (width - 1), CYAN)
         y += 2
 
         # Session info
-        self.safe_addstr(stdscr, y, 2, f"Session: {session_id}")
+        self.safe_addstr(stdscr, y, 2, f"Session: ", curses.A_BOLD)
+        self.safe_addstr(stdscr, y, 11, session_id)
         y += 2
 
-        # Phase & Step
-        self.safe_addstr(stdscr, y, 2, f"Phase: ", curses.A_BOLD)
-        self.safe_addstr(stdscr, y, 9, f"{current_phase}/6", WHITE | curses.A_BOLD)
-        self.safe_addstr(stdscr, y, 14, f" - {phase_name}", CYAN)
+        # Phase Progress Section
+        self.safe_addstr(stdscr, y, 0, "─" * (width - 1))
         y += 1
-        self.safe_addstr(stdscr, y, 2, f"Step:  {current_step}")
+        self.safe_addstr(stdscr, y, 2, "PHASES", curses.A_BOLD)
+        y += 1
+
+        bar_width = min(20, width - 35)
+        total_progress = 0
+
+        for phase_num, phase_info in PHASES.items():
+            phase_steps = PHASE_STEPS.get(phase_num, [])
+            is_complete = str(phase_num) in completed_phases or (status == 'completed' and phase_num <= 6)
+            is_current = phase_num == current_phase and not is_complete
+            is_future = phase_num > current_phase and not is_complete
+
+            # Calculate phase progress from completed steps
+            if is_complete:
+                progress = 100
+            elif is_current:
+                completed_in_phase = len([s for s in completed_steps if s.startswith(f"{phase_num}.")])
+                total_in_phase = len(phase_steps)
+                progress = int((completed_in_phase / max(total_in_phase, 1)) * 100) if total_in_phase > 0 else 0
+                # If we're on a step, show at least some progress
+                if progress == 0 and current_step.startswith(f"{phase_num}."):
+                    progress = 10
+            else:
+                progress = 0
+
+            # Accumulate overall progress
+            total_progress += progress / 6
+
+            # Phase indicator
+            if is_complete:
+                indicator = "✓"
+                color = GREEN
+            elif is_current:
+                indicator = "►"
+                color = YELLOW | curses.A_BOLD
+            else:
+                indicator = "○"
+                color = WHITE
+
+            self.safe_addstr(stdscr, y, 2, indicator, color)
+            self.safe_addstr(stdscr, y, 4, f"{phase_num}.", color)
+            self.safe_addstr(stdscr, y, 7, phase_info['name'], color)
+
+            # Progress bar for each phase
+            self.safe_addstr(stdscr, y, 18, "[")
+            self.draw_progress_bar(stdscr, y, 19, bar_width, progress, GREEN if is_complete else YELLOW)
+            self.safe_addstr(stdscr, y, 19 + bar_width, "]")
+            self.safe_addstr(stdscr, y, 21 + bar_width, f"{progress:3d}%")
+            y += 1
+
+        y += 1
+
+        # Overall Progress
+        self.safe_addstr(stdscr, y, 0, "─" * (width - 1))
+        y += 1
+        self.safe_addstr(stdscr, y, 2, "OVERALL", curses.A_BOLD)
+        overall_bar_width = min(40, width - 20)
+        overall_progress = int(total_progress)
+        if status == 'completed':
+            overall_progress = 100
+        self.safe_addstr(stdscr, y, 12, "[")
+        self.draw_progress_bar(stdscr, y, 13, overall_bar_width, overall_progress, GREEN)
+        self.safe_addstr(stdscr, y, 13 + overall_bar_width, f"] {overall_progress:3d}%")
         y += 2
 
-        # Progress bar
-        bar_width = min(40, width - 10)
-        self.safe_addstr(stdscr, y, 2, "[")
-        self.draw_progress_bar(stdscr, y, 3, bar_width, progress, GREEN)
-        self.safe_addstr(stdscr, y, 3 + bar_width, f"] {progress:3d}%")
+        # Current Step Section
+        self.safe_addstr(stdscr, y, 0, "─" * (width - 1))
+        y += 1
+        self.safe_addstr(stdscr, y, 2, "CURRENT", curses.A_BOLD)
+        y += 1
+
+        if status == 'completed':
+            self.safe_addstr(stdscr, y, 4, "All phases completed", GREEN)
+        else:
+            phase_info = PHASES.get(current_phase, {'name': 'Unknown', 'desc': 'Unknown'})
+            self.safe_addstr(stdscr, y, 4, f"► Phase {current_phase}: {phase_info['desc']} - Step {current_step}", YELLOW)
         y += 2
 
-        # Agents section
-        self.safe_addstr(stdscr, y, 0, "-" * (width - 1))
+        # Stats Section
+        self.safe_addstr(stdscr, y, 0, "─" * (width - 1))
+        y += 1
+        self.safe_addstr(stdscr, y, 2, "STATS", curses.A_BOLD)
+        y += 1
+
+        self.safe_addstr(stdscr, y, 4, f"Files: ")
+        self.safe_addstr(stdscr, y, 11, str(files_count), GREEN)
+        self.safe_addstr(stdscr, y, 11 + len(str(files_count)), " created")
+
+        self.safe_addstr(stdscr, y, 30, f"Lines: ")
+        self.safe_addstr(stdscr, y, 37, str(lines_count), GREEN)
+        y += 2
+
+        # Agents Section
+        self.safe_addstr(stdscr, y, 0, "─" * (width - 1))
         y += 1
         self.safe_addstr(stdscr, y, 2, "AGENTS", curses.A_BOLD)
         y += 1
@@ -364,10 +443,10 @@ class Dashboard:
             running = [a for a in agents if a.get('status') == 'running']
             completed = [a for a in agents if a.get('status') == 'completed']
 
-            for agent in running:
-                self.safe_addstr(stdscr, y, 4, f"> {agent['name']}", GREEN | curses.A_BOLD)
+            for agent in running[:2]:
+                self.safe_addstr(stdscr, y, 4, f"► {agent['name']}", GREEN | curses.A_BOLD)
                 y += 1
-            for agent in completed[-3:]:
+            for agent in completed[-2:]:
                 self.safe_addstr(stdscr, y, 4, f"✓ {agent['name']}")
                 y += 1
         else:
@@ -376,42 +455,70 @@ class Dashboard:
 
         y += 1
 
-        # Stats section
-        self.safe_addstr(stdscr, y, 0, "-" * (width - 1))
-        y += 1
-        self.safe_addstr(stdscr, y, 2, "STATS", curses.A_BOLD)
-        y += 1
-        self.safe_addstr(stdscr, y, 2, f"Files: ")
-        self.safe_addstr(stdscr, y, 9, str(files_count), GREEN)
-        self.safe_addstr(stdscr, y, 9 + len(str(files_count)), " created")
-        y += 1
-        self.safe_addstr(stdscr, y, 2, f"Lines: ")
-        self.safe_addstr(stdscr, y, 9, str(lines_count), GREEN)
-        self.safe_addstr(stdscr, y, 9 + len(str(lines_count)), " written")
-        y += 2
-
-        # Recent files
-        recent_files = []
-        try:
-            for md_file in sorted(self.session_path.glob('**/*.md'),
-                                 key=lambda f: f.stat().st_mtime, reverse=True)[:3]:
-                if not md_file.name.startswith('_'):
-                    recent_files.append(md_file.name)
-        except:
-            pass
-
-        if recent_files:
-            self.safe_addstr(stdscr, y, 2, "Recent:")
-            y += 1
-            for fname in recent_files:
-                self.safe_addstr(stdscr, y, 4, f"+ {fname}")
-                y += 1
-
         # Footer
-        self.safe_addstr(stdscr, y + 1, 0, "=" * (width - 1))
-        self.safe_addstr(stdscr, height - 1, 2, "Press 'q' to quit")
+        self.safe_addstr(stdscr, y, 0, "═" * (width - 1), CYAN)
 
         return y
+
+    def render_footer(self, stdscr, width, height):
+        """Render common footer with copy command and keyboard shortcuts"""
+        WHITE = curses.color_pair(5)
+        CYAN = curses.color_pair(1)
+
+        # Get script path for copy command
+        script_path = Path(__file__).resolve()
+        session_path_str = str(self.session_path)
+
+        # Footer line 1: Copy command
+        footer_y = height - 3
+        copy_cmd = f"python3 {script_path} {session_path_str}"
+        max_cmd_len = width - 25
+        if len(copy_cmd) > max_cmd_len:
+            copy_cmd = f"python3 .../{script_path.name} .../{self.session_path.name}"
+
+        self.safe_addstr(stdscr, footer_y, 2, "Open in another terminal:", CYAN)
+        self.safe_addstr(stdscr, footer_y + 1, 4, copy_cmd, WHITE)
+
+        # Footer line 2: Keyboard shortcuts
+        shortcuts = "q: Quit  |  r: Return to Claude terminal"
+        self.safe_addstr(stdscr, height - 1, 2, shortcuts)
+
+    def return_to_parent_terminal(self):
+        """Return focus to the parent terminal where Claude is running (macOS only)"""
+        meta = self.read_json(self.meta_file)
+        parent_info = meta.get('parentTerminal', {})
+
+        if not parent_info:
+            return False
+
+        os_type = parent_info.get('os', '')
+        window_id = parent_info.get('windowId', '')
+
+        if os_type == 'Darwin' and window_id:
+            try:
+                # Use AppleScript to activate Terminal window
+                script = f'''
+                    tell application "Terminal"
+                        activate
+                        set index of window id {window_id} to 1
+                    end tell
+                '''
+                subprocess.run(['osascript', '-e', script], capture_output=True)
+                return True
+            except Exception:
+                pass
+
+        # Fallback: try to activate Terminal app
+        if os_type == 'Darwin':
+            try:
+                tty = parent_info.get('tty', '')
+                # Just activate Terminal app
+                subprocess.run(['osascript', '-e', 'tell application "Terminal" to activate'], capture_output=True)
+                return True
+            except Exception:
+                pass
+
+        return False
 
     def render(self, stdscr):
         curses.start_color()
@@ -452,6 +559,9 @@ class Dashboard:
                 else:
                     self.render_spec_it(stdscr, data, width, height)
 
+                # Common footer
+                self.render_footer(stdscr, width, height)
+
                 # Overlay for user input
                 if waiting:
                     self.draw_overlay(stdscr, height, width, waiting_msg)
@@ -461,6 +571,10 @@ class Dashboard:
                 key = stdscr.getch()
                 if key == ord('q'):
                     break
+                elif key == ord('r'):
+                    if self.return_to_parent_terminal():
+                        # Successfully switched, continue running dashboard
+                        pass
 
             except KeyboardInterrupt:
                 break

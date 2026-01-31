@@ -24,6 +24,23 @@ echo "DEBUG:SESSION_DIR=$SESSION_DIR"
 # Create folder structure
 mkdir -p "$SESSION_DIR"/{00-requirements,01-chapters/{decisions,alternatives},02-screens/{wireframes,layouts},03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
 
+# Get parent terminal info for 'r' key feature
+get_parent_terminal_info() {
+  local os_type=$(uname)
+  local parent_pid=$$
+  local parent_tty=$(tty 2>/dev/null || echo "")
+  local window_id=""
+
+  if [ "$os_type" = "Darwin" ]; then
+    # macOS: Try to get Terminal window ID via AppleScript
+    window_id=$(osascript -e 'tell application "Terminal" to id of front window' 2>/dev/null || echo "")
+  fi
+
+  echo "{\"pid\": \"$parent_pid\", \"tty\": \"$parent_tty\", \"windowId\": \"$window_id\", \"os\": \"$os_type\"}"
+}
+
+PARENT_TERMINAL_INFO=$(get_parent_terminal_info)
+
 # Create _meta.json
 cat > "$SESSION_DIR/_meta.json" << EOF
 {
@@ -32,6 +49,7 @@ cat > "$SESSION_DIR/_meta.json" << EOF
   "currentPhase": 1,
   "currentStep": "1.1",
   "completedSteps": [],
+  "completedPhases": [],
   "pendingSteps": ["1.1","1.2","1.3","1.4","2.1","2.2","3.1","3.2","4.1","5.1","6.1"],
   "lastCheckpoint": "$(date -Iseconds)",
   "canResume": true,
@@ -40,7 +58,8 @@ cat > "$SESSION_DIR/_meta.json" << EOF
     "framework": "Next.js 15 (App Router)",
     "ui": "React + shadcn/ui",
     "styling": "Tailwind CSS"
-  }
+  },
+  "parentTerminal": $PARENT_TERMINAL_INFO
 }
 EOF
 
@@ -51,6 +70,8 @@ cat > "$SESSION_DIR/_status.json" << EOF
   "startTime": "$(date -Iseconds)",
   "currentPhase": 1,
   "currentStep": "1.1",
+  "completedSteps": [],
+  "completedPhases": [],
   "progress": 0,
   "status": "running",
   "agents": [],
