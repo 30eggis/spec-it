@@ -140,6 +140,50 @@ class Dashboard:
         self.safe_addstr(stdscr, y, x + 1 + filled, "░" * empty)
         self.safe_addstr(stdscr, y, x + 1 + bar_width, f"] {percent:3d}%")
 
+    def draw_overlay(self, stdscr, height, width, waiting_msg):
+        """Draw a centered overlay box for user input alert"""
+        # Overlay dimensions
+        box_width = min(50, width - 4)
+        box_height = 12
+        start_y = (height - box_height) // 2
+        start_x = (width - box_width) // 2
+
+        # Draw box border with double lines
+        for y in range(start_y, start_y + box_height):
+            for x in range(start_x, start_x + box_width):
+                try:
+                    stdscr.addch(y, x, ' ', curses.color_pair(6))
+                except curses.error:
+                    pass
+
+        # Top border
+        self.safe_addstr(stdscr, start_y, start_x, "╔" + "═" * (box_width - 2) + "╗", curses.color_pair(3) | curses.A_BOLD)
+        # Bottom border
+        self.safe_addstr(stdscr, start_y + box_height - 1, start_x, "╚" + "═" * (box_width - 2) + "╝", curses.color_pair(3) | curses.A_BOLD)
+        # Side borders
+        for y in range(start_y + 1, start_y + box_height - 1):
+            self.safe_addstr(stdscr, y, start_x, "║", curses.color_pair(3) | curses.A_BOLD)
+            self.safe_addstr(stdscr, y, start_x + box_width - 1, "║", curses.color_pair(3) | curses.A_BOLD)
+            # Fill inside with spaces
+            self.safe_addstr(stdscr, y, start_x + 1, " " * (box_width - 2))
+
+        # Exclamation mark ASCII art (centered in box)
+        exclaim_art = ["██", "██", "██", "  ", "██"]
+        art_start_y = start_y + 2
+        for i, line in enumerate(exclaim_art):
+            cx = start_x + (box_width - len(line)) // 2
+            self.safe_addstr(stdscr, art_start_y + i, cx, line, curses.color_pair(3) | curses.A_BOLD)
+
+        # Text
+        msg = "USER INPUT REQUIRED"
+        self.safe_addstr(stdscr, start_y + 8, start_x + (box_width - len(msg)) // 2, msg, curses.color_pair(3) | curses.A_BOLD)
+
+        # Truncate waiting_msg if too long
+        max_msg_len = box_width - 4
+        if len(waiting_msg) > max_msg_len:
+            waiting_msg = waiting_msg[:max_msg_len - 3] + "..."
+        self.safe_addstr(stdscr, start_y + 9, start_x + (box_width - len(waiting_msg)) // 2, waiting_msg, curses.color_pair(5))
+
     def render(self, stdscr):
         # Initialize colors
         curses.start_color()
@@ -149,6 +193,7 @@ class Dashboard:
         curses.init_pair(3, curses.COLOR_YELLOW, -1)  # YELLOW
         curses.init_pair(4, curses.COLOR_RED, -1)     # RED
         curses.init_pair(5, curses.COLOR_WHITE, -1)   # WHITE
+        curses.init_pair(6, curses.COLOR_BLACK, curses.COLOR_YELLOW)  # For overlay bg
 
         curses.curs_set(0)
         stdscr.timeout(1000)
@@ -188,21 +233,9 @@ class Dashboard:
 
                 y = 0
 
-                # Check waiting state
+                # Check waiting state (will be drawn as overlay later)
                 waiting = data.get('waitingForUser', False)
                 waiting_msg = data.get('waitingMessage', 'Waiting for user input')
-
-                if waiting:
-                    self.safe_addstr(stdscr, y, 2, "!" * 50, curses.color_pair(3) | curses.A_BOLD)
-                    y += 1
-                    self.safe_addstr(stdscr, y, 2, "!  USER INPUT REQUIRED", curses.color_pair(3) | curses.A_BOLD)
-                    y += 1
-                    self.safe_addstr(stdscr, y, 2, f"!  {waiting_msg}", curses.color_pair(3))
-                    y += 1
-                    self.safe_addstr(stdscr, y, 2, "!  Please respond in Claude Code terminal", curses.color_pair(3))
-                    y += 1
-                    self.safe_addstr(stdscr, y, 2, "!" * 50, curses.color_pair(3) | curses.A_BOLD)
-                    y += 2
 
                 # Header
                 header_color = curses.color_pair(2) if mode == 'execute' else curses.color_pair(1)
@@ -303,6 +336,10 @@ class Dashboard:
                 # Footer
                 self.safe_addstr(stdscr, y + 1, 0, "=" * (width - 1))
                 self.safe_addstr(stdscr, height - 1, 2, "Press 'q' to quit")
+
+                # Draw overlay on top if waiting for user input
+                if waiting:
+                    self.draw_overlay(stdscr, height, width, waiting_msg)
 
                 stdscr.refresh()
 

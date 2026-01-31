@@ -13,6 +13,28 @@
             "command": "./scripts/core/pre-init.sh"
           }
         ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/tool-waiting-hook.sh",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/tool-resume-hook.sh",
+            "timeout": 3
+          }
+        ]
       }
     ]
   }

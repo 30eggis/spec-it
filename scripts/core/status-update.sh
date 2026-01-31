@@ -17,10 +17,11 @@ shift 2
 ARGS=("$@")
 BASE_DIR="."
 if [ ${#ARGS[@]} -gt 0 ]; then
-  LAST_ARG="${ARGS[-1]}"
+  LAST_IDX=$((${#ARGS[@]} - 1))
+  LAST_ARG="${ARGS[$LAST_IDX]}"
   if [ -d "$LAST_ARG" ]; then
     BASE_DIR="$LAST_ARG"
-    unset 'ARGS[-1]'
+    unset "ARGS[$LAST_IDX]"
   fi
 fi
 
