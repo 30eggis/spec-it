@@ -152,10 +152,21 @@ class Dashboard:
             5: {'name': 'VALIDATE', 'desc': 'Code review & security'}
         }
 
+        # Steps per phase
+        PHASE_STEPS = {
+            1: ['1.1', '1.2'],
+            2: ['2.1', '2.2'],
+            3: ['3.1', '3.2', '3.3'],
+            4: ['4.1', '4.2'],
+            5: ['5.1', '5.2']
+        }
+
         session_id = data.get('sessionId', 'unknown')
         current_phase = data.get('currentPhase', 1)
         current_step = data.get('currentStep', '1.1')
         completed_phases = data.get('completedPhases', [])
+        # Normalize to integers
+        completed_phases = [int(p) for p in completed_phases]
         qa_attempts = data.get('qaAttempts', 0)
         max_qa = data.get('maxQaAttempts', 5)
         spec_source = data.get('specSource', '-')
@@ -169,16 +180,6 @@ class Dashboard:
             runtime = max(0, int((datetime.now() - start_time).total_seconds()))
         else:
             runtime = 0
-
-        # Calculate overall progress
-        total_progress = len(completed_phases) * 20
-        if current_phase <= 5 and str(current_phase) not in completed_phases:
-            # Add partial progress for current phase
-            step_num = float(current_step.split('.')[1]) if '.' in current_step else 1
-            total_progress += int(step_num * 4)  # Assume ~5 steps per phase
-        total_progress = min(total_progress, 100)
-        if status == 'completed':
-            total_progress = 100
 
         y = 0
 
@@ -206,29 +207,39 @@ class Dashboard:
         y += 1
 
         bar_width = min(20, width - 35)
+        total_progress = 0
+
         for phase_num, phase_info in PHASES.items():
-            is_complete = str(phase_num) in completed_phases
+            phase_steps = PHASE_STEPS.get(phase_num, [])
+            is_complete = phase_num in completed_phases
             is_current = phase_num == current_phase and not is_complete
-            is_future = phase_num > current_phase
+            is_future = phase_num > current_phase and not is_complete
+
+            # Simple progress calculation (same as spec-it)
+            if is_complete:
+                progress = 100
+            elif is_current and current_step:
+                try:
+                    step_index = phase_steps.index(current_step)
+                    total_steps = len(phase_steps)
+                    progress = int((step_index / total_steps) * 100) + int(50 / total_steps)
+                except (ValueError, ZeroDivisionError):
+                    progress = 10
+            else:
+                progress = 0
+
+            total_progress += progress / 5  # 5 phases in execute mode
 
             # Phase indicator
             if is_complete:
                 indicator = "✓"
                 color = GREEN
-                progress = 100
             elif is_current:
                 indicator = "►"
                 color = YELLOW | curses.A_BOLD
-                # Calculate phase progress from step
-                step_parts = current_step.split('.')
-                if len(step_parts) > 1:
-                    progress = min(int(step_parts[1]) * 20, 95)
-                else:
-                    progress = 10
             else:
                 indicator = "○"
                 color = WHITE
-                progress = 0
 
             self.safe_addstr(stdscr, y, 2, indicator, color)
             self.safe_addstr(stdscr, y, 4, f"{phase_num}.", color)
@@ -244,13 +255,16 @@ class Dashboard:
         y += 1
 
         # Overall Progress
+        overall_progress = int(total_progress)
+        if status == 'completed':
+            overall_progress = 100
         self.safe_addstr(stdscr, y, 0, "─" * (width - 1))
         y += 1
         self.safe_addstr(stdscr, y, 2, "OVERALL", curses.A_BOLD)
         overall_bar_width = min(40, width - 20)
         self.safe_addstr(stdscr, y, 12, "[")
-        self.draw_progress_bar(stdscr, y, 13, overall_bar_width, total_progress, GREEN)
-        self.safe_addstr(stdscr, y, 13 + overall_bar_width, f"] {total_progress:3d}%")
+        self.draw_progress_bar(stdscr, y, 13, overall_bar_width, overall_progress, GREEN)
+        self.safe_addstr(stdscr, y, 13 + overall_bar_width, f"] {overall_progress:3d}%")
         y += 2
 
         # Current Task Section
@@ -321,6 +335,8 @@ class Dashboard:
         current_step = data.get('currentStep', '1.1')
         completed_steps = data.get('completedSteps', [])
         completed_phases = data.get('completedPhases', [])
+        # Normalize to integers
+        completed_phases = [int(p) for p in completed_phases]
         status = data.get('status', 'in_progress')
 
         start_time_str = data.get('startTime', data.get('lastCheckpoint', ''))
