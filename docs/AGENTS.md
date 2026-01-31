@@ -9,7 +9,7 @@ This plugin includes 23+ specialized agents for different tasks.
 | `design-interviewer` | Opus | Brainstorming Q&A facilitator |
 | `divergent-thinker` | Sonnet | Alternative exploration, creative thinking |
 | `chapter-planner` | Opus | Final chapter structure decisions |
-| `ui-architect` | Sonnet | ASCII wireframe design |
+| `ui-architect` | Sonnet | YAML wireframe design |
 
 ---
 

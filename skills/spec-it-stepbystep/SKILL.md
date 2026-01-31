@@ -43,39 +43,7 @@ Default output format is **YAML** (structured) for improved parsing and reduced 
 
 ## Phase 0: Init
 
-### Step 0.0: UI Mode Selection
-
-```
-AskUserQuestion: "Select UI design mode"
-Options: ["ASCII Wireframe (Recommended)", "Google Stitch"]
-
-IF Stitch:
-  # Step 1: Verify MCP configuration
-  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/verify-stitch-mcp.sh
-
-  IF exit != 0:
-    # Step 2: Fix MCP configuration if needed
-    Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-mcp.sh
-    IF exit == 2:
-      Output: "Claude Code 재시작 필요. 재시작 후 /spec-it-stepbystep --resume {sessionId}"
-      STOP
-
-    # Step 3: Setup OAuth (interactive - opens browser)
-    Output: "OAuth 설정을 진행합니다. 브라우저에서 Google 로그인을 완료해주세요."
-    Bash: node $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-oauth.mjs
-
-    IF exit != 0:
-      Output: "OAuth 설정 실패. ASCII 모드로 전환합니다."
-      SET uiMode = "ascii"
-    ELSE:
-      # Re-verify after OAuth setup
-      Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/verify-stitch-mcp.sh
-      IF exit != 0:
-        Output: "Stitch 설정 실패. ASCII 모드로 전환합니다."
-        SET uiMode = "ascii"
-```
-
-### Step 0.0b: Design Style Selection
+### Step 0.0: Design Style Selection
 
 ```
 # Design Trends 2026 Integration
@@ -91,7 +59,8 @@ AskUserQuestion(
       {label: "Minimal (Recommended)", description: "깔끔한 SaaS: 밝은 테마, 미니멀 카드, 깔끔한 테이블"},
       {label: "Immersive", description: "다크 테마: 그라데이션 카드, 네온 포인트, 풍부한 시각 효과"},
       {label: "Organic", description: "유기적: Glassmorphism, 부드러운 곡선, 3D 요소"},
-      {label: "Custom", description: "직접 트렌드 선택"}
+      {label: "Custom", description: "직접 트렌드 선택"},
+      {label: "Custom File", description: "직접 스타일 파일 경로 지정"}
     ]
   }]
 )
@@ -112,6 +81,26 @@ IF "Custom":
       ]
     }]
   )
+
+IF "Custom File":
+  # User provides custom style file path via "Other" option
+  # Expected: Path to a directory containing:
+  #   - references/trends-summary.md
+  #   - references/component-patterns.md
+  #   - templates/*.md (navigation, card, form, dashboard templates)
+  #   - references/motion-presets.md (optional)
+  #
+  # Example: /path/to/my-design-system
+
+  customPath = userInput  # User enters path via "Other" option
+
+  # Validate custom path
+  IF NOT exists(customPath + "/references/trends-summary.md"):
+    Output: "경고: trends-summary.md를 찾을 수 없습니다. 기본 스타일을 사용합니다."
+    DESIGN_TRENDS_PATH = default
+  ELSE:
+    DESIGN_TRENDS_PATH = customPath
+    _meta.customDesignPath = customPath
 
 # Save to session state
 _meta.designStyle = selectedStyle
@@ -182,105 +171,79 @@ CH-07: Non-Functional Requirements
 
 ## Phase 2: UI Architecture
 
-### Step 2.1: Dispatch
+### Step 2.1: Layout System + Screen List
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ui
-→ Returns: DISPATCH:stitch-convert OR DISPATCH:ascii-wireframe
-```
-
-### IF STITCH Mode
-
-```
-# Step 1: Generate ASCII wireframes first (with Design Trends)
 Task(ui-architect, sonnet):
   prompt: "
     Role: ui-architect
 
-    === DESIGN REFERENCE (MUST READ FIRST) ===
-    1. Read: {_meta.designTrendsPath}/references/trends-summary.md
-    2. Read: {_meta.designTrendsPath}/references/component-patterns.md
-    3. Read: {_meta.designTrendsPath}/templates/navigation-templates.md
+    === YAML UI FRAME REFERENCE (MUST READ) ===
+    Read: skills/shared/references/yaml-ui-frame/01-basic-structure.md
+    Read: skills/shared/references/yaml-ui-frame/02-grid-definition.md
+
+    === DESIGN REFERENCE ===
+    Read: {_meta.designTrendsPath}/references/trends-summary.md
+    Read: {_meta.designTrendsPath}/references/component-patterns.md
+    Read: {_meta.designTrendsPath}/templates/navigation-templates.md
 
     Design Style: {_meta.designStyle}
     Applied Trends: {_meta.designTrends}
 
-    === WIREFRAME REQUIREMENTS ===
-    Each wireframe MUST include '## Design Direction' section with:
-    - Applied Trends (Primary/Secondary)
-    - Component Patterns table (with Template Reference column)
-    - Color Tokens table
-    - Motion Guidelines table
+    === OUTPUT FORMAT (YAML) ===
+    Use template: assets/templates/LAYOUT_TEMPLATE.yaml
+    Reference design tokens: shared/design-tokens.yaml
 
-    See: design-trends-2026/integration/agent-prompts.md for full template
-
-    Output: screen-list.md, layouts/, wireframes/
+    Generate: layout-system.yaml and screen-list.md
+    Include design direction based on selected style
   "
 
-# Step 2: Convert to HTML via Stitch MCP (runs in main session)
-/stitch-convert {sessionId}
-Output: 02-screens/html/, assets/
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
+→ Creates screens.json
 ```
 
-### IF ASCII Mode
+### Step 2.1b: Generate Wireframes (Parallel Batch)
 
 ```
-1. Task(ui-architect, sonnet):
-   prompt: "
-     Role: ui-architect
+FOR each batch (4 screens):
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/executors/batch-runner.sh {sessionId} wireframe {batchIndex}
 
-     === DESIGN REFERENCE (MUST READ FIRST) ===
-     1. Read: {_meta.designTrendsPath}/references/trends-summary.md
-     2. Read: {_meta.designTrendsPath}/references/component-patterns.md
-     3. Read: {_meta.designTrendsPath}/templates/navigation-templates.md
+  Task(ui-architect, sonnet, parallel):
+    prompt: "
+      Role: ui-architect
 
-     Design Style: {_meta.designStyle}
-     Applied Trends: {_meta.designTrends}
+      === YAML UI FRAME REFERENCE (MUST READ) ===
+      Read: skills/shared/references/yaml-ui-frame/03-components.md
+      Read: skills/shared/references/yaml-ui-frame/07-design-direction.md
 
-     === OUTPUT FORMAT ===
-     Use YAML template: assets/templates/LAYOUT_TEMPLATE.yaml
-     Reference design tokens: shared/design-tokens.yaml
+      === DESIGN REFERENCE ===
+      Read: {_meta.designTrendsPath}/references/trends-summary.md
+      Read: {_meta.designTrendsPath}/references/component-patterns.md
 
-     Generate layout-system.yaml and screen-list.md
-     Include design direction based on selected style
-   "
+      Design Style: {_meta.designStyle}
 
-2. Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
-   → Creates screens.json
+      === OUTPUT FORMAT (YAML) ===
+      Use template: assets/templates/UI_WIREFRAME_TEMPLATE.yaml
+      Reference: shared/design-tokens.yaml via _ref
 
-3. FOR each batch (4 screens):
-   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/executors/batch-runner.sh {sessionId} wireframe {batchIndex}
+      Output file: wireframes/{screen}.yaml
 
-   Task(ui-architect, sonnet, parallel):
-     prompt: "
-       Role: ui-architect
+      === YAML STRUCTURE ===
+      Each wireframe must include:
+      - id, name, route, type, priority
+      - layout: type, sidebar, header, main
+      - grid: areas, columns, rows (CSS Grid)
+      - responsive: desktop, tablet, mobile
+      - components: list with props, styles, testId
+      - interactions: clicks, forms, stateChanges
+      - designDirection: appliedTrends, componentPatterns, colorTokens, motionGuidelines
 
-       === DESIGN REFERENCE (MUST READ) ===
-       Read: {_meta.designTrendsPath}/references/trends-summary.md
-       Read: {_meta.designTrendsPath}/references/component-patterns.md
-
-       Design Style: {_meta.designStyle}
-
-       === OUTPUT FORMAT (YAML) ===
-       Use template: assets/templates/UI_WIREFRAME_TEMPLATE.yaml
-       Reference: shared/design-tokens.yaml via _ref
-
-       Output file: wireframes/{screen}.yaml
-
-       === YAML STRUCTURE ===
-       Each wireframe must include:
-       - id, name, route, type, priority
-       - layout: type, sidebar, header, main
-       - responsive: desktop, tablet, mobile
-       - components: list with props, styles, testId
-       - interactions: clicks, forms, stateChanges
-       - designDirection: appliedTrends, componentPatterns, colorTokens, motionGuidelines
-
-       === DO NOT ===
-       - Use ASCII art (use grid.areas instead)
-       - Repeat design tokens (use _ref)
-       - Approximate values (use exact px/rem)
-     "
+      === CRITICAL RULES ===
+      - NEVER use ASCII box characters (┌─┐│└┘)
+      - Use grid.areas for layout (CSS Grid syntax)
+      - Use components array with typed elements
+      - Include testId for all interactive elements
+    "
 ```
 
 ### Step 2.2: Component Discovery
@@ -411,10 +374,6 @@ tmp/{sessionId}/
 | persona-architect | sonnet | Persona definition |
 | test-spec-writer | sonnet | Test specs |
 | spec-assembler | haiku | Final assembly |
-
-| Skill | Purpose |
-|-------|---------|
-| stitch-convert | ASCII → Stitch MCP → HTML export |
 
 ---
 

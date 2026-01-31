@@ -28,10 +28,10 @@
 | {{name}} | {{condition}} | {{style}} |
 {{/each}}
 
-### Wireframe (ASCII)
+### Component Structure (YAML)
 
-```
-{{wireframe}}
+```yaml
+{{component_yaml}}
 ```
 
 ### Usage Example

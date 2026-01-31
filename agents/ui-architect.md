@@ -6,10 +6,15 @@ context: fork
 permissionMode: bypassPermissions
 allowedTools: [Read, Write, Glob]
 templates:
-  - skills/spec-it/assets/templates/UI_WIREFRAME_TEMPLATE.md
-  - skills/spec-it/assets/templates/LAYOUT_TEMPLATE.md
-  - skills/spec-it/assets/templates/SCREEN_LIST_TEMPLATE.md
-  - skills/spec-it/assets/templates/SCREEN_SPEC_TEMPLATE.md
+  - skills/spec-it-stepbystep/assets/templates/UI_WIREFRAME_TEMPLATE.yaml
+  - skills/spec-it-stepbystep/assets/templates/LAYOUT_TEMPLATE.yaml
+  - skills/spec-it-stepbystep/assets/templates/SCREEN_LIST_TEMPLATE.md
+  - skills/spec-it-stepbystep/assets/templates/SCREEN_SPEC_TEMPLATE.yaml
+references:
+  - skills/shared/references/yaml-ui-frame/README.md
+  - skills/shared/references/yaml-ui-frame/01-basic-structure.md
+  - skills/shared/references/yaml-ui-frame/02-grid-definition.md
+  - skills/shared/references/yaml-ui-frame/03-components.md
 ---
 
 # UI Architect
@@ -71,86 +76,41 @@ Auto-detect and apply framework idioms:
 - Entry/exit points
 - Error states
 
-### 4. Layout System Design (신규 - 병렬화 지원)
+### 4. Layout System Design (YAML 형식)
 
 **⚠️ 와이어프레임 생성 전 반드시 Layout 먼저 정의**
 
-#### 4.1 Layout Types 정의
-```markdown
+**Reference:** `skills/shared/references/yaml-ui-frame/01-basic-structure.md`
+**Reference:** `skills/shared/references/yaml-ui-frame/02-grid-definition.md`
+
+#### 4.1 Layout Types 정의 (layout-system.yaml)
+
 | Layout | 사용 화면 | 특징 |
 |--------|----------|------|
 | auth-layout | 로그인, 회원가입, 비밀번호찾기 | 중앙 정렬, 최소 UI |
 | dashboard-layout | 대시보드, 목록, 상세 | Header + Sidebar + Main |
 | minimal-layout | 에러, 빈 페이지 | Header만 |
-```
 
-#### 4.2 공통 컴포넌트 와이어프레임
-```
-Header:
-┌─────────────────────────────────────────────────┐
-│ [Logo]     [Nav1] [Nav2] [Nav3]    [User ▼]    │
-└─────────────────────────────────────────────────┘
+#### 4.2 출력 파일 (YAML)
+- `02-screens/layouts/layout-system.yaml` - 전체 Layout 시스템
+- `02-screens/layouts/components.yaml` - 공통 컴포넌트
 
-Sidebar:
-┌──────────┐
-│ [Search] │
-├──────────┤
-│ Menu 1   │
-│ Menu 2   │
-│  └ Sub   │
-│ Menu 3   │
-├──────────┤
-│ [설정]   │
-└──────────┘
-```
+### 5. Generate Wireframes (YAML 형식)
 
-#### 4.3 Layout 템플릿 with Placeholder
-```
-dashboard-layout:
-┌─────────────────────────────────────────────────┐
-│ [Header]                                        │
-├──────────┬──────────────────────────────────────┤
-│          │                                      │
-│ [Sidebar]│       {{MAIN_CONTENT}}               │
-│          │                                      │
-│          │                                      │
-└──────────┴──────────────────────────────────────┘
-```
+**⚠️ YAML 구조적 형식으로 생성 - ASCII art 사용 금지**
 
-#### 4.4 출력 파일
-- `02-screens/layouts/layout-system.md` - 전체 Layout 시스템
-- `02-screens/layouts/auth-layout.md`
-- `02-screens/layouts/dashboard-layout.md`
-
-### 5. Generate Wireframes (Layout 참조)
-
-**⚠️ 각 페이지는 Layout을 포함한 전체 화면으로 생성**
+**Reference:** `skills/shared/references/yaml-ui-frame/03-components.md`
+**Reference:** `skills/shared/references/yaml-ui-frame/09-complete-example.md`
 
 ```
-입력: layout-system.md + screen-list.md
-출력: wireframes/wireframe-{screen}.md
+입력: layout-system.yaml + screen-list.md
+출력: wireframes/{screen-id}.yaml
 
 각 와이어프레임은:
-1. 해당 Layout 전체 구조 포함
-2. {{MAIN_CONTENT}} 영역에 페이지 고유 컨텐츠
-3. Header/Sidebar의 active 상태 표시
-```
-
-예시 (대시보드 페이지):
-```
-┌─────────────────────────────────────────────────┐
-│ [Logo]     [대시보드] [설정]       [User ▼]    │
-├──────────┬──────────────────────────────────────┤
-│ [Search] │                                      │
-├──────────│  ┌──────┐ ┌──────┐ ┌──────┐ ┌──────┐│
-│ ●대시보드│  │ 통계1│ │ 통계2│ │ 통계3│ │ 통계4││
-│  목록    │  └──────┘ └──────┘ └──────┘ └──────┘│
-│  설정    │                                      │
-│          │  최근 활동                           │
-│          │  ├─ 항목 1                          │
-│          │  ├─ 항목 2                          │
-│          │  └─ 항목 3                          │
-└──────────┴──────────────────────────────────────┘
+1. 사용할 Layout 참조
+2. CSS Grid areas로 레이아웃 정의
+3. components 배열로 컴포넌트 배치
+4. 반응형 breakpoints 정의
 ```
 
 ## Typography Guidelines
@@ -213,83 +173,70 @@ Skip low-value animations (hover effects on every element).
 ```
 ```
 
-## Wireframe Output
+## Wireframe Output (YAML)
 
-```markdown
-# Wireframe: Login Page
+**Reference:** `skills/shared/references/yaml-ui-frame/09-complete-example.md`
 
-## Design Intent
-- Hero moment for brand
-- Minimal friction
-- Memorable first impression
+출력 형식: YAML (구조적, 파싱 가능)
 
-## Desktop (1440px+)
-┌─────────────────────────────────────────────────┐
-│                                                 │
-│     ████████████████                           │
-│     BRAND NAME                                  │
-│     Tagline that means something                │
-│                                                 │
-│     ┌─────────────────────────────────┐        │
-│     │ Email                           │        │
-│     └─────────────────────────────────┘        │
-│     ┌─────────────────────────────────┐        │
-│     │ Password                        │        │
-│     └─────────────────────────────────┘        │
-│                                                 │
-│     ┌─────────────────────────────────┐        │
-│     │         SIGN IN                 │        │
-│     └─────────────────────────────────┘        │
-│                                                 │
-│     ─────────── or ───────────                 │
-│                                                 │
-│     [G] Continue with Google                    │
-│                                                 │
-└─────────────────────────────────────────────────┘
+```yaml
+# wireframes/scr-001-login.yaml
+id: "SCR-001"
+name: "Login"
+route: "/login"
+layout:
+  type: "auth-centered"
 
-## Tablet (768px - 1024px)
-[Centered card, reduced padding]
+grid:
+  desktop:
+    columns: "1fr"
+    areas: |
+      "main"
 
-## Mobile (< 768px)
-┌───────────────────────┐
-│                       │
-│   ████████████████    │
-│   BRAND NAME          │
-│                       │
-│   ┌───────────────┐   │
-│   │ Email         │   │
-│   └───────────────┘   │
-│   ┌───────────────┐   │
-│   │ Password      │   │
-│   └───────────────┘   │
-│                       │
-│   ┌───────────────┐   │
-│   │   SIGN IN     │   │
-│   └───────────────┘   │
-│                       │
-│   [G] Google          │
-│                       │
-└───────────────────────┘
+components:
+  - id: "login-card"
+    type: "Card"
+    zone: "main"
+    children:
+      - { id: "logo", type: "Logo", props: { size: "lg" } }
+      - { id: "email", type: "Input", props: { type: "email", label: "Email" }, testId: "login-email" }
+      - { id: "password", type: "Input", props: { type: "password" }, testId: "login-password" }
+      - { id: "submit", type: "Button", props: { text: "Sign In" }, testId: "login-submit" }
 
-## Components
-| Component | Variant | Notes |
-|-----------|---------|-------|
-| Logo | Large | Brand mark + wordmark |
-| Input | Default | Floating label |
-| Button | Primary | Full width, bold |
-| Divider | With text | "or" separator |
-| SocialButton | Google | Icon + text |
+interactions:
+  forms:
+    - formId: "login-form"
+      onSuccess: { navigate: "/dashboard" }
 
-## Interactions
-| Trigger | Action | Duration |
-|---------|--------|----------|
-| Page load | Fade in from bottom | 300ms |
-| Input focus | Label float up | 150ms |
-| Submit | Button loading state | Until response |
-| Success | Redirect with fade | 200ms |
+responsive:
+  desktop: { cardWidth: "400px" }
+  mobile: { cardWidth: "100%" }
 ```
+
+**CRITICAL: ASCII art 박스 문자 (┌─┐│└┘) 사용 금지. YAML 구조만 사용.**
 
 ## Writing Location
 
 - `tmp/{session-id}/02-screens/screen-list.md`
-- `tmp/{session-id}/02-screens/wireframes/*.md`
+- `tmp/{session-id}/02-screens/layouts/layout-system.yaml`
+- `tmp/{session-id}/02-screens/layouts/components.yaml`
+- `tmp/{session-id}/02-screens/wireframes/*.yaml`
+
+## Output Rules
+
+1. **NEVER use ASCII box characters** (┌─┐│└┘├┤┬┴┼)
+2. **ALWAYS use YAML structure** for wireframes
+3. Use `grid.areas` for layout definition (CSS Grid syntax)
+4. Use `components` array with typed elements
+5. Include `testId` for all interactive elements
+6. Reference design tokens via `_ref`
+
+## Reference Loading
+
+점진적 로딩으로 필요한 레퍼런스만 읽기:
+```
+Read: skills/shared/references/yaml-ui-frame/01-basic-structure.md  # 항상
+Read: skills/shared/references/yaml-ui-frame/02-grid-definition.md  # 레이아웃 시
+Read: skills/shared/references/yaml-ui-frame/03-components.md       # 컴포넌트 시
+Read: skills/shared/references/yaml-ui-frame/07-design-direction.md # 디자인 적용 시
+```

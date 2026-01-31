@@ -286,8 +286,14 @@ render_dashboard() {
         esac
     fi
 
-    # Calculate progress dynamically based on mode
-    progress=$(calculate_progress "$mode" "$phase")
+    # Use _status.json progress if available, otherwise calculate
+    local status_progress=$(jq -r '.progress // 0' "$STATUS_FILE" 2>/dev/null || echo 0)
+    if [ "$status_progress" -gt 0 ] 2>/dev/null; then
+        progress="$status_progress"
+    else
+        # Fallback: Calculate progress dynamically based on mode
+        progress=$(calculate_progress "$mode" "$phase")
+    fi
 
     # Ensure progress is a valid number
     if ! [[ "$progress" =~ ^[0-9]+$ ]]; then

@@ -46,13 +46,8 @@ case "$PHASE" in
     echo "UI_MODE:$UI_MODE"
     ;;
   "2.1"|"ui")
-    if [ "$UI_MODE" == "stitch" ]; then
-      echo "DISPATCH:stitch-convert"
-      echo "ACTION:run_ui_architect_then_stitch_convert"
-    else
-      echo "DISPATCH:ascii-wireframe"
-      echo "ACTION:run_layout_then_parallel_wireframes"
-    fi
+    echo "DISPATCH:yaml-wireframe"
+    echo "ACTION:run_layout_then_parallel_wireframes"
     ;;
   "2.2"|"component")
     echo "DISPATCH:component-batch"

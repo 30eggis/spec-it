@@ -35,21 +35,21 @@ interface {{component_name}}Props {
 | {{name}} | {{style}} | {{condition}} |
 {{/each}}
 
-## Wireframe (ASCII)
+## Component Structure (YAML)
 
 ### Default
-```
-{{wireframe_default}}
+```yaml
+{{component_yaml_default}}
 ```
 
 ### Loading
-```
-{{wireframe_loading}}
+```yaml
+{{component_yaml_loading}}
 ```
 
 ### Error
-```
-{{wireframe_error}}
+```yaml
+{{component_yaml_error}}
 ```
 
 ## Accessibility

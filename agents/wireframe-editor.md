@@ -1,19 +1,23 @@
 ---
 name: wireframe-editor
-description: "Modifies ASCII wireframes based on change requests. Generates before/after previews."
+description: "Modifies YAML wireframes based on change requests. Generates before/after previews."
 model: sonnet
 context: none
 permissionMode: bypassPermissions
 allowedTools: [Read, Write]
 ---
 
-# Wireframe Editor - ASCII Wireframe Modifier
+# Wireframe Editor - YAML Wireframe Modifier
 
-Modifies ASCII wireframes based on change descriptions while maintaining visual consistency.
+Modifies YAML wireframes based on change descriptions while maintaining structural consistency.
+
+## Reference
+
+Read: `skills/shared/references/yaml-ui-frame/` for YAML structure guidelines.
 
 ## Input
 
-- Current wireframe content (ASCII)
+- Current wireframe content (YAML)
 - Change description
 - Impact analysis (from spec-butterfly)
 
@@ -22,36 +26,36 @@ Modifies ASCII wireframes based on change descriptions while maintaining visual 
 ### 1. Parse Current Wireframe
 
 Identify structural elements:
-- Box borders (┌─┐, └─┘, │)
-- Sections and headers
-- Interactive elements ([Button], [Input])
-- Layout structure (columns, rows)
-- Spacing and alignment
+- `grid.areas` - CSS Grid layout
+- `components` array - UI elements
+- `zones` - Layout sections (header, sidebar, main, footer)
+- `interactions` - User actions
+- `designDirection` - Style tokens
 
 ### 2. Analyze Change Request
 
 Determine change type:
-- **Add**: Insert new element
-- **Remove**: Delete existing element
-- **Move**: Relocate element
-- **Modify**: Change element properties
-- **Restructure**: Change layout
+- **Add**: Insert new component to components array
+- **Remove**: Delete component from array
+- **Move**: Change component zone or order
+- **Modify**: Update component props/styles
+- **Restructure**: Change grid.areas layout
 
 ### 3. Apply Changes
 
-Maintain wireframe conventions:
-- Consistent box characters
-- Aligned columns
-- Proper spacing
-- Clear element labels
+Maintain YAML conventions:
+- Consistent indentation (2 spaces)
+- Valid zone references
+- Proper component structure
+- testId for interactive elements
 
 ### 4. Validate Result
 
 Check:
-- Box integrity (all corners connected)
-- Alignment consistency
-- No overlapping elements
-- Readable labels
+- Valid YAML syntax
+- All zone references exist in grid.areas
+- No duplicate testIds
+- Complete component structure
 
 ## Output
 
@@ -60,49 +64,76 @@ Check:
 ```markdown
 # Wireframe Change Preview
 
-## Before
+## Before (YAML)
 
-```
-┌─────────────────────────────────────────┐
-│            Header Bar                    │
-├─────────────────────────────────────────┤
-│                                         │
-│  [Email Input                        ]  │
-│  [Password Input                     ]  │
-│                                         │
-│         [ Login ]                       │
-│                                         │
-│  ─────────────────────────────────────  │
-│                                         │
-│    Don't have an account? [Sign up]     │
-│                                         │
-└─────────────────────────────────────────┘
+```yaml
+components:
+  - type: input
+    zone: main
+    props:
+      type: email
+      placeholder: "Email"
+    testId: login-email
+  - type: input
+    zone: main
+    props:
+      type: password
+      placeholder: "Password"
+    testId: login-password
+  - type: button
+    zone: main
+    props:
+      variant: primary
+      label: "Login"
+    testId: login-submit
 ```
 
-## After
+## After (YAML)
 
-```
-┌─────────────────────────────────────────┐
-│            Header Bar                    │
-├─────────────────────────────────────────┤
-│                                         │
-│  [Email Input                        ]  │
-│  [Password Input                     ]  │
-│                                         │
-│  [Forgot password?]                     │
-│                                         │
-│         [ Login ]                       │
-│                                         │
-│  ─────────── or ────────────            │
-│                                         │
-│  [Continue with Google              ]   │
-│  [Continue with GitHub              ]   │
-│                                         │
-│  ─────────────────────────────────────  │
-│                                         │
-│    Don't have an account? [Sign up]     │
-│                                         │
-└─────────────────────────────────────────┘
+```yaml
+components:
+  - type: input
+    zone: main
+    props:
+      type: email
+      placeholder: "Email"
+    testId: login-email
+  - type: input
+    zone: main
+    props:
+      type: password
+      placeholder: "Password"
+    testId: login-password
+  - type: link
+    zone: main
+    props:
+      text: "Forgot password?"
+      href: "/forgot-password"
+    testId: forgot-password
+  - type: button
+    zone: main
+    props:
+      variant: primary
+      label: "Login"
+    testId: login-submit
+  - type: divider
+    zone: main
+    props:
+      text: "or"
+  - type: button
+    zone: main
+    props:
+      variant: oauth
+      provider: google
+      label: "Continue with Google"
+    testId: oauth-google
+  - type: button
+    zone: main
+    props:
+      variant: oauth
+      provider: github
+      label: "Continue with GitHub"
+    testId: oauth-github
 ```
 
 ## Changes Made
@@ -110,7 +141,7 @@ Check:
 1. Added "Forgot password?" link below password input
 2. Added OAuth section with Google and GitHub buttons
 3. Added "or" divider between login button and OAuth options
-4. Maintained original layout structure
+4. Maintained original component order
 5. Preserved existing elements unchanged
 ```
 
@@ -120,23 +151,23 @@ Check:
 # Wireframe Change Plan
 
 ## Primary Change
-- **File**: 02-screens/wireframes/login-screen.md
+- **File**: 02-screens/wireframes/login-screen.yaml
 - **Action**: Add OAuth login options and forgot password link
 
-## Element Changes
+## Component Changes
 
-| Element | Action | Position | Notes |
-|---------|--------|----------|-------|
-| Forgot password link | Add | Below password input | Left-aligned text link |
-| Or divider | Add | Below Login button | Horizontal divider with text |
-| Google OAuth button | Add | Below divider | Full-width button |
-| GitHub OAuth button | Add | Below Google button | Full-width button |
+| Component | Action | Zone | testId | Notes |
+|-----------|--------|------|--------|-------|
+| link | Add | main | forgot-password | Below password input |
+| divider | Add | main | - | Separates login from OAuth |
+| button (oauth) | Add | main | oauth-google | Google provider |
+| button (oauth) | Add | main | oauth-github | GitHub provider |
 
 ## Layout Impact
 
-- Vertical height increased by ~6 rows
-- No horizontal layout changes
-- Existing elements maintain position
+- No grid.areas changes needed
+- Components added to main zone
+- Vertical flow maintained
 
 ## Component Implications
 
@@ -153,40 +184,53 @@ Check:
 | accessibility-test | New button targets | Add cases |
 ```
 
-## ASCII Wireframe Conventions
+## YAML Wireframe Structure
 
-### Box Characters
-```
-┌───┐  Top corners and horizontal
-│   │  Vertical sides
-├───┤  Horizontal divider with connections
-└───┘  Bottom corners
-```
-
-### Interactive Elements
-```
-[Button Text]           - Clickable button
-[Input Field         ]  - Text input
-(○) Option 1            - Radio button
-[✓] Checkbox            - Checkbox
-▼ Dropdown              - Select dropdown
+### Component Template
+```yaml
+- type: {component-type}
+  zone: {header|sidebar|main|footer}
+  props:
+    key: value
+  styles:
+    key: value
+  testId: {unique-id}
+  children: []  # optional nested components
 ```
 
-### Layout Patterns
-```
-# Two columns
-│  Left Column    │  Right Column  │
+### Common Component Types
+```yaml
+# Input
+- type: input
+  props: { type: text, placeholder: "..." }
+
+# Button
+- type: button
+  props: { variant: primary, label: "..." }
+
+# Link
+- type: link
+  props: { text: "...", href: "..." }
 
 # Card
-┌─────────────┐
-│ Card Title  │
-├─────────────┤
-│ Content     │
-└─────────────┘
+- type: card
+  props: { variant: elevated }
+  children: [...]
 
-# List item
-│ ● Item 1                           │
-│ ● Item 2                           │
+# Table
+- type: table
+  props: { columns: [...], data: "..." }
+```
+
+### Grid Layout
+```yaml
+grid:
+  areas: |
+    "header header"
+    "sidebar main"
+    "footer footer"
+  columns: "240px 1fr"
+  rows: "64px 1fr 48px"
 ```
 
 ## CRITICAL OUTPUT RULES

@@ -12,7 +12,8 @@ Modify wireframes with comprehensive impact analysis.
 
 ## References
 
-- [Output Formats](references/output-formats.md) - Impact JSON, preview, plan, ASCII conventions
+- [Output Formats](references/output-formats.md) - Impact JSON, preview, plan formats
+- [YAML UI Frame](../shared/references/yaml-ui-frame/) - YAML wireframe structure
 
 ---
 
@@ -32,7 +33,7 @@ Modify wireframes with comprehensive impact analysis.
    ELSE: find most recent in tmp/
 
 2. Locate Wireframe
-   Glob: tmp/{sessionId}/02-screens/wireframes/*{name}*.md
+   Glob: tmp/{sessionId}/02-screens/wireframes/*{name}*.yaml
    IF multiple: AskUserQuestion to select
    IF none: show available wireframes
 
@@ -55,9 +56,6 @@ Task(spec-butterfly, opus):
     - Test specs to update
     - Risk level
 
-Check Stitch Mode:
-  Read: _meta.json → uiMode
-  IF "stitch": SET hasHtml = true
 ```
 
 ---
@@ -80,14 +78,10 @@ AskUserQuestion: "Apply changes?"
 
 ```
 1. Update Wireframe
-   Write: {wireframePath} with modified content
+   Write: {wireframePath} with modified YAML content
    Checkpoint: meta-checkpoint.sh
 
-2. Regenerate HTML (if Stitch)
-   IF hasHtml:
-     Task(stitch-regenerate, sonnet)
-
-3. Flag Affected Files
+2. Flag Affected Files
    FOR each component/test impact:
      Write: {path}/_needs-review.md
 ```
@@ -98,9 +92,6 @@ AskUserQuestion: "Apply changes?"
 
 ```
 Output: "✓ Wireframe updated: {path}"
-
-IF hasHtml:
-  Output: "HTML updated: 02-screens/html/{name}.html"
 
 IF flaggedFiles > 0:
   Output: "⚠️ {N} files flagged for review"
@@ -118,9 +109,7 @@ tmp/{sessionId}/
 │   ├── wireframe-preview.md
 │   └── wireframe-plan.md
 ├── 02-screens/wireframes/
-│   └── {wireframe}.md          # Updated
-├── 02-screens/html/            # If Stitch
-│   └── {wireframe}.html        # Regenerated
+│   └── {wireframe}.yaml        # Updated YAML wireframe
 └── {various}/
     └── _needs-review.md        # Flagged files
 ```
@@ -134,8 +123,7 @@ See [Output Formats](references/output-formats.md) for detailed structures.
 | Agent | Model | Purpose |
 |-------|-------|---------|
 | spec-butterfly | opus | Impact analysis |
-| wireframe-editor | sonnet | Generate modified wireframe |
-| stitch-regenerate | sonnet | Regenerate HTML (Stitch mode) |
+| wireframe-editor | sonnet | Generate modified YAML wireframe |
 
 ---
 

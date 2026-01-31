@@ -157,29 +157,43 @@ interface DatePickerProps {
 | disabled | 50% opacity | No interaction |
 | error | Red border | Error message below |
 
-## Wireframe (ASCII)
+## Component Structure (YAML)
 
 ### Closed State
-```
-┌─────────────────────────────┐
-│ Select date...          📅  │
-└─────────────────────────────┘
+```yaml
+- type: datepicker
+  props:
+    placeholder: "Select date..."
+    value: null
+    state: closed
+  children:
+    - type: input
+      props: { readOnly: true }
+    - type: icon
+      props: { name: "calendar" }
+  testId: datepicker-trigger
 ```
 
 ### Open State
-```
-┌─────────────────────────────┐
-│ Jan 29, 2026            📅  │
-├─────────────────────────────┤
-│   ◀  January 2026  ▶       │
-├─────────────────────────────┤
-│ Su  Mo  Tu  We  Th  Fr  Sa │
-│                 1   2   3   │
-│  4   5   6   7   8   9  10 │
-│ 11  12  13  14  15  16  17 │
-│ 18  19  20  21  22  23  24 │
-│ 25  26  27  28 [29] 30  31 │
-└─────────────────────────────┘
+```yaml
+- type: datepicker
+  props:
+    value: "2026-01-29"
+    state: open
+  children:
+    - type: input
+      props: { value: "Jan 29, 2026" }
+    - type: calendar-popup
+      props:
+        month: "January"
+        year: 2026
+        selectedDate: 29
+      children:
+        - type: month-nav
+          props: { prev: true, next: true }
+        - type: day-grid
+          props: { weekdays: ["Su","Mo","Tu","We","Th","Fr","Sa"] }
+  testId: datepicker-open
 ```
 
 ## Interactions

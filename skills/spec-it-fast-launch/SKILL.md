@@ -48,7 +48,7 @@ See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rule
 
 ```
 # Generate session and get SESSION_DIR
-result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh "" ascii "$(pwd)"
+result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh "" yaml "$(pwd)"
 
 # Parse output to get SESSION_DIR (full absolute path)
 sessionId = extract SESSION_ID from result
@@ -78,7 +78,8 @@ AskUserQuestion(
       {label: "Minimal (Recommended)", description: "깔끔한 SaaS: 밝은 테마, 미니멀 카드"},
       {label: "Immersive", description: "다크 테마: 그라데이션 카드, 네온 포인트"},
       {label: "Organic", description: "유기적: Glassmorphism, 부드러운 곡선"},
-      {label: "Custom", description: "직접 트렌드 선택"}
+      {label: "Custom", description: "직접 트렌드 선택"},
+      {label: "Custom File", description: "직접 스타일 파일 경로 지정"}
     ]
   }]
 )
@@ -97,6 +98,20 @@ IF "Custom":
       ]
     }]
   )
+
+IF "Custom File":
+  # User provides custom style file path via "Other" option
+  # Expected: Path to a directory containing:
+  #   - references/trends-summary.md
+  #   - references/component-patterns.md
+  #   - templates/*.md (navigation, card, form, dashboard templates)
+  customPath = userInput
+  IF NOT exists(customPath + "/references/trends-summary.md"):
+    Output: "경고: trends-summary.md를 찾을 수 없습니다. 기본 스타일을 사용합니다."
+    DESIGN_TRENDS_PATH = default
+  ELSE:
+    DESIGN_TRENDS_PATH = customPath
+    _meta.customDesignPath = customPath
 
 _meta.designStyle = selectedStyle
 _meta.designTrends = selectedTrends
@@ -219,11 +234,16 @@ FOR each screen (parallel, max 4):
       ### Motion Guidelines
       | Interaction | Animation | Duration |
 
-      === ASCII WIREFRAME ===
-      Draw detailed ASCII wireframe using box-drawing characters.
-      Reference: ../references/ascii-wireframe-guide.md
+      === YAML WIREFRAME ===
+      Generate structured YAML wireframe.
+      Reference: skills/shared/references/yaml-ui-frame/03-components.md
 
-      Output: 02-screens/wireframes/wireframe-{screenId}.md
+      === CRITICAL RULES ===
+      - NEVER use ASCII box characters
+      - Use grid.areas for layout (CSS Grid syntax)
+      - Include testId for all interactive elements
+
+      Output: 02-screens/wireframes/{screenId}.yaml
     "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 2.2

@@ -8,7 +8,7 @@ set -e
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SESSION_ID="${1:-$(date +%Y%m%d-%H%M%S)}"
-UI_MODE="${2:-ascii}"
+UI_MODE="${2:-yaml}"
 WORK_DIR="${3:-$(pwd)}"
 
 # Convert to absolute path

@@ -25,7 +25,7 @@ SPEC-IT-{HASH}.md file generation specialist.
    - Component: Description, Props, States
    - Page: Feature keywords, Screen features
 
-3. **Generate ASCII wireframe** (for components)
+3. **Generate YAML component structure** (for components)
 
 4. **Generate HASH**
    - 8-character alphanumeric
@@ -51,10 +51,17 @@ Primary action button with loading support.
 | variant | 'primary' \| 'secondary' | N |
 | loading | boolean | N |
 
-### Wireframe (ASCII)
-┌─────────────────────┐
-│  Button Text        │
-└─────────────────────┘
+### Component Structure (YAML)
+```yaml
+type: button
+props:
+  variant: primary
+  label: "Button Text"
+  loading: false
+styles:
+  padding: "8px 16px"
+testId: button-primary
+```
 
 ### Related Documents
 - **Parent**: [SPEC-IT-PARENT](...)

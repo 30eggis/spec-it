@@ -329,58 +329,24 @@ Update(_state.json)
 # Check UI mode from spec-it _meta.json
 Read({spec-folder}/_meta.json)
 
-IF _meta.uiMode == "stitch":
-  # Stitch HTML 모드 - HTML 파일을 디자인 레퍼런스로 사용
+IF wireframes exist in {spec-folder}/02-screens/wireframes/:
+  # YAML Wireframe 모드 - 구조화된 YAML 와이어프레임 사용
   Task(
     subagent_type: "general-purpose",
     model: "sonnet",
     prompt: "
       Role: screen-vision
 
-      Analyze Stitch HTML outputs in {spec-folder}/02-screens/html/
+      Analyze all YAML wireframes in {spec-folder}/02-screens/wireframes/
 
-      Load:
-      - stitch-project.json (screen metadata)
-      - html/*.html (actual UI designs)
-      - assets/styles.css (design system CSS)
-      - assets/tokens.json (design tokens)
+      Reference: skills/shared/references/yaml-ui-frame/
 
       Extract:
-      1. HTML structure for each screen
-      2. CSS classes and their styles
-      3. Design tokens (colors, spacing, typography)
-      4. Component patterns from HTML
-      5. Responsive breakpoints
-
-      Output: .spec-it/execute/{sessionId}/plans/html-analysis.md
-
-      Include mapping table:
-      | Screen | HTML File | Key Components | CSS Classes |
-      |--------|-----------|----------------|-------------|
-
-      OUTPUT RULES: (standard)
-    "
-  )
-
-  # Save UI mode for spec-executor
-  _state.uiMode = "stitch"
-  _state.htmlReferencePath = "{spec-folder}/02-screens/html/"
-  Update(_state.json)
-
-ELIF mockups exist in {spec-folder}/02-screens/wireframes/:
-  # ASCII Wireframe 모드
-  Task(
-    subagent_type: "general-purpose",
-    model: "sonnet",
-    prompt: "
-      Role: screen-vision
-
-      Analyze all wireframes in {spec-folder}/02-screens/wireframes/
-
-      Extract:
-      1. Component inventory
-      2. Layout patterns
-      3. Design tokens (colors, spacing, typography)
+      1. Component inventory from components arrays
+      2. Layout patterns from grid.areas
+      3. Design tokens from designDirection.colorTokens
+      4. Motion guidelines from designDirection.motionGuidelines
+      5. Responsive breakpoints from responsive section
 
       Output: .spec-it/execute/{sessionId}/plans/visual-analysis.md
 
@@ -388,7 +354,7 @@ ELIF mockups exist in {spec-folder}/02-screens/wireframes/:
     "
   )
 
-  _state.uiMode = "ascii"
+  _state.uiMode = "yaml"
   Update(_state.json)
 
 # Load design style from spec-it session
@@ -552,26 +518,12 @@ FOR batch IN batches:
   complexity = assess_complexity(task)
   model = complexity == "HIGH" ? "opus" : "sonnet"
 
-  # Build UI reference context based on mode
-  IF _state.uiMode == "stitch":
-    uiRefContext = "
-      UI Reference Mode: STITCH (HTML)
-      HTML Files: {_state.htmlReferencePath}
-      Design System: {spec-folder}/02-screens/assets/styles.css
-      Design Tokens: {spec-folder}/02-screens/assets/tokens.json
-
-      CRITICAL: When implementing UI:
-      1. Read corresponding HTML file for the screen
-      2. Match HTML structure exactly in React components
-      3. Use same CSS classes from styles.css
-      4. Apply design tokens for colors, spacing
-      5. Preserve accessibility attributes from HTML
-    "
-  ELSE:
-    uiRefContext = "
-      UI Reference Mode: ASCII (Wireframe)
-      Wireframes: {spec-folder}/02-screens/wireframes/
-    "
+  # Build UI reference context (YAML wireframe mode)
+  uiRefContext = "
+    UI Reference Mode: YAML (Structured Wireframe)
+    Wireframes: {spec-folder}/02-screens/wireframes/*.yaml
+    Reference: skills/shared/references/yaml-ui-frame/
+  "
 
   # Build design reference context
   IF _state.designStyle:
@@ -1581,8 +1533,7 @@ ELIF Delete:
   "startedAt": "2026-01-30T14:30:22Z",
   "lastCheckpoint": "2026-01-30T14:45:00Z",
   "completedAt": null,
-  "uiMode": "ascii | stitch",
-  "htmlReferencePath": "tmp/{sessionId}/02-screens/html/",
+  "uiMode": "yaml",
   "livePreview": true,
   "devServerPid": 12345,
   "previewUrl": "http://localhost:3000",
