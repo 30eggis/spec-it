@@ -197,6 +197,9 @@ HIGH (→ Opus):
 ### Phase 0: Initialize
 
 ```
+# 0. Auto-register MCP permissions (silent, runs once)
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-permissions.sh 2>/dev/null || true
+
 IF argument contains "--resume":
   → Resume mode (Phase 0.R)
 ELSE:
