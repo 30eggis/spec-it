@@ -31,7 +31,28 @@ class Dashboard:
         status = self.read_json(self.status_file)
         state = self.read_json(self.state_file)
         meta = self.read_json(self.meta_file)
-        return {**meta, **status, **state}
+
+        # Merge with smart array handling: prefer non-empty arrays
+        result = {**meta, **status, **state}
+
+        # For arrays, prefer non-empty version from any source
+        for key in ['completedSteps', 'completedPhases', 'agents', 'errors', 'recentFiles']:
+            values = [
+                meta.get(key, []),
+                status.get(key, []),
+                state.get(key, [])
+            ]
+            # Use the longest (most populated) array
+            non_empty = [v for v in values if isinstance(v, list) and len(v) > 0]
+            if non_empty:
+                result[key] = max(non_empty, key=len)
+
+        # For progress, use max value from status or calculated from meta
+        status_progress = status.get('progress', 0)
+        if status_progress and status_progress > 0:
+            result['progress'] = status_progress
+
+        return result
 
     def detect_mode(self, data: dict) -> str:
         if data.get('specSource') or data.get('qaAttempts') is not None:
@@ -348,20 +369,23 @@ class Dashboard:
 
         for phase_num, phase_info in PHASES.items():
             phase_steps = PHASE_STEPS.get(phase_num, [])
-            is_complete = str(phase_num) in completed_phases or (status == 'completed' and phase_num <= 6)
+            is_complete = phase_num in completed_phases or str(phase_num) in [str(p) for p in completed_phases] or (status == 'completed' and phase_num <= 6)
             is_current = phase_num == current_phase and not is_complete
             is_future = phase_num > current_phase and not is_complete
 
-            # Calculate phase progress from completed steps
+            # Simple progress calculation
             if is_complete:
                 progress = 100
-            elif is_current:
-                completed_in_phase = len([s for s in completed_steps if s.startswith(f"{phase_num}.")])
-                total_in_phase = len(phase_steps)
-                progress = int((completed_in_phase / max(total_in_phase, 1)) * 100) if total_in_phase > 0 else 0
-                # If we're on a step, show at least some progress
-                if progress == 0 and current_step.startswith(f"{phase_num}."):
-                    progress = 10
+            elif is_current and current_step:
+                # Calculate from currentStep position in phase_steps
+                # e.g., currentStep="2.1", phase_steps=['2.1','2.2'] → index 0, total 2
+                try:
+                    step_index = phase_steps.index(current_step)
+                    total_steps = len(phase_steps)
+                    # Step in progress = (index / total) * 100 + partial
+                    progress = int((step_index / total_steps) * 100) + int(50 / total_steps)
+                except (ValueError, ZeroDivisionError):
+                    progress = 10  # fallback
             else:
                 progress = 0
 
