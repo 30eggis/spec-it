@@ -143,22 +143,30 @@ class Dashboard:
         RED = curses.color_pair(4)
         WHITE = curses.color_pair(5)
 
-        # Phase definitions
+        # Phase definitions (matches spec-it-execute SKILL.md)
         PHASES = {
             1: {'name': 'LOAD', 'desc': 'Loading specs'},
-            2: {'name': 'PLAN', 'desc': 'Generating execution plan'},
+            2: {'name': 'PLAN', 'desc': 'Execution planning'},
             3: {'name': 'EXECUTE', 'desc': 'Implementing code'},
             4: {'name': 'QA', 'desc': 'Build & test loop'},
-            5: {'name': 'VALIDATE', 'desc': 'Code review & security'}
+            5: {'name': 'MIRROR', 'desc': 'Spec verification'},
+            6: {'name': 'UNIT', 'desc': 'Unit tests (95%)'},
+            7: {'name': 'E2E', 'desc': 'Playwright tests'},
+            8: {'name': 'REVIEW', 'desc': 'Code & security'},
+            9: {'name': 'DONE', 'desc': 'Complete'}
         }
 
         # Steps per phase
         PHASE_STEPS = {
-            1: ['1.1', '1.2'],
+            1: ['1.1', '1.2', '1.3'],
             2: ['2.1', '2.2'],
-            3: ['3.1', '3.2', '3.3'],
-            4: ['4.1', '4.2'],
-            5: ['5.1', '5.2']
+            3: ['3.0', '3.1'],
+            4: ['4.1'],
+            5: ['5.1', '5.2'],
+            6: ['6.1', '6.2', '6.3'],
+            7: ['7.1', '7.2', '7.3'],
+            8: ['8.1', '8.2'],
+            9: ['9.1']
         }
 
         session_id = data.get('sessionId', 'unknown')
@@ -228,7 +236,7 @@ class Dashboard:
             else:
                 progress = 0
 
-            total_progress += progress / 5  # 5 phases in execute mode
+            total_progress += progress / 9  # 9 phases in execute mode
 
             # Phase indicator
             if is_complete:
