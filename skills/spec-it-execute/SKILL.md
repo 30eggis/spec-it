@@ -1,7 +1,7 @@
 ---
 name: spec-it-execute
 description: "Autopilot-style executor. Transforms spec-it specifications into working code with minimal intervention. 9-phase workflow: Load → Plan → Execute → QA → Spec-Mirror → Unit-Test → Scenario-Test → Validate → Complete."
-allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion
+allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task
 argument-hint: "<spec-folder> [--resume <sessionId>]"
 permissionMode: bypassPermissions
 ---
@@ -272,21 +272,13 @@ Read(.spec-it/execute/{sessionId}/_state.json)
 }
 ```
 
-#### Phase 0.2: Live Preview 설정 (Optional)
+#### Phase 0.2: Live Preview 설정 (Auto: Disabled)
 
 ```
-AskUserQuestion(
-  questions: [{
-    question: "개발 과정을 브라우저에서 실시간으로 확인하시겠습니까?",
-    header: "Live Preview",
-    options: [
-      {label: "Yes", description: "Chrome DevTools MCP로 실시간 확인"},
-      {label: "No", description: "터미널 출력만 확인"}
-    ]
-  }]
-)
+# Live Preview는 기본 비활성화 (Autopilot 모드)
+# 필요시 _state.json에서 livePreview: true로 수동 설정
 
-IF "Yes":
+IF _state.livePreview == true:
   # 1. 개발 서버 시작
   Task(
     subagent_type: "Bash",
@@ -473,17 +465,9 @@ IF verdict == "[REJECT]":
     IF verdict == "[OKAY]": BREAK
 
   IF still rejected:
-    AskUserQuestion(
-      questions: [{
-        question: "Plan failed critique 3 times. How to proceed?",
-        header: "Plan Issue",
-        options: [
-          {label: "Review manually", description: "I'll fix the plan"},
-          {label: "Force continue", description: "Proceed anyway (risky)"},
-          {label: "Abort", description: "Stop execution"}
-        ]
-      }]
-    )
+    # Autopilot: Force continue after 3 failed critiques
+    Output: "⚠️ Plan critique failed 3 times. Proceeding anyway (autopilot mode)."
+    Write(.spec-it/execute/{sessionId}/logs/plan-critique-warning.md, "Plan proceeded despite critique failures")
 
 # Phase 2 complete - use unified status-update.sh
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 2 3 "3.1"
@@ -763,17 +747,9 @@ WHILE _state.qaAttempts < _state.maxQaAttempts:
   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "qaAttempts" "{_state.qaAttempts}"
 
 IF _state.qaAttempts >= _state.maxQaAttempts AND NOT allPassed:
-  AskUserQuestion(
-    questions: [{
-      question: "QA failed after 5 attempts. How to proceed?",
-      header: "QA Failed",
-      options: [
-        {label: "Fix manually", description: "I'll fix remaining issues"},
-        {label: "Continue anyway", description: "Proceed to spec-mirror"},
-        {label: "Abort", description: "Stop execution"}
-      ]
-    }]
-  )
+  # Autopilot: Continue to next phase after max attempts
+  Output: "⚠️ QA failed after 5 attempts. Proceeding to next phase (autopilot mode)."
+  Write(.spec-it/execute/{sessionId}/logs/qa-warning.md, "QA incomplete - proceeded after 5 attempts")
 
 # Phase 4 complete - use unified status-update.sh
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 4 5 "5.1"
@@ -954,17 +930,9 @@ WHILE _state.mirrorAttempts < _state.maxMirrorAttempts:
   GOTO Phase 4 (QA check only, no phase update)
 
 IF _state.mirrorAttempts >= _state.maxMirrorAttempts AND missingItems.length > 0:
-  AskUserQuestion(
-    questions: [{
-      question: "Spec-Mirror failed after 5 attempts. {missingItems.length} items still missing.",
-      header: "Mirror Failed",
-      options: [
-        {label: "Fix manually", description: "I'll implement missing items"},
-        {label: "Continue anyway", description: "Proceed to unit tests"},
-        {label: "Abort", description: "Stop execution"}
-      ]
-    }]
-  )
+  # Autopilot: Continue to next phase after max attempts
+  Output: "⚠️ Spec-Mirror: {missingItems.length} items still missing after 5 attempts. Proceeding (autopilot mode)."
+  Write(.spec-it/execute/{sessionId}/logs/mirror-warning.md, "Mirror incomplete - {missingItems.length} items missing")
 
 # Phase 5 complete - use unified status-update.sh
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 5 6 "6.1"
@@ -1084,17 +1052,9 @@ WHILE _state.coverageAttempts < _state.maxCoverageAttempts:
   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "coverageAttempts" "{_state.coverageAttempts}"
 
 IF _state.coverageAttempts >= _state.maxCoverageAttempts AND avgCoverage < _state.targetCoverage:
-  AskUserQuestion(
-    questions: [{
-      question: "Coverage is {avgCoverage}% after 5 attempts. Target: 95%",
-      header: "Coverage Gap",
-      options: [
-        {label: "Add tests manually", description: "I'll write more tests"},
-        {label: "Accept current", description: "Proceed with {avgCoverage}%"},
-        {label: "Abort", description: "Stop execution"}
-      ]
-    }]
-  )
+  # Autopilot: Accept current coverage after max attempts
+  Output: "⚠️ Coverage: {avgCoverage}% (target: 95%) after 5 attempts. Proceeding (autopilot mode)."
+  Write(.spec-it/execute/{sessionId}/logs/coverage-warning.md, "Coverage {avgCoverage}% - below target 95%")
 ```
 
 #### Step 6.3: Test Quality Review
@@ -1213,23 +1173,9 @@ Task(
   "
 )
 
-# Ask user which recommendations to implement
-AskUserQuestion(
-  questions: [{
-    question: "추가 시나리오 추천이 있습니다. 구현할 항목을 선택하세요.",
-    header: "Scenarios",
-    multiSelect: true,
-    options: [
-      {label: "Edge cases", description: "경계 조건 테스트"},
-      {label: "Error scenarios", description: "에러 핸들링 테스트"},
-      {label: "All recommended", description: "모든 추천 시나리오"},
-      {label: "Skip", description: "추가 시나리오 건너뛰기"}
-    ]
-  }]
-)
-
-IF selected != "Skip":
-  Task(e2e-implementer: implement selected scenarios)
+# Autopilot: Skip additional scenario recommendations
+# Recommendations are logged but not implemented automatically
+Output: "📝 Additional scenario recommendations saved to logs (skipped in autopilot mode)."
 ```
 
 #### Step 7.3: E2E Execution Loop
@@ -1321,17 +1267,9 @@ WHILE _state.scenarioAttempts < _state.maxScenarioAttempts:
   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "scenarioAttempts" "{_state.scenarioAttempts}"
 
 IF _state.scenarioAttempts >= _state.maxScenarioAttempts AND _state.scenarioResults.failed > 0:
-  AskUserQuestion(
-    questions: [{
-      question: "{_state.scenarioResults.failed} E2E tests still failing after 5 attempts.",
-      header: "E2E Failed",
-      options: [
-        {label: "Fix manually", description: "I'll fix remaining failures"},
-        {label: "Continue anyway", description: "Proceed to validation"},
-        {label: "Abort", description: "Stop execution"}
-      ]
-    }]
-  )
+  # Autopilot: Continue to validation after max attempts
+  Output: "⚠️ E2E: {_state.scenarioResults.failed} tests still failing after 5 attempts. Proceeding (autopilot mode)."
+  Write(.spec-it/execute/{sessionId}/logs/e2e-warning.md, "E2E incomplete - {_state.scenarioResults.failed} failures")
 
 # Phase 7 complete - use unified status-update.sh
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 7 8 "8.1"
@@ -1485,30 +1423,8 @@ Next Steps:
 ════════════════════════════════════════════════════════════
 "
 
-AskUserQuestion(
-  questions: [{
-    question: "Execution complete. What would you like to do with session files?",
-    header: "Cleanup",
-    options: [
-      {label: "Keep", description: "Keep all session files"},
-      {label: "Archive", description: "Move to .spec-it/archive/"},
-      {label: "Delete", description: "Remove session files"}
-    ]
-  }]
-)
-
-IF Archive:
-  Task(
-    subagent_type: "Bash",
-    model: "haiku",
-    prompt: "Run: mv .spec-it/execute/{sessionId} .spec-it/archive/{sessionId}"
-  )
-ELIF Delete:
-  Task(
-    subagent_type: "Bash",
-    model: "haiku",
-    prompt: "Run: rm -rf .spec-it/execute/{sessionId}"
-  )
+# Autopilot: Keep session files (default)
+Output: "📁 Session files kept at: .spec-it/execute/{sessionId}/"
 ```
 
 ---
