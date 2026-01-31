@@ -274,6 +274,17 @@ case "$ACTION" in
       .waitingMessage = $msg |
       .lastUpdate = $ts
     ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+
+    # Also update _state.json (execute mode)
+    STATE_FILE="$SESSION_DIR/_state.json"
+    if [ -f "$STATE_FILE" ]; then
+      jq --arg ts "$TIMESTAMP" --arg msg "$WAITING_MSG" '
+        .waitingForUser = true |
+        .waitingMessage = $msg |
+        .lastCheckpoint = $ts
+      ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+    fi
+
     echo "WAITING:$WAITING_MSG"
     ;;
   "resume")
@@ -283,6 +294,17 @@ case "$ACTION" in
       .waitingMessage = null |
       .lastUpdate = $ts
     ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+
+    # Also update _state.json (execute mode)
+    STATE_FILE="$SESSION_DIR/_state.json"
+    if [ -f "$STATE_FILE" ]; then
+      jq --arg ts "$TIMESTAMP" '
+        .waitingForUser = false |
+        .waitingMessage = null |
+        .lastCheckpoint = $ts
+      ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+    fi
+
     echo "RESUMED"
     ;;
   "phase-complete")
