@@ -116,7 +116,30 @@ sessionId = $(date +%Y%m%d-%H%M%S)
 # 2. Create execution workspace
 mkdir -p .spec-it/execute/{sessionId}/{plans,logs,reviews,screenshots}
 
-# 3. Initialize state
+# 3. Initialize state file (_status.json for dashboard)
+Write(.spec-it/execute/{sessionId}/_status.json):
+```
+
+```json
+{
+  "sessionId": "{sessionId}",
+  "specSource": "{spec-folder}",
+  "status": "in_progress",
+  "currentPhase": 1,
+  "currentStep": "1.1",
+  "qaAttempts": 0,
+  "progress": 0,
+  "agents": [],
+  "startTime": "{ISO timestamp}",
+  "lastUpdate": "{ISO timestamp}"
+}
+```
+
+```bash
+# 4. Launch dashboard in separate terminal
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/open-dashboard.sh .spec-it/execute/{sessionId}
+
+# 5. Initialize _state.json for resume support
 ```
 
 ```json
