@@ -8,6 +8,8 @@ allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 
 Transform PRD/vibe-coding into frontend wireframes with **minimal process** and **design trends applied**.
 
+**Auto-Execute:** After spec generation, automatically proceeds to `spec-it-execute` for implementation.
+
 ## What's Skipped
 
 | Skipped | Reason |
@@ -33,7 +35,9 @@ See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rule
 ## Workflow
 
 ```
-[Init] → [Design Style] → [Quick Requirements] → [Wireframes + Design] → [Done]
+[Init] → [Design Style] → [Quick Requirements] → [Wireframes + Design] → [Assembly] → [Auto-Execute]
+                                                                                            ↓
+                                                                          spec-it-execute (Phase 0-9)
 ```
 
 ---
@@ -256,17 +260,34 @@ Task(spec-assembler, haiku):
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
 ```
 
-### Step 3.2: Done
+### Step 3.2: Auto-Execute
 
 ```
 Read: 06-final/FAST-SPEC-SUMMARY.md
-Output to user
+Output to user: "Spec generation complete. Proceeding to implementation..."
 
-AskUserQuestion: "Fast spec 완료. 폴더 처리?"
-Options: [Keep, Delete]
-
-IF Delete: rm -rf tmp/{sessionId}
+# Auto-proceed to spec-it-execute
+# No user approval needed - this is the Fast mode promise
+Skill(spec-it-execute, "tmp/{sessionId}")
 ```
+
+---
+
+## Phase 4: Execute (Auto-invoked)
+
+spec-it-execute handles:
+- Phase 0: Initialize
+- Phase 1: Load specs
+- Phase 2: Plan execution
+- Phase 3: Implement code (batched parallel)
+- Phase 4: QA loop
+- Phase 5: Spec-mirror verification
+- Phase 6: Unit tests (if time permits)
+- Phase 7: E2E tests (if time permits)
+- Phase 8: Code review
+- Phase 9: Complete
+
+See `spec-it-execute/SKILL.md` for full details.
 
 ---
 

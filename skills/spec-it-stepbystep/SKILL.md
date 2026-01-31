@@ -14,6 +14,25 @@ Transform PRD/vibe-coding into frontend specifications with **chapter-by-chapter
 
 See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rules.md](../shared/context-rules.md).
 
+## Output Format
+
+Default output format is **YAML** (structured) for improved parsing and reduced tokens:
+
+| Spec Type | Template | Format |
+|-----------|----------|--------|
+| UI Wireframe | `UI_WIREFRAME_TEMPLATE.yaml` | YAML |
+| Component Spec | `COMPONENT_SPEC_TEMPLATE.yaml` | YAML |
+| Screen Spec | `SCREEN_SPEC_TEMPLATE.yaml` | YAML |
+| Layout System | `LAYOUT_TEMPLATE.yaml` | YAML |
+| Scenarios | Markdown | MD |
+| Dev Tasks | Markdown | MD |
+
+### YAML Benefits
+- **-64%** file size
+- **10x** faster parsing
+- **-80%** token duplication
+- Shared design tokens via `_ref`
+
 ## Workflow
 
 ```
@@ -112,6 +131,9 @@ sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script
 
 → Creates folders, _meta.json, _status.json
 → Auto-launches dashboard in separate terminal
+
+# Set spec format in _meta.json
+_meta.specFormat = "yaml"  # Default to YAML for new projects
 ```
 
 ### Step 0.R: Resume
@@ -215,7 +237,11 @@ Output: 02-screens/html/, assets/
      Design Style: {_meta.designStyle}
      Applied Trends: {_meta.designTrends}
 
-     Generate layout-system.md and screen-list.md
+     === OUTPUT FORMAT ===
+     Use YAML template: assets/templates/LAYOUT_TEMPLATE.yaml
+     Reference design tokens: shared/design-tokens.yaml
+
+     Generate layout-system.yaml and screen-list.md
      Include design direction based on selected style
    "
 
@@ -235,25 +261,25 @@ Output: 02-screens/html/, assets/
 
        Design Style: {_meta.designStyle}
 
-       === OUTPUT REQUIREMENTS ===
-       Each wireframe MUST include '## Design Direction' section:
+       === OUTPUT FORMAT (YAML) ===
+       Use template: assets/templates/UI_WIREFRAME_TEMPLATE.yaml
+       Reference: shared/design-tokens.yaml via _ref
 
-       ### Applied Trends
-       - Primary: {trend} - {application}
-       - Secondary: {trend} - {application}
+       Output file: wireframes/{screen}.yaml
 
-       ### Component Patterns
-       | Component | Pattern | Template Reference |
-       |-----------|---------|-------------------|
-       | Sidebar | {name} | navigation-templates.md#{section} |
+       === YAML STRUCTURE ===
+       Each wireframe must include:
+       - id, name, route, type, priority
+       - layout: type, sidebar, header, main
+       - responsive: desktop, tablet, mobile
+       - components: list with props, styles, testId
+       - interactions: clicks, forms, stateChanges
+       - designDirection: appliedTrends, componentPatterns, colorTokens, motionGuidelines
 
-       ### Color Tokens
-       | Token | Value | Usage |
-
-       ### Motion Guidelines
-       | Interaction | Animation | Duration |
-
-       Generate wireframe-{screen}.md with full layout
+       === DO NOT ===
+       - Use ASCII art (use grid.areas instead)
+       - Repeat design tokens (use _ref)
+       - Approximate values (use exact px/rem)
      "
 ```
 
@@ -274,7 +300,24 @@ AskUserQuestion: "UI Architecture complete. Continue?"
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/component-planner.sh {sessionId}
 
 Task(component-builder, sonnet, parallel):
-  Output: 03-components/new/spec-{component}.md
+  prompt: "
+    Role: component-builder
+
+    === OUTPUT FORMAT (YAML) ===
+    Use template: assets/templates/COMPONENT_SPEC_TEMPLATE.yaml
+    Reference: shared/design-tokens.yaml via _ref
+
+    Output file: 03-components/new/{component}.yaml
+
+    Include all sections:
+    - id, name, category, priority
+    - props: with types, required, defaults
+    - variants, states
+    - visual: sizes, baseStyles, animation
+    - accessibility: role, keyboardNav, ariaAttributes
+    - dependencies, tests
+  "
+  Output: 03-components/new/{component}.yaml
 
 Task(component-migrator, sonnet):
   Output: 03-components/migrations/migration-plan.md
@@ -334,8 +377,19 @@ tmp/{sessionId}/
 ├── _meta.json, _status.json
 ├── 00-requirements/
 ├── 01-chapters/decisions/, alternatives/
-├── 02-screens/wireframes/, layouts/, [html/, assets/]
-├── 03-components/new/, migrations/
+├── 02-screens/
+│   ├── wireframes/
+│   │   ├── dashboard.yaml       ← YAML format (preferred)
+│   │   ├── login.yaml
+│   │   └── settings.yaml
+│   ├── layouts/
+│   │   └── layout-system.yaml   ← YAML format
+│   └── [html/, assets/]         ← Stitch mode only
+├── 03-components/
+│   ├── new/
+│   │   ├── StockCard.yaml       ← YAML format
+│   │   └── PriceDisplay.yaml
+│   └── migrations/
 ├── 04-review/scenarios/, exceptions/
 ├── 05-tests/personas/, scenarios/
 └── 06-final/

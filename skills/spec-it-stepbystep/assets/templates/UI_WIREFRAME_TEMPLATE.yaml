@@ -1,0 +1,256 @@
+# UI Wireframe Template (YAML Format)
+# Version: 1.0.0
+#
+# This structured format reduces token usage by ~64% compared to ASCII wireframes
+# and enables faster parsing (YAML.parse vs regex).
+#
+# Usage: Replace {{placeholders}} with actual values
+
+# =============================================================================
+# METADATA
+# =============================================================================
+id: "SCR-{{screen_id}}"
+name: "{{screen_name}}"
+route: "{{url}}"
+type: "{{screen_type}}"  # page | modal | drawer | panel
+priority: "{{priority}}"  # P0 | P1 | P2
+accessLevel: "{{access_level}}"  # public | authenticated | admin
+
+# =============================================================================
+# LAYOUT DEFINITION
+# =============================================================================
+layout:
+  type: "{{layout_type}}"  # sidebar-main | header-main | full-width | split
+
+  # Sidebar (if applicable)
+  sidebar:
+    position: "{{sidebar_position}}"  # left | right | none
+    width: "{{sidebar_width}}"        # 64px | 200px | 256px
+    collapsed: "{{collapsed_width}}"  # 64px (icons only)
+
+  # Header (if applicable)
+  header:
+    height: "{{header_height}}"       # 64px | 80px
+    sticky: true
+
+  # Main Content Area
+  main:
+    padding: "{{main_padding}}"       # p-4 | p-6 | p-8
+    maxWidth: "{{max_width}}"         # max-w-4xl | max-w-6xl | full
+
+# =============================================================================
+# RESPONSIVE BREAKPOINTS
+# =============================================================================
+responsive:
+  desktop:
+    minWidth: "1024px"
+    layout: "{{desktop_layout_description}}"
+    # Example: "Full sidebar visible, 3-column grid"
+
+  tablet:
+    minWidth: "768px"
+    maxWidth: "1023px"
+    layout: "{{tablet_layout_description}}"
+    # Example: "Collapsible sidebar, 2-column grid"
+
+  mobile:
+    maxWidth: "767px"
+    layout: "{{mobile_layout_description}}"
+    # Example: "Bottom nav, single column, drawer menu"
+
+# =============================================================================
+# COMPONENTS
+# =============================================================================
+components:
+  # Header Section
+  - id: "header"
+    type: "AppHeader"
+    zone: "header"
+    props:
+      title: "{{page_title}}"
+      showBreadcrumb: true
+      showSearch: "{{show_search}}"
+    styles: "${components.header.base}"
+
+  # Sidebar Navigation (if applicable)
+  - id: "sidebar"
+    type: "Sidebar"
+    zone: "sidebar"
+    props:
+      menuItems: "{{menu_items_ref}}"  # Reference to menu config
+      collapsible: true
+    styles: "${layout.sidebar.default}"
+
+  # Main Content Components
+  # {{#each main_components}}
+  - id: "{{component_id}}"
+    type: "{{component_type}}"
+    zone: "main"
+    props:
+      # Component-specific props
+      # {{#each props}}
+      # {{key}}: {{value}}
+      # {{/each}}
+    styles: "{{tailwind_classes}}"
+    priority: "{{component_priority}}"
+    testId: "{{test_id}}"
+  # {{/each}}
+
+# =============================================================================
+# COMPONENT GRID (Visual Representation)
+# =============================================================================
+# Replace ASCII wireframe with structured grid definition
+grid:
+  desktop:
+    columns: "{{grid_columns}}"  # 1 | 2 | 3 | 4
+    gap: "{{grid_gap}}"          # gap-4 | gap-6 | gap-8
+    areas: |
+      {{grid_areas}}
+      # Example:
+      # "header header header"
+      # "sidebar main main"
+      # "sidebar main main"
+
+  tablet:
+    columns: "{{tablet_columns}}"
+    areas: |
+      {{tablet_areas}}
+
+  mobile:
+    columns: 1
+    areas: |
+      {{mobile_areas}}
+
+# =============================================================================
+# INTERACTIONS
+# =============================================================================
+interactions:
+  # Click Events
+  clicks:
+    # {{#each click_events}}
+    - element: "[data-testid='{{test_id}}']"
+      action: "{{action}}"  # navigate | modal | toggle | submit | custom
+      target: "{{target}}"  # route | modal_id | state_key
+      description: "{{description}}"
+    # {{/each}}
+
+  # Form Submissions
+  forms:
+    # {{#each forms}}
+    - formId: "{{form_id}}"
+      endpoint: "{{api_endpoint}}"
+      method: "{{method}}"  # POST | PUT | PATCH | DELETE
+      validation: "{{validation_ref}}"
+      onSuccess: "{{success_action}}"
+      onError: "{{error_action}}"
+    # {{/each}}
+
+  # State Changes
+  stateChanges:
+    # {{#each state_changes}}
+    - trigger: "{{trigger}}"
+      stateBefore: "{{before_state}}"
+      stateAfter: "{{after_state}}"
+      animation: "{{animation_type}}"
+    # {{/each}}
+
+# =============================================================================
+# STATES
+# =============================================================================
+states:
+  loading:
+    showSkeleton: true
+    skeletonComponents:
+      - type: "SkeletonCard"
+        count: "{{skeleton_count}}"
+
+  empty:
+    showEmptyState: true
+    emptyComponent:
+      icon: "{{empty_icon}}"
+      title: "{{empty_title}}"
+      description: "{{empty_description}}"
+      action:
+        label: "{{empty_action_label}}"
+        onClick: "{{empty_action}}"
+
+  error:
+    showErrorBoundary: true
+    errorComponent:
+      title: "{{error_title}}"
+      retryAction: true
+
+# =============================================================================
+# DESIGN TOKENS REFERENCE
+# =============================================================================
+styles:
+  _ref: "../../shared/design-tokens.yaml"
+
+  # Screen-specific overrides
+  overrides:
+    card: "{{card_style_override}}"
+    button: "{{button_style_override}}"
+    # Add more overrides as needed
+
+# =============================================================================
+# DESIGN DIRECTION (from Design Trends 2026)
+# =============================================================================
+designDirection:
+  style: "{{design_style}}"  # minimal | immersive | organic
+
+  appliedTrends:
+    primary:
+      name: "{{primary_trend}}"
+      application: "{{primary_trend_application}}"
+    secondary:
+      name: "{{secondary_trend}}"
+      application: "{{secondary_trend_application}}"
+
+  componentPatterns:
+    # {{#each component_patterns}}
+    - component: "{{component_name}}"
+      pattern: "{{pattern_name}}"
+      templateRef: "{{template_reference}}"
+    # {{/each}}
+
+  colorTokens:
+    # {{#each color_tokens}}
+    - token: "{{token_name}}"
+      value: "{{token_value}}"
+      usage: "{{token_usage}}"
+    # {{/each}}
+
+  motionGuidelines:
+    # {{#each motion_guidelines}}
+    - interaction: "{{interaction_type}}"
+      animation: "{{animation_name}}"
+      duration: "{{duration}}"
+      easing: "{{easing}}"
+    # {{/each}}
+
+# =============================================================================
+# ACCESSIBILITY
+# =============================================================================
+accessibility:
+  landmarks:
+    - role: "banner"
+      element: "header"
+    - role: "navigation"
+      element: "sidebar"
+    - role: "main"
+      element: "main"
+  focusOrder: ["header-search", "sidebar-nav", "main-content"]
+  skipLinks: true
+  ariaLabels:
+    # {{#each aria_labels}}
+    - element: "{{element}}"
+      label: "{{label}}"
+    # {{/each}}
+
+# =============================================================================
+# NOTES
+# =============================================================================
+notes: |
+  {{notes}}
+
+# Implementation hints, edge cases, or special considerations

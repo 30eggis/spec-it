@@ -1,0 +1,302 @@
+# Component Specification Template (YAML Format)
+# Version: 1.0.0
+#
+# Structured format for component specs - enables faster parsing and reduces token usage.
+# Use this instead of the Markdown template for new specs.
+
+# =============================================================================
+# METADATA
+# =============================================================================
+id: "CMP-{{component_id}}"
+name: "{{component_name}}"
+category: "{{category}}"  # ui | form | layout | data-display | navigation | feedback
+priority: "{{priority}}"  # P0 | P1 | P2
+status: "{{status}}"      # draft | review | approved | implemented
+
+# =============================================================================
+# OVERVIEW
+# =============================================================================
+description: |
+  {{description}}
+
+useCases:
+  # {{#each use_cases}}
+  - "{{use_case}}"
+  # {{/each}}
+
+# =============================================================================
+# PROPS INTERFACE
+# =============================================================================
+props:
+  # {{#each props}}
+  - name: "{{prop_name}}"
+    type: "{{prop_type}}"      # string | number | boolean | ReactNode | enum | object | array
+    required: "{{required}}"    # true | false
+    default: "{{default_value}}"
+    description: "{{prop_description}}"
+    # For enum types:
+    # options: ["option1", "option2", "option3"]
+    # For object types:
+    # shape:
+    #   - key: "propKey"
+    #     type: "string"
+  # {{/each}}
+
+# TypeScript Interface (auto-generated from props)
+interface: |
+  interface {{component_name}}Props {
+    {{#each props}}
+    /** {{description}} */
+    {{name}}{{#unless required}}?{{/unless}}: {{type}};
+    {{/each}}
+  }
+
+# =============================================================================
+# VARIANTS
+# =============================================================================
+variants:
+  # {{#each variants}}
+  - name: "{{variant_name}}"
+    description: "{{variant_description}}"
+    useCase: "{{variant_use_case}}"
+    props:
+      # Default prop values for this variant
+      variant: "{{variant_name}}"
+    styles: "{{variant_styles}}"
+  # {{/each}}
+
+# =============================================================================
+# STATES
+# =============================================================================
+states:
+  default:
+    description: "Initial render state"
+    styles: "{{default_styles}}"
+
+  hover:
+    description: "Mouse over state"
+    styles: "{{hover_styles}}"
+    trigger: "mouse:enter"
+
+  focus:
+    description: "Keyboard focus state"
+    styles: "{{focus_styles}}"
+    trigger: "focus"
+
+  active:
+    description: "Active/pressed state"
+    styles: "{{active_styles}}"
+    trigger: "mouse:down"
+
+  disabled:
+    description: "Disabled state"
+    styles: "{{disabled_styles}}"
+    condition: "props.disabled === true"
+
+  loading:
+    description: "Loading/processing state"
+    styles: "{{loading_styles}}"
+    condition: "props.loading === true"
+
+  error:
+    description: "Error state"
+    styles: "{{error_styles}}"
+    condition: "props.error !== undefined"
+
+  # Custom states
+  # {{#each custom_states}}
+  # {{state_name}}:
+  #   description: "{{state_description}}"
+  #   styles: "{{state_styles}}"
+  #   condition: "{{state_condition}}"
+  # {{/each}}
+
+# =============================================================================
+# VISUAL SPECIFICATION
+# =============================================================================
+visual:
+  # Size Variants
+  sizes:
+    sm:
+      height: "h-8"
+      padding: "px-3"
+      fontSize: "text-sm"
+    md:
+      height: "h-10"
+      padding: "px-4"
+      fontSize: "text-base"
+    lg:
+      height: "h-12"
+      padding: "px-6"
+      fontSize: "text-lg"
+
+  # Base Styles (Tailwind)
+  baseStyles: "{{base_tailwind_classes}}"
+
+  # Animation
+  animation:
+    enter: "{{enter_animation}}"
+    exit: "{{exit_animation}}"
+    duration: "{{animation_duration}}"
+
+# =============================================================================
+# COMPOSITION (Compound Components)
+# =============================================================================
+composition:
+  # For compound components like Card.Header, Card.Body
+  parts:
+    # {{#each compound_parts}}
+    - name: "{{part_name}}"
+      element: "{{html_element}}"
+      styles: "{{part_styles}}"
+      slot: "{{slot_name}}"  # header | body | footer
+    # {{/each}}
+
+  # Slots for content projection
+  slots:
+    # {{#each slots}}
+    - name: "{{slot_name}}"
+      accepts: "{{accepted_types}}"  # ReactNode | string | Component[]
+      required: "{{slot_required}}"
+    # {{/each}}
+
+# =============================================================================
+# ACCESSIBILITY
+# =============================================================================
+accessibility:
+  role: "{{aria_role}}"         # button | dialog | menu | etc.
+
+  keyboardNav:
+    - key: "Enter"
+      action: "{{enter_action}}"
+    - key: "Space"
+      action: "{{space_action}}"
+    - key: "Escape"
+      action: "{{escape_action}}"
+    # {{#each keyboard_shortcuts}}
+    # - key: "{{key}}"
+    #   action: "{{action}}"
+    # {{/each}}
+
+  ariaAttributes:
+    # {{#each aria_attrs}}
+    - attribute: "{{attr_name}}"
+      value: "{{attr_value}}"
+      condition: "{{attr_condition}}"
+    # {{/each}}
+
+  requirements:
+    - "Keyboard navigable with Tab/Shift+Tab"
+    - "Visible focus indicator"
+    - "Color contrast ratio >= 4.5:1"
+    - "Screen reader compatible"
+    # {{#each a11y_requirements}}
+    # - "{{requirement}}"
+    # {{/each}}
+
+# =============================================================================
+# DEPENDENCIES
+# =============================================================================
+dependencies:
+  internal:
+    # {{#each internal_deps}}
+    - name: "{{component_name}}"
+      purpose: "{{purpose}}"
+    # {{/each}}
+
+  external:
+    # {{#each external_deps}}
+    - package: "{{package_name}}"
+      version: "{{version}}"
+      purpose: "{{purpose}}"
+    # {{/each}}
+
+# =============================================================================
+# TEST SPECIFICATIONS
+# =============================================================================
+tests:
+  unit:
+    # {{#each unit_tests}}
+    - description: "{{test_description}}"
+      type: "{{test_type}}"  # render | interaction | state | props
+      priority: "{{test_priority}}"
+    # {{/each}}
+
+  integration:
+    # {{#each integration_tests}}
+    - description: "{{test_description}}"
+      with: "{{related_component}}"
+    # {{/each}}
+
+  accessibility:
+    - description: "axe-core scan passes"
+    - description: "Keyboard navigation works"
+    - description: "Screen reader announces correctly"
+    # {{#each a11y_tests}}
+    # - description: "{{test_description}}"
+    # {{/each}}
+
+  visual:
+    - description: "Matches Figma/design spec"
+    - description: "Responsive at all breakpoints"
+    # {{#each visual_tests}}
+    # - description: "{{test_description}}"
+    # {{/each}}
+
+# =============================================================================
+# USAGE EXAMPLES
+# =============================================================================
+examples:
+  basic: |
+    <{{component_name}}
+      {{#each basic_props}}
+      {{prop}}={{value}}
+      {{/each}}
+    />
+
+  withVariant: |
+    <{{component_name}}
+      variant="{{variant}}"
+      {{#each variant_props}}
+      {{prop}}={{value}}
+      {{/each}}
+    />
+
+  composition: |
+    {{composition_example}}
+
+# =============================================================================
+# RELATED COMPONENTS
+# =============================================================================
+related:
+  # {{#each related_components}}
+  - name: "{{component_name}}"
+    relationship: "{{relationship}}"  # parent | child | sibling | alternative
+  # {{/each}}
+
+# =============================================================================
+# DESIGN TOKENS REFERENCE
+# =============================================================================
+styles:
+  _ref: "../../shared/design-tokens.yaml"
+
+  overrides:
+    # Component-specific token overrides
+    # {{#each style_overrides}}
+    # {{token}}: "{{value}}"
+    # {{/each}}
+
+# =============================================================================
+# CHANGELOG
+# =============================================================================
+changelog:
+  - version: "1.0.0"
+    date: "{{creation_date}}"
+    changes:
+      - "Initial component specification"
+  # {{#each changelog_entries}}
+  # - version: "{{version}}"
+  #   date: "{{date}}"
+  #   changes:
+  #     - "{{change}}"
+  # {{/each}}

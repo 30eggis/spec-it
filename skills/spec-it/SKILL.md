@@ -37,6 +37,10 @@ IF args contains "auto" OR "automation" OR "full-auto":
   Skill(spec-it-automation, args)
   STOP
 
+IF args contains "fast" OR "quick" OR "rapid":
+  Skill(spec-it-fast-launch, args)
+  STOP
+
 IF args contains "--resume":
   # Resume needs to know which mode - check session _meta.json
   Read: tmp/{sessionId}/_meta.json
@@ -60,10 +64,16 @@ Options:
      - Auto-validation between milestones
      - Best for: Medium projects
 
-  3. "Full Automation"
+  3. "Full Automation → Execute"
      - Minimal approval (only final review)
-     - Maximum speed
+     - Auto-proceeds to implementation (spec-it-execute)
      - Best for: Large projects, experienced users
+
+  4. "Fast → Execute (Recommended for prototyping)"
+     - Skip brainstorming, components, tests
+     - Quick wireframes with design trends
+     - Auto-proceeds to implementation
+     - Best for: Rapid prototyping, design validation
 ```
 
 ### Step 3: Route to Selected Mode
@@ -72,20 +82,24 @@ Options:
 CASE selection:
   "Step-by-Step" → Skill(spec-it-stepbystep)
   "Complex/Hybrid" → Skill(spec-it-complex)
-  "Full Automation" → Skill(spec-it-automation)
+  "Full Automation → Execute" → Skill(spec-it-automation)  # Auto-executes after spec
+  "Fast → Execute" → Skill(spec-it-fast-launch)           # Auto-executes after spec
 ```
 
 ---
 
 ## Mode Comparison
 
-| Feature | Step-by-Step | Complex | Automation |
-|---------|--------------|---------|------------|
-| Approvals | Every chapter | 4 milestones | Final only |
-| Control | Maximum | Balanced | Minimal |
-| Speed | Slowest | Medium | Fastest |
-| Learning | Best | Good | Limited |
-| Project Size | Small | Medium | Large |
+| Feature | Step-by-Step | Complex | Automation | Fast |
+|---------|--------------|---------|------------|------|
+| Approvals | Every chapter | 4 milestones | Final only | Final only |
+| Control | Maximum | Balanced | Minimal | Minimal |
+| Speed | Slowest | Medium | Fast | **Fastest** |
+| Learning | Best | Good | Limited | None |
+| Project Size | Small | Medium | Large | Prototype |
+| Auto-Execute | No | No | **Yes** | **Yes** |
+| Components | Full | Full | Full | Skipped |
+| Tests | Full | Full | Full | Skipped |
 
 ---
 
@@ -100,13 +114,17 @@ For experienced users who know which mode they want:
 # Complex/Hybrid mode
 /spec-it-complex
 
-# Full Automation mode
+# Full Automation mode (auto-executes)
 /spec-it-automation
+
+# Fast mode (auto-executes)
+/spec-it-fast-launch
 
 # Resume any mode
 /spec-it-stepbystep --resume 20260130-123456
 /spec-it-complex --resume 20260130-123456
 /spec-it-automation --resume 20260130-123456
+/spec-it-fast-launch --resume 20260130-123456
 ```
 
 ---

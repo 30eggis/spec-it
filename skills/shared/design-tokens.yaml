@@ -1,0 +1,336 @@
+# Shared Design Tokens for Spec-IT System
+# Reference this file in spec templates using: _ref: "../_shared/design-tokens.yaml"
+# Version: 1.0.0
+
+# =============================================================================
+# COLOR SYSTEM
+# =============================================================================
+colors:
+  # Semantic Colors (Light Theme)
+  light:
+    background:
+      primary: "bg-white"           # Main background
+      secondary: "bg-slate-50"      # Section backgrounds
+      tertiary: "bg-slate-100"      # Card backgrounds
+      inverse: "bg-slate-900"       # Dark sections
+
+    foreground:
+      primary: "text-slate-900"     # Main text
+      secondary: "text-slate-600"   # Secondary text
+      muted: "text-slate-400"       # Hints, placeholders
+      inverse: "text-white"         # Text on dark bg
+
+    border:
+      default: "border-slate-200"
+      strong: "border-slate-300"
+      focus: "border-blue-500"
+
+    status:
+      success: "text-emerald-600 bg-emerald-50"
+      warning: "text-amber-600 bg-amber-50"
+      error: "text-red-600 bg-red-50"
+      info: "text-blue-600 bg-blue-50"
+
+  # Semantic Colors (Dark Theme)
+  dark:
+    background:
+      primary: "bg-slate-950"       # Main background
+      secondary: "bg-slate-900"     # Section backgrounds
+      tertiary: "bg-slate-800"      # Card backgrounds
+      elevated: "bg-slate-800/50"   # Floating elements
+
+    foreground:
+      primary: "text-slate-100"     # Main text
+      secondary: "text-slate-400"   # Secondary text
+      muted: "text-slate-500"       # Hints, placeholders
+
+    border:
+      default: "border-slate-700"
+      strong: "border-slate-600"
+      focus: "border-blue-400"
+      glow: "border-blue-500/50"
+
+    status:
+      success: "text-emerald-400 bg-emerald-500/10"
+      warning: "text-amber-400 bg-amber-500/10"
+      error: "text-red-400 bg-red-500/10"
+      info: "text-blue-400 bg-blue-500/10"
+
+  # Brand Accent Colors
+  accent:
+    primary: "blue"
+    secondary: "indigo"
+    classes:
+      primary: "bg-blue-600 text-white hover:bg-blue-700"
+      secondary: "bg-indigo-600 text-white hover:bg-indigo-700"
+      ghost: "bg-transparent hover:bg-slate-100 dark:hover:bg-slate-800"
+
+# =============================================================================
+# SPACING SYSTEM
+# =============================================================================
+spacing:
+  # Component Internal Padding
+  padding:
+    xs: "p-1"      # 4px - Tiny elements
+    sm: "p-2"      # 8px - Small elements
+    md: "p-4"      # 16px - Default
+    lg: "p-6"      # 24px - Cards, sections
+    xl: "p-8"      # 32px - Page sections
+
+  # Gap Between Elements
+  gap:
+    xs: "gap-1"    # 4px
+    sm: "gap-2"    # 8px
+    md: "gap-4"    # 16px
+    lg: "gap-6"    # 24px
+    xl: "gap-8"    # 32px
+
+  # Margins
+  margin:
+    section: "mb-8"    # Between major sections
+    element: "mb-4"    # Between elements
+    tight: "mb-2"      # Tight grouping
+
+# =============================================================================
+# TYPOGRAPHY
+# =============================================================================
+typography:
+  # Font Families
+  family:
+    sans: "font-sans"         # Inter, system-ui
+    mono: "font-mono"         # Fira Code, monospace
+    display: "font-display"   # For headlines
+
+  # Font Sizes
+  size:
+    xs: "text-xs"       # 12px - Labels, hints
+    sm: "text-sm"       # 14px - Secondary text
+    base: "text-base"   # 16px - Body text
+    lg: "text-lg"       # 18px - Subheadings
+    xl: "text-xl"       # 20px - Section titles
+    "2xl": "text-2xl"   # 24px - Page titles
+    "3xl": "text-3xl"   # 30px - Hero text
+    "4xl": "text-4xl"   # 36px - Display
+
+  # Font Weights
+  weight:
+    normal: "font-normal"     # 400
+    medium: "font-medium"     # 500
+    semibold: "font-semibold" # 600
+    bold: "font-bold"         # 700
+
+  # Line Heights
+  leading:
+    tight: "leading-tight"    # 1.25
+    normal: "leading-normal"  # 1.5
+    relaxed: "leading-relaxed" # 1.625
+
+  # Heading Presets
+  headings:
+    h1: "text-3xl font-bold tracking-tight"
+    h2: "text-2xl font-semibold"
+    h3: "text-xl font-semibold"
+    h4: "text-lg font-medium"
+    body: "text-base font-normal leading-relaxed"
+    caption: "text-sm text-slate-500"
+
+# =============================================================================
+# LAYOUT
+# =============================================================================
+layout:
+  # Container Widths
+  container:
+    sm: "max-w-sm"      # 384px
+    md: "max-w-md"      # 448px
+    lg: "max-w-lg"      # 512px
+    xl: "max-w-xl"      # 576px
+    "2xl": "max-w-2xl"  # 672px
+    "4xl": "max-w-4xl"  # 896px
+    "6xl": "max-w-6xl"  # 1152px
+    full: "max-w-full"
+
+  # Sidebar Widths
+  sidebar:
+    collapsed: "w-16"   # 64px - Icons only
+    compact: "w-48"     # 192px - Short labels
+    default: "w-64"     # 256px - Standard
+    wide: "w-80"        # 320px - With descriptions
+
+  # Grid Systems
+  grid:
+    cols2: "grid grid-cols-2 gap-4"
+    cols3: "grid grid-cols-3 gap-4"
+    cols4: "grid grid-cols-4 gap-4"
+    responsive: "grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+
+# =============================================================================
+# COMPONENTS
+# =============================================================================
+components:
+  # Card Styles
+  card:
+    base: "rounded-xl border bg-white dark:bg-slate-800"
+    elevated: "rounded-xl bg-white dark:bg-slate-800 shadow-lg"
+    gradient: "rounded-xl bg-gradient-to-br from-slate-800 to-slate-900"
+    glass: "rounded-xl backdrop-blur-lg bg-white/10 border border-white/20"
+
+  # Button Styles
+  button:
+    base: "inline-flex items-center justify-center rounded-lg font-medium transition-colors focus-visible:outline-none focus-visible:ring-2"
+    sizes:
+      sm: "h-8 px-3 text-sm"
+      md: "h-10 px-4"
+      lg: "h-12 px-6 text-lg"
+    variants:
+      primary: "bg-blue-600 text-white hover:bg-blue-700"
+      secondary: "bg-slate-100 text-slate-900 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-100"
+      outline: "border border-slate-300 hover:bg-slate-100 dark:border-slate-600"
+      ghost: "hover:bg-slate-100 dark:hover:bg-slate-800"
+      destructive: "bg-red-600 text-white hover:bg-red-700"
+
+  # Input Styles
+  input:
+    base: "flex w-full rounded-lg border bg-transparent px-3 py-2 text-sm transition-colors focus-visible:outline-none focus-visible:ring-2"
+    default: "border-slate-300 focus-visible:ring-blue-500 dark:border-slate-600"
+    error: "border-red-500 focus-visible:ring-red-500"
+
+  # Badge Styles
+  badge:
+    base: "inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium"
+    variants:
+      default: "bg-slate-100 text-slate-800 dark:bg-slate-700 dark:text-slate-300"
+      success: "bg-emerald-100 text-emerald-800 dark:bg-emerald-900/30 dark:text-emerald-400"
+      warning: "bg-amber-100 text-amber-800 dark:bg-amber-900/30 dark:text-amber-400"
+      error: "bg-red-100 text-red-800 dark:bg-red-900/30 dark:text-red-400"
+
+  # Table Styles
+  table:
+    wrapper: "overflow-hidden rounded-lg border border-slate-200 dark:border-slate-700"
+    header: "bg-slate-50 dark:bg-slate-800/50"
+    headerCell: "px-4 py-3 text-left text-sm font-semibold text-slate-900 dark:text-slate-100"
+    row: "border-b border-slate-200 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800/50"
+    cell: "px-4 py-3 text-sm text-slate-600 dark:text-slate-400"
+
+# =============================================================================
+# EFFECTS
+# =============================================================================
+effects:
+  # Shadows
+  shadow:
+    sm: "shadow-sm"
+    md: "shadow-md"
+    lg: "shadow-lg"
+    xl: "shadow-xl"
+    glow: "shadow-lg shadow-blue-500/20"
+    inner: "shadow-inner"
+
+  # Border Radius
+  radius:
+    none: "rounded-none"
+    sm: "rounded-sm"
+    md: "rounded-md"
+    lg: "rounded-lg"
+    xl: "rounded-xl"
+    "2xl": "rounded-2xl"
+    full: "rounded-full"
+
+  # Opacity
+  opacity:
+    disabled: "opacity-50"
+    hover: "opacity-80"
+    muted: "opacity-60"
+
+  # Transitions
+  transition:
+    fast: "transition-all duration-150"
+    normal: "transition-all duration-200"
+    slow: "transition-all duration-300"
+    colors: "transition-colors duration-200"
+
+# =============================================================================
+# ANIMATIONS (Framer Motion Presets)
+# =============================================================================
+animations:
+  # Entrance Animations
+  fadeIn:
+    initial: { opacity: 0 }
+    animate: { opacity: 1 }
+    duration: 0.2
+
+  slideUp:
+    initial: { opacity: 0, y: 10 }
+    animate: { opacity: 1, y: 0 }
+    duration: 0.3
+
+  slideIn:
+    initial: { opacity: 0, x: -10 }
+    animate: { opacity: 1, x: 0 }
+    duration: 0.2
+
+  scaleIn:
+    initial: { opacity: 0, scale: 0.95 }
+    animate: { opacity: 1, scale: 1 }
+    duration: 0.2
+
+  # Stagger Children
+  stagger:
+    container:
+      animate: { transition: { staggerChildren: 0.05 } }
+    item:
+      initial: { opacity: 0, y: 10 }
+      animate: { opacity: 1, y: 0 }
+
+  # Hover Effects
+  hover:
+    lift: { y: -2, transition: { duration: 0.2 } }
+    scale: { scale: 1.02, transition: { duration: 0.2 } }
+    glow: { boxShadow: "0 0 20px rgba(59, 130, 246, 0.3)" }
+
+# =============================================================================
+# BREAKPOINTS
+# =============================================================================
+breakpoints:
+  sm: "640px"   # Mobile landscape
+  md: "768px"   # Tablet
+  lg: "1024px"  # Desktop
+  xl: "1280px"  # Large desktop
+  "2xl": "1536px" # Extra large
+
+responsive:
+  mobile: "max-w-sm"       # < 640px
+  tablet: "sm:max-w-xl"    # 640px - 1024px
+  desktop: "lg:max-w-4xl"  # > 1024px
+
+# =============================================================================
+# Z-INDEX SCALE
+# =============================================================================
+zIndex:
+  base: "z-0"
+  dropdown: "z-10"
+  sticky: "z-20"
+  fixed: "z-30"
+  modal-backdrop: "z-40"
+  modal: "z-50"
+  popover: "z-60"
+  tooltip: "z-70"
+  toast: "z-80"
+
+# =============================================================================
+# USAGE EXAMPLES
+# =============================================================================
+# These examples show how to reference tokens in spec files:
+#
+# In component specs:
+# ```yaml
+# styles:
+#   _ref: "../_shared/design-tokens.yaml"
+#   card: "${components.card.elevated}"
+#   button: "${components.button.variants.primary}"
+# ```
+#
+# In wireframe specs:
+# ```yaml
+# layout:
+#   sidebar: { width: "${layout.sidebar.default}" }
+#   grid: "${layout.grid.responsive}"
+# ```

@@ -10,6 +10,8 @@ permissionMode: bypassPermissions
 
 Transform PRD/vibe-coding into frontend specifications with **maximum automation** and **minimal user intervention**.
 
+**Auto-Execute:** After spec generation, automatically proceeds to `spec-it-execute` for implementation.
+
 ## Rules
 
 See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rules.md](../shared/context-rules.md).
@@ -27,7 +29,11 @@ See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rule
       ↓
 [Auto: Test Spec → Assembly]
       ↓
-★ Final Approval (only user interaction)
+★ Final Approval (only user interaction for spec)
+      ↓
+[Auto: spec-it-execute (Phase 0-9)]
+      ↓
+★ Implementation Complete
 ```
 
 ---
@@ -361,19 +367,60 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/sta
 
 ---
 
-## Phase 6: Final Approval
+## Phase 6: Final Approval & Auto-Execute
 
 ```
 Read: 06-final/SPEC-SUMMARY.md
 
-AskUserQuestion: "Spec complete. Handle tmp folder?"
-Options: [Archive, Keep, Delete]
+AskUserQuestion: "Spec complete. Ready to start implementation?"
+Options: [
+  {label: "Proceed to Execute (Recommended)", description: "Auto-start implementation"},
+  {label: "Review First", description: "I'll review the spec, then manually run /spec-it-execute"},
+  {label: "Spec Only", description: "Don't execute, keep spec files"}
+]
 
-IF Archive: mv tmp/{sessionId} archive/
-IF Delete: rm -rf tmp/{sessionId}
+IF "Proceed to Execute" OR "Proceed":
+  Output: "Starting implementation with spec-it-execute..."
+
+  # Auto-invoke spec-it-execute
+  Skill(spec-it-execute, "tmp/{sessionId}")
+
+ELIF "Review First":
+  Output: "
+  Spec saved. To execute later:
+  /spec-it-execute tmp/{sessionId}
+  "
+
+ELSE ("Spec Only"):
+  AskUserQuestion: "Handle tmp folder?"
+  Options: [Archive, Keep, Delete]
+
+  IF Archive: mv tmp/{sessionId} archive/
+  IF Delete: rm -rf tmp/{sessionId}
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
 ```
+
+---
+
+## Phase 7: Execute (Auto-invoked)
+
+When auto-execute is selected, spec-it-execute handles:
+
+| Phase | Description |
+|-------|-------------|
+| 0 | Initialize session |
+| 1 | Load specs |
+| 2 | Plan execution |
+| 3 | Implement code (batched parallel) |
+| 4 | QA loop (build/type/lint/test) |
+| 5 | Spec-mirror verification |
+| 6 | Unit tests (95% coverage target) |
+| 7 | E2E tests (100% pass target) |
+| 8 | Code & security review |
+| 9 | Complete |
+
+See `spec-it-execute/SKILL.md` for full details.
 
 ---
 
@@ -429,6 +476,8 @@ tmp/{sessionId}/
 
 ## Progress Tracking
 
+### Spec Generation (Phase 1-6)
+
 | Phase | Steps | Progress |
 |-------|-------|----------|
 | 1 | 1.1-1.4 | 0-16% |
@@ -437,6 +486,20 @@ tmp/{sessionId}/
 | 4 | 4.1 | 51-66% |
 | 5 | 5.1 | 67-83% |
 | 6 | 6.1 | 84-100% |
+
+### Implementation (Phase 7 - spec-it-execute)
+
+| Execute Phase | Progress |
+|---------------|----------|
+| LOAD | 0-10% |
+| PLAN | 10-20% |
+| EXECUTE | 20-50% |
+| QA | 50-60% |
+| SPEC-MIRROR | 60-70% |
+| UNIT-TEST | 70-80% |
+| SCENARIO-TEST | 80-90% |
+| VALIDATE | 90-95% |
+| COMPLETE | 100% |
 
 ---
 

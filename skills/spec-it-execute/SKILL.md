@@ -12,6 +12,32 @@ Transform spec-it specifications into **working code** with **autonomous executi
 
 ---
 
+## Spec Format Support
+
+Supports both YAML (preferred) and Markdown (legacy) spec formats:
+
+| Format | Extension | Priority | Benefits |
+|--------|-----------|----------|----------|
+| YAML | `.yaml` | **Preferred** | -64% file size, 10x faster parsing |
+| Markdown | `.md` | Fallback | Legacy support |
+
+### Format Detection
+
+```
+1. Check _meta.json for "specFormat" field
+2. If not specified, detect by file extension
+3. YAML files take precedence when both exist
+```
+
+### YAML Spec Benefits
+
+- **Structured parsing**: Direct YAML.parse vs regex
+- **Shared tokens**: `_ref` to design-tokens.yaml
+- **Precise values**: Exact measurements, not approximations
+- **Reduced tokens**: ~80% reduction in duplicate content
+
+---
+
 ## Overview
 
 ```
@@ -41,16 +67,31 @@ Transform spec-it specifications into **working code** with **autonomous executi
 | Agent | Model | Phase | Role |
 |-------|-------|-------|------|
 | `spec-critic` | Opus | 2 | Plan validation |
-| `spec-executor` | Opus | 3 | Multi-file implementation |
-| `spec-mirror-analyst` | Opus | 5 | Spec 일치 분석, 누락 항목 식별 |
-| `test-implementer` | Opus | 6 | Unit Test 코드 구현 |
+| `spec-executor` | Opus/Sonnet | 3 | Multi-file implementation (complexity-based) |
+| `spec-mirror-analyst` | **Sonnet** | 5 | Spec 일치 분석, 누락 항목 식별 |
+| `test-implementer` | **Sonnet** | 6 | Unit Test 코드 구현 |
 | `test-critic` | Opus | 6 | 테스트 품질 비판적 검수 |
-| `e2e-implementer` | Opus | 7 | Playwright E2E 테스트 구현 |
+| `e2e-implementer` | **Sonnet** | 7 | Playwright E2E 테스트 구현 |
 | `scenario-recommender` | Sonnet | 7 | 추가 시나리오 추천 |
 | `regression-checker` | Haiku | 7 | Unit Test regression 확인 |
 | `code-reviewer` | Opus | 8 | Code quality review |
 | `security-reviewer` | Opus | 8 | Security audit |
 | `screen-vision` | Sonnet | 1 | Mockup analysis (if provided) |
+
+## Optimized Model Routing
+
+| Phase | Task Type | Old Model | New Model | Savings |
+|-------|-----------|-----------|-----------|---------|
+| 3 | 단순 컴포넌트 | Opus | Sonnet | ~60% |
+| 3 | 복잡한 멀티파일 | Opus | Opus | - |
+| 4 | Build 에러 수정 | Opus | **Haiku** | ~80% |
+| 4 | Type 에러 수정 | Opus | **Sonnet** | ~60% |
+| 5 | 시각 비교 | Opus | **Sonnet** | ~60% |
+| 6 | Unit 테스트 | Opus | **Sonnet** | ~60% |
+| 7 | E2E 테스트 | Opus | **Sonnet** | ~60% |
+| 8 | 보안 리뷰 | Opus | Opus | - |
+
+**Rule:** Always pass `model` parameter explicitly to Task calls based on this routing table.
 
 ---
 
@@ -87,11 +128,37 @@ Transform spec-it specifications into **working code** with **autonomous executi
 
 | Complexity | Model | Use Case |
 |------------|-------|----------|
-| LOW | Haiku | Simple file reads, status checks |
-| MEDIUM | Sonnet | Standard implementation tasks |
-| HIGH | Opus | Complex multi-file changes, reviews |
+| LOW | Haiku | Simple file reads, status checks, build errors |
+| MEDIUM | Sonnet | Standard implementation, tests, visual comparison |
+| HIGH | Opus | Complex multi-file changes, critical reviews, security |
 
 **Rule:** Always pass `model` parameter explicitly to Task calls.
+
+### Complexity Assessment Rules
+
+```
+LOW (→ Haiku):
+- Single file read/status check
+- Build error with clear message
+- Simple regex-based fix
+- Status reporting
+
+MEDIUM (→ Sonnet):
+- Single component implementation
+- Type error fixes
+- Unit test implementation
+- E2E test implementation
+- Visual comparison
+- Spec file parsing
+
+HIGH (→ Opus):
+- Multi-file implementation (3+ files)
+- Cross-component changes
+- Architectural decisions
+- Security review
+- Code quality review
+- Plan generation/critique
+```
 
 ---
 
@@ -446,12 +513,40 @@ Phase 2 Complete (PLAN)
 
 ### Phase 3: EXECUTE (Implementation)
 
-#### Step 3.1: Execute Tasks (Sequential)
+#### Step 3.0: Build Dependency Graph & Batch Tasks
 ```
 Read(.spec-it/execute/{sessionId}/plans/execution-plan.md)
 tasks = parse_tasks(plan)
 
-FOR task IN tasks (sorted by dependency):
+# Build dependency graph from dev-tasks.md
+dependencyGraph = build_dependency_graph(tasks)
+
+# Topological sort into execution batches
+# Tasks with same level (no inter-dependencies) can run in parallel
+batches = topological_batch(dependencyGraph, maxParallel=4)
+
+# Example:
+# Batch 1: [T-001, T-002, T-003, T-004] (no dependencies, parallel)
+# Batch 2: [T-005, T-006] (depends on Batch 1)
+# Batch 3: [T-007] (depends on T-005)
+
+Output: "
+Execution Plan:
+- Total tasks: {tasks.length}
+- Batches: {batches.length}
+- Estimated parallelization savings: ~{savingsPercent}%
+"
+```
+
+#### Step 3.1: Execute Tasks (Batched Parallel)
+```
+FOR batch IN batches:
+  Output: "Batch {batch.index}/{batches.length}: Executing {batch.tasks.length} tasks in parallel"
+
+  # Execute all tasks in this batch in parallel (max 4)
+  parallelTasks = []
+
+  FOR task IN batch.tasks:
 
   # Determine complexity for model routing
   complexity = assess_complexity(task)
@@ -508,44 +603,55 @@ FOR task IN tasks (sorted by dependency):
   ELSE:
     designRefContext = ""
 
-  Task(
-    subagent_type: "general-purpose",
-    model: model,
-    prompt: "
-      Role: spec-executor
+    # Add to parallel task list
+    parallelTasks.append(
+      Task(
+        subagent_type: "general-purpose",
+        model: model,
+        run_in_background: true,  # Enable parallel execution
+        prompt: "
+          Role: spec-executor
 
-      Task: {task.name}
-      Files: {task.files}
-      Spec Reference: {task.spec_ref}
+          Task: {task.name}
+          Files: {task.files}
+          Spec Reference: {task.spec_ref}
 
-      {uiRefContext}
+          {uiRefContext}
 
-      {designRefContext}
+          {designRefContext}
 
-      Requirements:
-      1. Implement exactly as specified
-      2. Use TodoWrite for tracking
-      3. Verify after each file change
-      4. Record decisions in notepad
-      5. IF HTML reference exists, match design exactly
-      6. IF designRefContext exists, follow template patterns
+          Requirements:
+          1. Implement exactly as specified
+          2. Use TodoWrite for tracking
+          3. Verify after each file change
+          4. Record decisions in notepad
+          5. IF HTML reference exists, match design exactly
+          6. IF designRefContext exists, follow template patterns
 
-      Verification Command: {task.verification}
+          Verification Command: {task.verification}
 
-      Output log: .spec-it/execute/{sessionId}/logs/task-{task.id}.md
+          Output log: .spec-it/execute/{sessionId}/logs/task-{task.id}.md
 
-      OUTPUT RULES:
-      1. Write implementation to specified files
-      2. Write log to output log path
-      3. Include template source comments in code
-      4. Return: 'Done. Task {id}: {status}. Files: {count}'
-    "
-  )
+          OUTPUT RULES:
+          1. Write implementation to specified files
+          2. Write log to output log path
+          3. Include template source comments in code
+          4. Return: 'Done. Task {id}: {status}. Files: {count}'
+        "
+      )
+    )
 
-  # Update progress
-  _state.completedTasks += task.id
+  # Wait for all parallel tasks in this batch to complete
+  AWAIT ALL parallelTasks
+
+  # Update progress for batch
+  FOR task IN batch.tasks:
+    _state.completedTasks += task.id
+
   _state.lastCheckpoint = now()
   Update(_state.json)
+
+  Output: "Batch {batch.index} complete: {batch.tasks.length} tasks"
 
   # Live Preview 확인 (활성화된 경우)
   IF _state.livePreview AND task involves UI changes:
@@ -640,30 +746,52 @@ WHILE _state.qaAttempts < _state.maxQaAttempts:
     Output: "QA Passed on attempt {_state.qaAttempts}"
     BREAK
 
-  # Diagnose and fix (needs general-purpose for file editing)
-  Task(
-    subagent_type: "general-purpose",
-    model: "opus",
-    prompt: "
-      Role: spec-executor
+  # Diagnose and fix with optimized model routing
+  # Parse error types from QA results
+  errorTypes = parse_error_types(QA_results)
 
-      QA Failures (Attempt {_state.qaAttempts}/{maxQaAttempts}):
+  # Route to appropriate model based on error type
+  FOR errorType IN errorTypes:
+    IF errorType == "BUILD":
+      # Build errors are usually straightforward
+      model = "haiku"
+    ELIF errorType == "TYPE":
+      # Type errors need more context
+      model = "sonnet"
+    ELIF errorType == "LINT":
+      # Lint errors are mechanical
+      model = "haiku"
+    ELIF errorType == "TEST":
+      # Test failures may need logic understanding
+      model = "sonnet"
+    ELSE:
+      model = "sonnet"
 
-      {QA check results from previous task}
+    Task(
+      subagent_type: "general-purpose",
+      model: model,
+      prompt: "
+        Role: spec-executor
 
-      Instructions:
-      1. Analyze root cause of each failure
-      2. Fix issues (prioritize: build → type → lint → test)
-      3. Verify fix with same command
-      4. Log all changes
+        QA Failure Type: {errorType}
+        Attempt: {_state.qaAttempts}/{maxQaAttempts}
 
-      Output: .spec-it/execute/{sessionId}/logs/qa-{attempt}.md
+        Error Details:
+        {error_details_for_this_type}
 
-      OUTPUT RULES:
-      1. Write log to output path
-      2. Return: 'Fixed {N} issues. Ready for re-check.'
-    "
-  )
+        Instructions:
+        1. Analyze root cause
+        2. Fix the {errorType} errors
+        3. Verify fix with appropriate command
+        4. Log changes
+
+        Output: .spec-it/execute/{sessionId}/logs/qa-{attempt}-{errorType}.md
+
+        OUTPUT RULES:
+        1. Write log to output path
+        2. Return: 'Fixed {N} {errorType} issues.'
+      "
+    )
 
   Update(_state.json)
 
@@ -716,7 +844,7 @@ IF NOT _state.livePreview:
   Update(_state.json)
 ```
 
-#### Step 5.2: Screen-by-Screen Verification
+#### Step 5.2: Screen-by-Screen Verification (Batched)
 ```
 WHILE _state.mirrorAttempts < _state.maxMirrorAttempts:
 
@@ -730,58 +858,70 @@ WHILE _state.mirrorAttempts < _state.maxMirrorAttempts:
   matchedItems = []
   overSpecItems = []
 
-  FOR screen IN screens:
-    # 1. Navigate to screen
-    MCP_CALL: navigate_page(url: _state.previewUrl + screen.route)
+  # Batch screenshots first (4 at a time for parallel capture)
+  screenshotBatches = batch(screens, size=4)
 
-    # 2. Wait for load
-    MCP_CALL: wait_for(text: screen.expectedText, timeout: 10000)
+  FOR batch IN screenshotBatches:
+    # Capture screenshots in sequence (browser limitation)
+    FOR screen IN batch:
+      # 1. Navigate to screen
+      MCP_CALL: navigate_page(url: _state.previewUrl + screen.route)
 
-    # 3. Take screenshot
-    MCP_CALL: take_screenshot(
-      path: ".spec-it/execute/{sessionId}/screenshots/mirror-{screen.name}.png"
-    )
+      # 2. Wait for load
+      MCP_CALL: wait_for(text: screen.expectedText, timeout: 10000)
 
-    # 4. Get DOM snapshot
-    snapshot = MCP_CALL: take_snapshot()
+      # 3. Take screenshot
+      MCP_CALL: take_screenshot(
+        path: ".spec-it/execute/{sessionId}/screenshots/mirror-{screen.name}.png"
+      )
 
-    # 5. Test interactions (if defined)
-    FOR interaction IN screen.interactions:
-      MCP_CALL: click(uid: interaction.element)
-      MCP_CALL: fill(uid: interaction.input, value: interaction.testValue)
-      # Verify expected result
+      # 4. Get DOM snapshot and save
+      snapshot = MCP_CALL: take_snapshot()
+      Write(.spec-it/execute/{sessionId}/snapshots/{screen.name}.json, snapshot)
 
-    # 6. Analyze match with spec
-    Task(
-      subagent_type: "general-purpose",
-      model: "opus",
-      prompt: "
-        Role: spec-mirror-analyst
+    # Analyze batch in parallel (using Sonnet for cost efficiency)
+    analysisTasks = []
+    FOR screen IN batch:
+      analysisTasks.append(
+        Task(
+          subagent_type: "general-purpose",
+          model: "sonnet",  # Optimized: Sonnet instead of Opus
+          run_in_background: true,
+          prompt: "
+            Role: spec-mirror-analyst
 
-        Compare:
-        - Original Spec: {spec-folder}/02-screens/wireframes/{screen.name}.md
-        - Screenshot: .spec-it/execute/{sessionId}/screenshots/mirror-{screen.name}.png
-        - DOM Snapshot: {snapshot}
+            Compare:
+            - Original Spec: {spec-folder}/02-screens/wireframes/{screen.name}.{yaml|md}
+            - Screenshot: .spec-it/execute/{sessionId}/screenshots/mirror-{screen.name}.png
+            - DOM Snapshot: .spec-it/execute/{sessionId}/snapshots/{screen.name}.json
 
-        Analyze:
-        1. 모든 Spec 요소가 화면에 존재하는가?
-        2. 레이아웃이 일치하는가?
-        3. 인터랙션이 정상 동작하는가?
-        4. 추가 구현된 기능이 있는가? (over-spec, 허용됨)
+            Analyze:
+            1. 모든 Spec 요소가 화면에 존재하는가?
+            2. 레이아웃이 일치하는가?
+            3. 인터랙션이 정상 동작하는가?
+            4. 추가 구현된 기능이 있는가? (over-spec, 허용됨)
 
-        Output:
-        - MATCHED: [list of matched items]
-        - MISSING: [list of missing items] → FAIL 조건
-        - OVER_SPEC: [list of over-spec items] → 허용됨
+            Output: .spec-it/execute/{sessionId}/analysis/mirror-{screen.name}.md
 
-        OUTPUT RULES: (standard)
-      "
-    )
+            Format:
+            MATCHED: [list]
+            MISSING: [list]
+            OVER_SPEC: [list]
 
-    # Aggregate results
-    matchedItems += screen.matched
-    missingItems += screen.missing
-    overSpecItems += screen.overSpec
+            OUTPUT RULES: (standard)
+          "
+        )
+      )
+
+    # Wait for all analysis tasks
+    AWAIT ALL analysisTasks
+
+    # Aggregate results from analysis files
+    FOR screen IN batch:
+      Read(.spec-it/execute/{sessionId}/analysis/mirror-{screen.name}.md)
+      matchedItems += screen.matched
+      missingItems += screen.missing
+      overSpecItems += screen.overSpec
 
   # Generate MIRROR_REPORT
   Task(
@@ -891,7 +1031,7 @@ Phase 5 Complete (SPEC-MIRROR)
 # Load test specs
 Task(
   subagent_type: "general-purpose",
-  model: "opus",
+  model: "sonnet",  # Optimized: Sonnet for test implementation
   prompt: "
     Role: test-implementer
 
@@ -958,7 +1098,7 @@ WHILE _state.coverageAttempts < _state.maxCoverageAttempts:
   # Analyze gaps and add tests
   Task(
     subagent_type: "general-purpose",
-    model: "opus",
+    model: "sonnet",  # Optimized: Sonnet for test implementation
     prompt: "
       Role: test-implementer
 
@@ -1031,7 +1171,7 @@ IF verdict == "[NEEDS_IMPROVEMENT]":
   # Fix quality issues
   Task(
     subagent_type: "general-purpose",
-    model: "opus",
+    model: "sonnet",  # Optimized: Sonnet for test fixes
     prompt: "
       Role: test-implementer
 
@@ -1071,7 +1211,7 @@ Phase 6 Complete (UNIT-TEST)
 # Load scenarios
 Task(
   subagent_type: "general-purpose",
-  model: "opus",
+  model: "sonnet",  # Optimized: Sonnet for E2E implementation
   prompt: "
     Role: e2e-implementer
 
@@ -1190,7 +1330,7 @@ WHILE _state.scenarioAttempts < _state.maxScenarioAttempts:
   # Load failed scenarios
   Task(
     subagent_type: "general-purpose",
-    model: "opus",
+    model: "sonnet",  # Optimized: Sonnet for E2E fixes
     prompt: "
       Role: spec-executor
 

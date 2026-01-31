@@ -1,0 +1,308 @@
+# Layout System Template (YAML Format)
+# Version: 1.0.0
+#
+# Structured format for layout system specs - defines reusable layout patterns.
+
+# =============================================================================
+# METADATA
+# =============================================================================
+id: "LYT-{{layout_id}}"
+name: "{{layout_name}}"
+description: "{{layout_description}}"
+version: "1.0.0"
+
+# Screens using this layout
+usedBy:
+  # {{#each screens_using_layout}}
+  - "{{screen_name}}"
+  # {{/each}}
+
+# =============================================================================
+# LAYOUT STRUCTURE
+# =============================================================================
+structure:
+  type: "{{layout_type}}"  # sidebar-main | header-content | split | stacked | dashboard
+
+  # Define layout regions
+  regions:
+    header:
+      enabled: "{{header_enabled}}"
+      position: "top"
+      height: "{{header_height}}"    # 64px | 80px | auto
+      sticky: "{{header_sticky}}"
+      zIndex: "z-30"
+
+    sidebar:
+      enabled: "{{sidebar_enabled}}"
+      position: "{{sidebar_position}}"  # left | right
+      width: "{{sidebar_width}}"        # 64px | 200px | 256px | 320px
+      collapsible: "{{sidebar_collapsible}}"
+      collapsedWidth: "{{collapsed_width}}"  # 64px
+      breakpoint: "{{sidebar_hide_below}}"   # lg | md | always-visible
+
+    main:
+      gridArea: "main"
+      padding: "{{main_padding}}"
+      maxWidth: "{{main_max_width}}"  # max-w-4xl | max-w-6xl | full
+      overflow: "{{main_overflow}}"   # auto | scroll | hidden
+
+    footer:
+      enabled: "{{footer_enabled}}"
+      position: "bottom"
+      height: "{{footer_height}}"
+      sticky: "{{footer_sticky}}"
+
+# =============================================================================
+# CSS GRID DEFINITION
+# =============================================================================
+grid:
+  desktop:
+    display: "grid"
+    template:
+      columns: "{{desktop_columns}}"  # "256px 1fr" | "1fr" | "200px 1fr 300px"
+      rows: "{{desktop_rows}}"        # "64px 1fr 48px" | "1fr"
+      areas: |
+        {{desktop_grid_areas}}
+        # Example:
+        # "header header"
+        # "sidebar main"
+        # "sidebar main"
+
+    gap: "{{desktop_gap}}"  # 0 | gap-4 | gap-6
+    minHeight: "100vh"
+
+  tablet:
+    template:
+      columns: "{{tablet_columns}}"
+      rows: "{{tablet_rows}}"
+      areas: |
+        {{tablet_grid_areas}}
+
+  mobile:
+    template:
+      columns: "1fr"
+      rows: "{{mobile_rows}}"
+      areas: |
+        {{mobile_grid_areas}}
+
+# =============================================================================
+# COMMON COMPONENTS
+# =============================================================================
+commonComponents:
+  # Header Component
+  header:
+    component: "AppHeader"
+    slots:
+      logo:
+        position: "left"
+        width: "{{logo_width}}"
+      navigation:
+        position: "center"
+        items: "{{nav_items_ref}}"
+      actions:
+        position: "right"
+        items:
+          - "search"
+          - "notifications"
+          - "userMenu"
+
+    styles:
+      base: "{{header_base_styles}}"
+      desktop: "{{header_desktop_styles}}"
+      mobile: "{{header_mobile_styles}}"
+
+  # Sidebar Component
+  sidebar:
+    component: "Sidebar"
+    sections:
+      # {{#each sidebar_sections}}
+      - name: "{{section_name}}"
+        collapsible: "{{section_collapsible}}"
+        items: "{{section_items}}"
+      # {{/each}}
+
+    features:
+      search: "{{sidebar_search}}"
+      userProfile: "{{sidebar_user_profile}}"
+      collapse:
+        trigger: "button"  # button | hover | breakpoint
+        animation: "slide" # slide | fade | none
+        duration: "200ms"
+
+    styles:
+      base: "{{sidebar_base_styles}}"
+      collapsed: "{{sidebar_collapsed_styles}}"
+
+  # Footer Component
+  footer:
+    component: "AppFooter"
+    sections:
+      - name: "links"
+        items: "{{footer_links}}"
+      - name: "copyright"
+        text: "{{copyright_text}}"
+
+    styles:
+      base: "{{footer_base_styles}}"
+
+  # Mobile Navigation (replaces sidebar on mobile)
+  mobileNav:
+    type: "{{mobile_nav_type}}"  # drawer | bottom-tabs | hamburger
+    trigger: "{{mobile_nav_trigger}}"
+
+    drawer:
+      position: "left"        # left | right
+      width: "80vw"
+      maxWidth: "320px"
+      overlay: true
+      closeOnNavigate: true
+
+    bottomTabs:
+      items:
+        # {{#each bottom_tab_items}}
+        - icon: "{{icon}}"
+          label: "{{label}}"
+          route: "{{route}}"
+        # {{/each}}
+      maxVisible: 5
+
+# =============================================================================
+# RESPONSIVE BREAKPOINTS
+# =============================================================================
+breakpoints:
+  desktop:
+    minWidth: "1024px"
+    layout: "{{desktop_layout_description}}"
+    changes:
+      - "Full sidebar visible"
+      - "Multi-column content"
+      - "Expanded header actions"
+
+  tablet:
+    minWidth: "768px"
+    maxWidth: "1023px"
+    layout: "{{tablet_layout_description}}"
+    changes:
+      - "Collapsible sidebar (icon only or hidden)"
+      - "2-column content max"
+      - "Condensed header"
+
+  mobile:
+    maxWidth: "767px"
+    layout: "{{mobile_layout_description}}"
+    changes:
+      - "No sidebar (use drawer or bottom nav)"
+      - "Single column content"
+      - "Hamburger menu or bottom tabs"
+      - "Sticky mobile header"
+
+# =============================================================================
+# ANIMATIONS & TRANSITIONS
+# =============================================================================
+animations:
+  sidebarCollapse:
+    property: "width"
+    duration: "200ms"
+    easing: "ease-in-out"
+
+  pageTransition:
+    type: "fade"  # fade | slide | none
+    duration: "150ms"
+
+  mobileDrawer:
+    enter:
+      from: { x: "-100%" }
+      to: { x: "0%" }
+      duration: "300ms"
+      easing: "ease-out"
+    exit:
+      from: { x: "0%" }
+      to: { x: "-100%" }
+      duration: "200ms"
+      easing: "ease-in"
+
+# =============================================================================
+# CONTENT SLOT DEFINITIONS
+# =============================================================================
+slots:
+  # Main content slot - where page content goes
+  main:
+    element: "main"
+    defaultPadding: "p-6"
+    maxWidth: "{{main_content_max_width}}"
+    children: "PageContent"
+
+  # Breadcrumb slot
+  breadcrumb:
+    position: "top-of-main"
+    component: "Breadcrumb"
+
+  # Page header slot (title + actions)
+  pageHeader:
+    position: "top-of-main"
+    component: "PageHeader"
+    props:
+      title: "dynamic"
+      actions: "dynamic"
+
+# =============================================================================
+# ACCESSIBILITY
+# =============================================================================
+accessibility:
+  landmarks:
+    - element: "header"
+      role: "banner"
+    - element: "nav.sidebar"
+      role: "navigation"
+      label: "Main navigation"
+    - element: "main"
+      role: "main"
+    - element: "footer"
+      role: "contentinfo"
+
+  skipLinks:
+    - href: "#main-content"
+      label: "Skip to main content"
+    - href: "#navigation"
+      label: "Skip to navigation"
+
+  focusManagement:
+    sidebarCollapse: "maintain-focus"
+    drawerOpen: "trap-focus"
+    drawerClose: "return-focus"
+
+# =============================================================================
+# DESIGN TOKENS REFERENCE
+# =============================================================================
+styles:
+  _ref: "../../shared/design-tokens.yaml"
+
+  # Layout-specific overrides
+  overrides:
+    # {{#each layout_style_overrides}}
+    # {{token}}: "{{value}}"
+    # {{/each}}
+
+# =============================================================================
+# USAGE GUIDE
+# =============================================================================
+usage: |
+  페이지 와이어프레임 생성 시 이 Layout을 참조하여:
+  1. Layout 구조를 복사
+  2. `main` 영역에 페이지 고유 컨텐츠 삽입
+  3. 필요시 Header/Sidebar 상태 변경 (active menu 등)
+
+  Example:
+  ```tsx
+  <{{layout_name}}Layout>
+    <PageContent>
+      {/* Your page-specific content */}
+    </PageContent>
+  </{{layout_name}}Layout>
+  ```
+
+# =============================================================================
+# NOTES
+# =============================================================================
+notes: |
+  {{implementation_notes}}

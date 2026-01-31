@@ -177,11 +177,13 @@ StockCard
 ├── gap-analysis.md            → Gap 분석 결과
 └── specs/
     ├── layout/
-    │   ├── Header.md
+    │   ├── Header.md          → Markdown (legacy)
+    │   ├── Header.yaml        → YAML (preferred)
     │   ├── Sidebar.md
     │   └── Footer.md
     ├── cards/
     │   ├── StockCard.md
+    │   ├── StockCard.yaml     → YAML format
     │   └── PortfolioCard.md
     ├── display/
     │   ├── PriceDisplay.md
@@ -192,38 +194,53 @@ StockCard
         └── Toast.md
 ```
 
+## Format Detection
+
+The loader auto-detects spec format by file extension:
+
+| Extension | Format | Priority |
+|-----------|--------|----------|
+| `.yaml` | YAML (structured) | **Preferred** |
+| `.md` | Markdown (legacy) | Fallback |
+
+When both formats exist for a component, YAML takes precedence.
+
 ## 로딩 로직
 
 ### --list 모드
 
 ```
 1. Read: {spec-folder}/03-components/component-inventory.md
-2. Glob: {spec-folder}/03-components/specs/**/*.md
-3. 각 파일에서 메타데이터 추출
+2. Glob: {spec-folder}/03-components/specs/**/*.{yaml,md}
+3. 각 파일에서 메타데이터 추출 (YAML: direct parse, MD: regex)
 4. 카테고리별, 의존성 요약 생성
 ```
 
 ### --category 모드
 
 ```
-1. Glob: {spec-folder}/03-components/specs/{category}/*.md
-2. 모든 파일 내용 Read
-3. 통합 출력
+1. Glob: {spec-folder}/03-components/specs/{category}/*.{yaml,md}
+2. YAML 파일 우선, MD fallback
+3. 모든 파일 내용 Read
+4. 통합 출력
 ```
 
 ### --name 모드
 
 ```
-1. Glob: {spec-folder}/03-components/specs/**/{name}.md
-2. Read 해당 파일
-3. 출력
+1. Glob: {spec-folder}/03-components/specs/**/{name}.yaml (preferred)
+2. Fallback: Glob: {spec-folder}/03-components/specs/**/{name}.md
+3. Read 해당 파일
+4. 출력
 ```
 
 ### --with-deps 모드
 
 ```
 1. --name으로 대상 컴포넌트 로딩
-2. 스펙에서 "Dependencies:" 섹션 파싱
+2. 스펙에서 의존성 파싱:
+   - YAML: dependencies.internal[].name
+   - MD: "Dependencies:" 섹션
 3. 각 의존성 재귀적으로 로딩 (순환 참조 방지)
 4. 토폴로지 정렬하여 출력 (의존성 먼저)
 ```
@@ -233,10 +250,38 @@ StockCard
 ```
 1. Read: {spec-folder}/03-components/gap-analysis.md
 2. 또는 동적 분석:
-   - 스펙에 정의된 컴포넌트 목록
+   - 스펙에 정의된 컴포넌트 목록 (*.yaml + *.md)
    - 실제 구현된 컴포넌트 (src/components/**/*.tsx)
    - 차집합 계산
 3. 구현 순서 권장 (의존성 고려)
+```
+
+## YAML Parsing Guide
+
+YAML 포맷 컴포넌트 스펙에서 데이터 추출:
+
+```yaml
+# 메타데이터
+id: "CMP-001"           → 컴포넌트 ID
+name: "StockCard"       → 컴포넌트 이름
+category: "cards"       → 카테고리
+priority: "P0"          → 우선순위
+
+# 의존성
+dependencies:
+  internal:
+    - name: "PriceDisplay"
+    - name: "ChangeIndicator"
+
+# Props
+props:
+  - name: "symbol"
+    type: "string"
+    required: true
+
+# Design tokens reference
+styles:
+  _ref: "../../shared/design-tokens.yaml"
 ```
 
 ## 컴포넌트 스펙 포맷

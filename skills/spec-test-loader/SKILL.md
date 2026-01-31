@@ -122,18 +122,32 @@ permissionMode: bypassPermissions
 │   ├── critical-path.md
 │   └── screen-*.md
 └── components/              → 컴포넌트별 테스트
-    ├── StockCard.test.md
+    ├── StockCard.test.md    → Markdown (legacy)
+    ├── StockCard.test.yaml  → YAML (preferred)
     ├── PriceDisplay.test.md
     └── ...
 ```
+
+## Format Detection
+
+The loader auto-detects spec format by file extension:
+
+| Extension | Format | Priority |
+|-----------|--------|----------|
+| `.test.yaml` | YAML (structured) | **Preferred** |
+| `.test.md` | Markdown (legacy) | Fallback |
+
+When both formats exist, YAML takes precedence.
 
 ## 로딩 로직
 
 ### --list 모드
 
 ```
-1. Glob: {spec-folder}/05-tests/**/*.md
+1. Glob: {spec-folder}/05-tests/**/*.{yaml,md}
 2. 각 파일에서 메타데이터 추출:
+   - YAML: direct parse from id, priority, category fields
+   - MD: regex parse from headers
    - 테스트 개수
    - 우선순위 분포
    - 카테고리
@@ -144,10 +158,10 @@ permissionMode: bypassPermissions
 
 ```
 1. 카테고리 매핑:
-   - unit → {spec-folder}/05-tests/components/
-   - integration → {spec-folder}/05-tests/scenarios/*-integration.md
-   - e2e → {spec-folder}/05-tests/scenarios/
-2. Glob으로 파일 목록 획득
+   - unit → {spec-folder}/05-tests/components/*.{yaml,md}
+   - integration → {spec-folder}/05-tests/scenarios/*-integration.{yaml,md}
+   - e2e → {spec-folder}/05-tests/scenarios/*.{yaml,md}
+2. Glob으로 파일 목록 획득 (YAML 우선)
 3. 모든 파일 내용 Read
 4. 통합 출력
 ```
@@ -155,26 +169,54 @@ permissionMode: bypassPermissions
 ### --priority 모드
 
 ```
-1. Grep: "Priority: {P0|P1|P2}" 또는 "우선순위: {P0|P1|P2}"
-2. 매칭된 파일에서 해당 우선순위 섹션만 추출
-3. 통합 출력
+1. YAML: Grep for "priority: \"P0\"" (etc)
+2. MD: Grep: "Priority: {P0|P1|P2}" 또는 "우선순위: {P0|P1|P2}"
+3. 매칭된 파일에서 해당 우선순위 섹션만 추출
+4. 통합 출력
 ```
 
 ### --component 모드
 
 ```
-1. Read: {spec-folder}/05-tests/components/{ComponentName}.test.md
-2. 없으면: Grep으로 컴포넌트명 검색
-3. 관련 테스트 스펙 출력
+1. Read: {spec-folder}/05-tests/components/{ComponentName}.test.yaml (preferred)
+2. Fallback: {spec-folder}/05-tests/components/{ComponentName}.test.md
+3. 없으면: Grep으로 컴포넌트명 검색
+4. 관련 테스트 스펙 출력
 ```
 
 ### --coverage-gap 모드
 
 ```
 1. Read: {spec-folder}/05-tests/coverage-map.md
-2. Glob: {spec-folder}/05-tests/components/*.md
+2. Glob: {spec-folder}/05-tests/components/*.{yaml,md}
 3. 기대 테스트 vs 실제 테스트 비교
 4. 갭 분석 리포트 생성
+```
+
+## YAML Parsing Guide
+
+YAML 포맷 테스트 스펙에서 데이터 추출:
+
+```yaml
+# 메타데이터
+id: "TST-001"           → 테스트 ID
+component: "StockCard"  → 컴포넌트 이름
+category: "unit"        → unit | integration | e2e
+priority: "P0"          → P0 | P1 | P2
+
+# 테스트 케이스
+tests:
+  unit:
+    - description: "renders correctly with props"
+      type: "render"
+      priority: "P0"
+    - description: "handles click events"
+      type: "interaction"
+      priority: "P1"
+
+  accessibility:
+    - description: "meets WCAG 2.1 AA"
+      type: "axe"
 ```
 
 ## Agent 연동 예시

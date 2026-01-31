@@ -93,8 +93,10 @@ permissionMode: bypassPermissions
 
 ```
 {spec-folder}/04-review/scenarios/
-├── critical-path.md           → Critical Path 시나리오
+├── critical-path.md           → Critical Path 시나리오 (legacy)
+├── critical-path.yaml         → Critical Path (YAML preferred)
 ├── screen-dashboard.md        → Dashboard 화면 시나리오
+├── screen-dashboard.yaml      → Dashboard (YAML preferred)
 ├── screen-stock-detail.md     → 종목 상세 화면 시나리오
 ├── screen-settings.md         → 설정 화면 시나리오
 ├── screen-search.md           → 검색 화면 시나리오
@@ -103,13 +105,26 @@ permissionMode: bypassPermissions
 └── persona-day-trader.md
 ```
 
+## Format Detection
+
+The loader auto-detects spec format by file extension:
+
+| Extension | Format | Priority |
+|-----------|--------|----------|
+| `.yaml` | YAML (structured) | **Preferred** |
+| `.md` | Markdown (legacy) | Fallback |
+
+When both formats exist for a scenario, YAML takes precedence.
+
 ## 로딩 로직
 
 ### --list 모드
 
 ```
-1. Glob: {spec-folder}/04-review/scenarios/*.md
+1. Glob: {spec-folder}/04-review/scenarios/*.{yaml,md}
 2. 각 파일에서 메타데이터 추출:
+   - YAML: direct parse from id, screen, persona fields
+   - MD: regex parse from headers
    - 시나리오 개수
    - 화면/페르소나 분류
    - Critical Path 여부
@@ -119,23 +134,26 @@ permissionMode: bypassPermissions
 ### --persona 모드
 
 ```
-1. Read: {spec-folder}/04-review/scenarios/persona-{name}.md
-2. 없으면 Grep으로 페르소나명 검색
-3. 관련 시나리오 통합 출력
+1. Read: {spec-folder}/04-review/scenarios/persona-{name}.yaml (preferred)
+2. Fallback: {spec-folder}/04-review/scenarios/persona-{name}.md
+3. 없으면 Grep으로 페르소나명 검색
+4. 관련 시나리오 통합 출력
 ```
 
 ### --screen 모드
 
 ```
-1. Read: {spec-folder}/04-review/scenarios/screen-{name}.md
-2. 해당 화면의 모든 시나리오 출력
+1. Read: {spec-folder}/04-review/scenarios/screen-{name}.yaml (preferred)
+2. Fallback: {spec-folder}/04-review/scenarios/screen-{name}.md
+3. 해당 화면의 모든 시나리오 출력
 ```
 
 ### --critical-path 모드
 
 ```
-1. Read: {spec-folder}/04-review/scenarios/critical-path.md
-2. 전체 내용 출력
+1. Read: {spec-folder}/04-review/scenarios/critical-path.yaml (preferred)
+2. Fallback: {spec-folder}/04-review/scenarios/critical-path.md
+3. 전체 내용 출력
 ```
 
 ### --failed 모드
@@ -143,8 +161,39 @@ permissionMode: bypassPermissions
 ```
 1. Read: .spec-it/execute/{sessionId}/logs/e2e-results.json
 2. 실패한 시나리오 ID 추출
-3. 해당 시나리오만 로딩
+3. 해당 시나리오만 로딩 (YAML 우선)
 4. 실패 원인 컨텍스트 포함
+```
+
+## YAML Parsing Guide
+
+YAML 포맷 시나리오 스펙에서 데이터 추출:
+
+```yaml
+# 메타데이터
+id: "SCN-001"           → 시나리오 ID
+name: "실시간 주가 확인" → 시나리오 이름
+screen: "dashboard"     → 화면
+persona: "Busy Professional"
+priority: "P0"
+criticalPath: true
+
+# 시나리오 내용
+given:
+  - "사용자가 로그인된 상태"
+  - "관심종목이 최소 1개 이상 등록됨"
+
+when:
+  - "Dashboard 페이지 접근"
+  - "실시간 주가 위젯 확인"
+
+then:
+  - "관심종목 주가가 실시간으로 업데이트됨"
+  - "등락률이 색상으로 구분됨"
+
+playwright:
+  selector: "[data-testid='price-widget']"
+  assertion: "toBeVisible"
 ```
 
 ## 시나리오 포맷

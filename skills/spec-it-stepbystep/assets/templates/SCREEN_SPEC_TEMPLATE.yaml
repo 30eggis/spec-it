@@ -1,0 +1,301 @@
+# Screen Specification Template (YAML Format)
+# Version: 1.0.0
+#
+# Structured format for screen specs - enables faster parsing and reduces token usage.
+
+# =============================================================================
+# METADATA
+# =============================================================================
+id: "SCR-{{screen_id}}"
+name: "{{screen_name}}"
+route: "{{url}}"
+type: "{{screen_type}}"         # page | modal | drawer | panel | wizard-step
+priority: "{{priority}}"        # P0 | P1 | P2
+accessLevel: "{{access_level}}" # public | authenticated | admin | role-specific
+parentScreen: "{{parent_screen}}"
+
+# =============================================================================
+# OVERVIEW
+# =============================================================================
+description: |
+  {{description}}
+
+# User story format
+userStory:
+  asA: "{{user_role}}"
+  iWantTo: "{{desired_action}}"
+  soThat: "{{benefit}}"
+
+# =============================================================================
+# MAIN FEATURES
+# =============================================================================
+features:
+  # {{#each features}}
+  - id: "F-{{feature_id}}"
+    name: "{{feature_name}}"
+    description: "{{feature_description}}"
+    trigger: "{{trigger}}"      # page_load | user_action | timer | event
+    result: "{{expected_result}}"
+    priority: "{{feature_priority}}"  # P0 | P1 | P2
+  # {{/each}}
+
+# =============================================================================
+# COMPONENT COMPOSITION
+# =============================================================================
+components:
+  # Header Section
+  header:
+    # {{#each header_components}}
+    - component: "{{component_name}}"
+      props:
+        # {{#each props}}
+        # {{key}}: {{value}}
+        # {{/each}}
+      role: "{{component_role}}"
+    # {{/each}}
+
+  # Main Content
+  main:
+    # {{#each main_components}}
+    - component: "{{component_name}}"
+      props:
+        # {{#each props}}
+        # {{key}}: {{value}}
+        # {{/each}}
+      role: "{{component_role}}"
+      dataSource: "{{data_source}}"  # api | store | props | local
+    # {{/each}}
+
+  # Sidebar (if applicable)
+  sidebar:
+    # {{#each sidebar_components}}
+    - component: "{{component_name}}"
+      props:
+        # {{#each props}}
+        # {{key}}: {{value}}
+        # {{/each}}
+    # {{/each}}
+
+  # Footer (if applicable)
+  footer:
+    # {{#each footer_components}}
+    - component: "{{component_name}}"
+    # {{/each}}
+
+# =============================================================================
+# STATE MANAGEMENT
+# =============================================================================
+state:
+  # Local State (useState / useReducer)
+  local:
+    # {{#each local_state}}
+    - name: "{{state_name}}"
+      type: "{{state_type}}"
+      initialValue: "{{initial_value}}"
+      description: "{{state_description}}"
+    # {{/each}}
+
+  # Global State Dependencies (Zustand / Redux / Context)
+  global:
+    store: "{{store_name}}"
+    selectors:
+      # {{#each global_selectors}}
+      - name: "{{selector_name}}"
+        usage: "{{usage_description}}"
+      # {{/each}}
+    actions:
+      # {{#each global_actions}}
+      - name: "{{action_name}}"
+        trigger: "{{trigger}}"
+      # {{/each}}
+
+  # URL State (Query Params / Path Params)
+  url:
+    pathParams:
+      # {{#each path_params}}
+      - name: "{{param_name}}"
+        type: "{{param_type}}"
+      # {{/each}}
+    queryParams:
+      # {{#each query_params}}
+      - name: "{{param_name}}"
+        type: "{{param_type}}"
+        default: "{{default_value}}"
+      # {{/each}}
+
+# =============================================================================
+# API INTEGRATION
+# =============================================================================
+api:
+  # {{#each api_calls}}
+  - endpoint: "{{endpoint}}"
+    method: "{{method}}"        # GET | POST | PUT | PATCH | DELETE
+    purpose: "{{purpose}}"
+    trigger: "{{trigger}}"      # mount | action | interval | event
+    requestBody: "{{request_shape}}"
+    responseShape: "{{response_shape}}"
+    caching:
+      enabled: "{{cache_enabled}}"
+      duration: "{{cache_duration}}"
+      key: "{{cache_key}}"
+    errorHandling:
+      retry: "{{retry_count}}"
+      fallback: "{{fallback_behavior}}"
+  # {{/each}}
+
+# =============================================================================
+# ERROR HANDLING
+# =============================================================================
+errors:
+  # {{#each error_scenarios}}
+  - situation: "{{error_situation}}"
+    errorType: "{{error_type}}"   # network | validation | auth | server | unknown
+    handling: "{{handling_strategy}}"
+    uiFeedback: "{{ui_feedback}}"
+    recovery: "{{recovery_action}}"
+  # {{/each}}
+
+  # Error Boundary Configuration
+  errorBoundary:
+    enabled: true
+    fallbackUI: "{{fallback_component}}"
+    reportTo: "{{error_reporting_service}}"
+
+# =============================================================================
+# LOADING STATES
+# =============================================================================
+loading:
+  initial:
+    type: "skeleton"  # skeleton | spinner | placeholder
+    components:
+      # {{#each skeleton_components}}
+      - "{{skeleton_type}}"
+      # {{/each}}
+
+  refetch:
+    type: "inline"    # inline | overlay | none
+    indicator: "{{indicator_component}}"
+
+  navigation:
+    type: "progress"  # progress | fade | none
+
+# =============================================================================
+# ACCESSIBILITY
+# =============================================================================
+accessibility:
+  pageTitle: "{{accessible_page_title}}"
+  skipLinks:
+    - target: "#main-content"
+      label: "Skip to main content"
+  landmarks:
+    - role: "main"
+      label: "{{main_label}}"
+    - role: "navigation"
+      label: "{{nav_label}}"
+  focusManagement:
+    onMount: "{{initial_focus}}"
+    onModalOpen: "{{modal_focus}}"
+    onModalClose: "{{return_focus}}"
+  announcements:
+    # {{#each live_announcements}}
+    - event: "{{event}}"
+      message: "{{announcement}}"
+      politeness: "{{politeness}}"  # polite | assertive
+    # {{/each}}
+
+# =============================================================================
+# SEO (for public pages)
+# =============================================================================
+seo:
+  title: "{{seo_title}}"
+  description: "{{seo_description}}"
+  keywords:
+    # {{#each keywords}}
+    - "{{keyword}}"
+    # {{/each}}
+  ogImage: "{{og_image_url}}"
+  canonical: "{{canonical_url}}"
+  noIndex: "{{no_index}}"  # true for private pages
+
+# =============================================================================
+# ANALYTICS
+# =============================================================================
+analytics:
+  pageView:
+    name: "{{analytics_page_name}}"
+    category: "{{analytics_category}}"
+
+  events:
+    # {{#each analytics_events}}
+    - name: "{{event_name}}"
+      trigger: "{{event_trigger}}"
+      properties:
+        # {{#each properties}}
+        # {{key}}: "{{value}}"
+        # {{/each}}
+    # {{/each}}
+
+# =============================================================================
+# TEST SCENARIOS
+# =============================================================================
+tests:
+  smoke:
+    - "Page renders without errors"
+    - "All critical components visible"
+    - "No console errors"
+
+  functional:
+    # {{#each functional_tests}}
+    - description: "{{test_description}}"
+      steps:
+        # {{#each steps}}
+        - "{{step}}"
+        # {{/each}}
+      expectedResult: "{{expected_result}}"
+    # {{/each}}
+
+  integration:
+    # {{#each integration_tests}}
+    - description: "{{test_description}}"
+      dependencies: "{{dependencies}}"
+    # {{/each}}
+
+  e2e:
+    # {{#each e2e_scenarios}}
+    - scenario: "{{scenario_name}}"
+      given: "{{given}}"
+      when: "{{when}}"
+      then: "{{then}}"
+    # {{/each}}
+
+# =============================================================================
+# DESIGN TOKENS REFERENCE
+# =============================================================================
+styles:
+  _ref: "../../shared/design-tokens.yaml"
+
+  overrides:
+    # Screen-specific style overrides
+    # {{#each style_overrides}}
+    # {{token}}: "{{value}}"
+    # {{/each}}
+
+# =============================================================================
+# RELATED SCREENS
+# =============================================================================
+navigation:
+  parent: "{{parent_screen}}"
+  children:
+    # {{#each child_screens}}
+    - "{{screen_name}}"
+    # {{/each}}
+  siblings:
+    # {{#each sibling_screens}}
+    - "{{screen_name}}"
+    # {{/each}}
+
+# =============================================================================
+# NOTES
+# =============================================================================
+notes: |
+  {{implementation_notes}}
