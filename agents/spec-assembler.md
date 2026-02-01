@@ -29,8 +29,9 @@ Final assembler. Integrates all outputs into a single specification document.
 ## 2. Chapter Summary
 {chapter-plan-final.md summary}
 
-## 3. Screen List
-{screen-list.md}
+## 3. Screen Lists
+{02-wireframes/<domain>/shared.md}
+{02-wireframes/<domain>/<user-type>/screen-list.md list}
 
 ## 4. Component Inventory
 ### Existing Components
