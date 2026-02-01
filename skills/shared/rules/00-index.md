@@ -1,0 +1,19 @@
+# Spec-It Rules Reference (Progressive Load)
+
+Load order is intentional. Each file is under 400 lines.
+
+1) `skills/shared/rules/10-core-safety.md`
+2) `skills/shared/rules/20-state-role-auth.md`
+3) `skills/shared/rules/30-ui-ssr-time.md`
+4) `skills/shared/rules/40-test-checklists.md`
+
+Usage:
+- Include the rule keywords in spec-it or spec-it-execute prompts.
+- Enforce failure conditions during execute.
+- Add tests listed in the checklists when touching related code.
+
+Template (example):
+```
+[spec-it] rules: BOUNDARY_GUARD, CLAMP_RANGE, STATE_SYNC
+[spec-it-execute] enforce: ROLE_FILTER_RECURSIVE, DOM_MEASURE_RESYNC
+```
