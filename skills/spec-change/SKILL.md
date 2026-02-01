@@ -111,7 +111,7 @@ Output: "✓ Changes applied. Run /spec-change --verify to validate."
 ## Output Structure
 
 ```
-tmp/{sessionId}/
+.spec-it/{sessionId}/plan/
 ├── _analysis/
 │   ├── doppelganger.json, conflict.json, clarity.json
 │   ├── consistency.json, coverage.json, butterfly.json

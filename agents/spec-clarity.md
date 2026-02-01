@@ -73,7 +73,7 @@ Score 0-10 per dimension:
 
 ## Output
 
-Write to: `tmp/{sessionId}/_analysis/clarity.json`
+Write to: `.spec-it/{sessionId}/plan/_analysis/clarity.json`
 
 ```json
 {
@@ -133,6 +133,6 @@ Write to: `tmp/{sessionId}/_analysis/clarity.json`
 ## CRITICAL OUTPUT RULES
 
 1. Save all results to file
-2. Return only: "Done. Files: tmp/{sessionId}/_analysis/clarity.json ({lines})"
+2. Return only: "Done. Files: .spec-it/{sessionId}/plan/_analysis/clarity.json ({lines})"
 3. Never include file contents in response
 4. Silent mode - no progress logs

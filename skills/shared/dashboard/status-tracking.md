@@ -127,7 +127,7 @@ watch -n 2 'find tmp -name "*.md" | wc -l'
 
 ```
 # _status.json 초기화
-Write(tmp/{sessionId}/_status.json, {
+Write(.spec-it/{sessionId}/plan/_status.json, {
   "sessionId": "{sessionId}",
   "startTime": "{ISO timestamp}",
   "currentPhase": 1,

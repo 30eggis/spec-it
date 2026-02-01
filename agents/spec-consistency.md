@@ -69,7 +69,7 @@ LOW: Style/formatting inconsistency
 
 ## Output
 
-Write to: `tmp/{sessionId}/_analysis/consistency.json`
+Write to: `.spec-it/{sessionId}/plan/_analysis/consistency.json`
 
 ```json
 {
@@ -122,6 +122,6 @@ Write to: `tmp/{sessionId}/_analysis/consistency.json`
 ## CRITICAL OUTPUT RULES
 
 1. Save all results to file
-2. Return only: "Done. Files: tmp/{sessionId}/_analysis/consistency.json ({lines})"
+2. Return only: "Done. Files: .spec-it/{sessionId}/plan/_analysis/consistency.json ({lines})"
 3. Never include file contents in response
 4. Silent mode - no progress logs

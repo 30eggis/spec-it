@@ -419,7 +419,7 @@ IF answer == "Custom":
 | `{_meta.designStyle}` | _meta.json | 선택된 디자인 스타일 |
 | `{_meta.designTrends}` | _meta.json | 선택된 트렌드 목록 (Custom) |
 | `{_meta.uiMode}` | _meta.json | UI 모드 (ascii/stitch) |
-| `{spec-folder}` | argument | tmp/{sessionId} |
+| `{spec-folder}` | argument | tmp/ |
 | `{wireframe_path}` | task context | 해당 화면의 와이어프레임 경로 |
 | `{task.name}` | execution-plan | 태스크 이름 |
 | `{task.files}` | execution-plan | 생성/수정할 파일 목록 |

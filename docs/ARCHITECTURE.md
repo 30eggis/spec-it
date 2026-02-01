@@ -279,12 +279,22 @@ Sequential (dependency chain)          Parallel (independent tasks)
 
 ## Output Directory Structure
 
+### Session State (per session)
 ```
-tmp/{sessionId}/
-├── _meta.json                 ◀── Checkpoint state (phase, step, canResume)
-├── _status.json               ◀── Runtime stats (agents, files, duration)
-├── logs/                      ◀── Agent execution logs (silent mode)
-│
+.spec-it/{sessionId}/
+├── plan/
+│   ├── _meta.json             ◀── Checkpoint state (phase, step, canResume)
+│   └── _status.json           ◀── Runtime stats (agents, files, duration)
+├── execute/
+│   ├── _meta.json             ◀── Execute mode state
+│   └── _status.json           ◀── Execute runtime stats
+├── runtime-log.md             ◀── Shared runtime log
+└── logs/                      ◀── Agent execution logs (silent mode)
+```
+
+### Document Artifacts (shared)
+```
+tmp/
 ├── 00-requirements/
 │   └── requirements.md
 │

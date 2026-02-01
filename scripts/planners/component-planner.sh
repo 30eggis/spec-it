@@ -8,9 +8,10 @@ set -e
 SESSION_ID="$1"
 BASE_DIR="${2:-.}"
 
-SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
-GAP_ANALYSIS="$SESSION_DIR/03-components/gap-analysis.md"
-OUTPUT_FILE="$SESSION_DIR/03-components/components.json"
+# Document artifacts are in tmp/ (without sessionId)
+DOCS_DIR="$BASE_DIR/tmp"
+GAP_ANALYSIS="$DOCS_DIR/03-components/gap-analysis.md"
+OUTPUT_FILE="$DOCS_DIR/03-components/components.json"
 
 if [ ! -f "$GAP_ANALYSIS" ]; then
   echo "ERROR:GAP_ANALYSIS_NOT_FOUND"

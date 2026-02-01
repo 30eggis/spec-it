@@ -149,7 +149,7 @@ CRITICAL OUTPUT RULES:
 SILENT MODE:
 - 진행 상황 출력 금지
 - 에러만 출력 (실패 시)
-- 모든 로그는 파일로: tmp/{sessionId}/logs/
+- 모든 로그는 파일로: .spec-it/{sessionId}/logs/
 ```
 
 ### 2.4 진행 상태 표시 (메인 스킬에서만)

@@ -135,8 +135,10 @@ For experienced users who know which mode they want:
 All modes produce the same output structure:
 
 ```
-tmp/{sessionId}/
+.spec-it/{sessionId}/plan/
 ├── _meta.json, _status.json
+
+tmp/
 ├── 00-requirements/
 ├── 01-chapters/
 ├── 02-screens/

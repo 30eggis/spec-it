@@ -321,8 +321,10 @@ See `spec-it-execute/SKILL.md` for full details.
 ## Output Structure
 
 ```
-tmp/{sessionId}/
+.spec-it/{sessionId}/plan/
 ├── _meta.json, _status.json
+
+tmp/
 ├── 00-requirements/
 │   └── quick-brief.md
 ├── 02-screens/
