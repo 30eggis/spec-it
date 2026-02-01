@@ -182,7 +182,7 @@ Session state is saved in `.spec-it/{sessionId}/plan/_meta.json`.
 tmp/                        # Document artifacts (archive)
 ├── 00-requirements/        # Requirements
 ├── 01-chapters/            # Design decisions
-├── 02-screens/             # Wireframes, HTML
+├── 02-wireframes/          # Wireframes, HTML
 ├── 03-components/          # Component specs
 ├── 04-review/              # Reviews, ambiguities
 ├── 05-tests/               # Test specs

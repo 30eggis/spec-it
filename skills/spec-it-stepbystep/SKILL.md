@@ -215,23 +215,35 @@ Task(ui-architect, sonnet):
     Use template: assets/templates/LAYOUT_TEMPLATE.yaml
     Reference design tokens: shared/design-tokens.yaml
 
-    Generate: layout-system.yaml and screen-list.md
-    Include design direction based on selected style
+    Generate: 02-wireframes/layouts/layout-system.yaml and 02-wireframes/layouts/components.yaml
+    Generate screen lists per domain/user type:
+      - 02-wireframes/<domain>/shared.md
+      - 02-wireframes/<domain>/<user-type>/screen-list.md
+    Screen list rules:
+      - user_type: buyer | seller | admin | operator
+      - id format: <domain>-<user>-<flow>-<seq>
+      - fields: id, title, flow, priority, notes, depends_on(optional)
+    Include design direction in domain shared.md
   "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
-→ Creates screens.json
+→ Creates screen-groups.json
 ```
 
 ### Step 2.1b: Generate Wireframes (Parallel Batch)
 
 ```
-FOR each batch (4 screens):
+FOR each batch (4 groups):
   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/executors/batch-runner.sh {sessionId} wireframe {batchIndex}
 
-  Task(ui-architect, sonnet, parallel):
-    prompt: "
-      Role: ui-architect
+    Task(ui-architect, sonnet, parallel):
+      prompt: "
+        Role: ui-architect
+
+        Screen list: {screenListPath}
+        Read: {screenListPath}
+        Read: 02-wireframes/<domain>/shared.md (same domain as screen list)
+        Render all screens in this list (respect depends_on order)
 
       === YAML UI FRAME REFERENCE (MUST READ) ===
       Read: skills/shared/references/yaml-ui-frame/03-components.md
@@ -247,7 +259,8 @@ FOR each batch (4 screens):
       Use template: assets/templates/UI_WIREFRAME_TEMPLATE.yaml
       Reference: shared/design-tokens.yaml via _ref
 
-      Output file: wireframes/{screen}.yaml
+      Input: 02-wireframes/<domain>/<user-type>/screen-list.md + 02-wireframes/<domain>/shared.md
+      Output file: 02-wireframes/<domain>/<user-type>/wireframes/{screen-id}.yaml
 
       === YAML STRUCTURE ===
       Each wireframe must include:

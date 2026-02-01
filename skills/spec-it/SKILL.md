@@ -142,8 +142,11 @@ All modes produce the same output structure:
 tmp/
 ├── 00-requirements/
 ├── 01-chapters/
-├── 02-screens/
-│   ├── wireframes/
+├── 02-wireframes/
+│   ├── layouts/
+│   ├── <domain>/shared.md
+│   ├── <domain>/<user-type>/screen-list.md
+│   ├── <domain>/<user-type>/wireframes/
 │   └── [html/, assets/]  # If Stitch mode
 ├── 03-components/
 ├── 04-review/

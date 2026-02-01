@@ -33,7 +33,7 @@ Modify wireframes with comprehensive impact analysis.
    ELSE: find most recent in tmp/
 
 2. Locate Wireframe
-   Glob: tmp/02-screens/wireframes/*{name}*.yaml
+   Glob: tmp/02-wireframes/**/wireframes/*{name}*.yaml
    IF multiple: AskUserQuestion to select
    IF none: show available wireframes
 
@@ -110,7 +110,7 @@ IF flaggedFiles > 0:
 │   └── wireframe-plan.md
 
 tmp/
-├── 02-screens/wireframes/
+├── 02-wireframes/<domain>/<user-type>/wireframes/
 │   └── {wireframe}.yaml        # Updated YAML wireframe
 └── {various}/
     └── _needs-review.md        # Flagged files

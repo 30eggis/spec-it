@@ -32,7 +32,7 @@ mkdir -p "$SESSION_DIR"
 mkdir -p "$RUNTIME_LOG_DIR"
 
 # Create document artifact folders (in tmp/)
-mkdir -p "$DOCS_DIR"/{00-requirements,01-chapters/{decisions,alternatives},02-screens/{wireframes,layouts},03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
+mkdir -p "$DOCS_DIR"/{00-requirements,01-chapters/{decisions,alternatives},02-wireframes/layouts,03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
 
 # Get parent terminal info for 'r' key feature
 get_parent_terminal_info() {

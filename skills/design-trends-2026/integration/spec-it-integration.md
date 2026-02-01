@@ -168,8 +168,8 @@ Task(
 
     === OUTPUT ===
 
-    Output: {spec-folder}/02-screens/wireframes/SCR-{id}.yaml
-    Output: {spec-folder}/02-screens/layouts/layout-{name}.yaml
+    Output: {spec-folder}/02-wireframes/<domain>/<user-type>/wireframes/{screen-id}.yaml
+    Output: {spec-folder}/02-wireframes/layouts/layout-{name}.yaml
 
     OUTPUT RULES: (standard)
   "
@@ -339,7 +339,7 @@ Task(
 │       │                                                            │
 │       ▼                                                            │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ 02-screens/wireframes/SCR-*.yaml                            │   │
+│  │ 02-wireframes/<domain>/<user-type>/wireframes/*.yaml         │   │
 │  │                                                             │   │
 │  │ ## Design Direction                                         │   │
 │  │ ### Applied Trends                                          │   │
@@ -412,7 +412,7 @@ Task(
   subagent_type: "general-purpose",
   model: "haiku",
   prompt: "
-    Validate all wireframes in {spec-folder}/02-screens/wireframes/
+    Validate all wireframes in {spec-folder}/02-wireframes/**/wireframes/
 
     Check each file for:
     1. Has '## Design Direction' section
@@ -420,7 +420,7 @@ Task(
     3. Has 'Component Patterns' table with Template Reference column
     4. Template references are valid paths in design-trends-2026/
 
-    Output: {spec-folder}/02-screens/_design-validation.md
+    Output: {spec-folder}/02-wireframes/_design-validation.md
 
     Format:
     | File | Has Design Direction | Valid References | Status |

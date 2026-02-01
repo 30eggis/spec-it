@@ -73,6 +73,14 @@ Auto-detect and apply framework idioms:
 - Design URL structure
 - Map user flows
 
+### 2.1 Screen List Architecture (Domain + User Type)
+- Folder structure: `02-wireframes/<domain>/<user-type>/screen-list.md`
+- Shared screens live only in: `02-wireframes/<domain>/shared.md`
+- User type slugs: `buyer`, `seller`, `admin`, `operator`
+- Screen ID format: `<domain>-<user>-<flow>-<seq>` (ex: `product-buyer-detail-01`)
+- One screen-list file per domain + user type (no mixed user types)
+- Required fields per screen: `id`, `title`, `flow`, `priority`, `notes`, `depends_on` (optional)
+
 ### 3. Create Flow Diagram
 - Screen transition diagram
 - Entry/exit points
@@ -94,8 +102,8 @@ Auto-detect and apply framework idioms:
 | minimal-layout | 에러, 빈 페이지 | Header만 |
 
 #### 4.2 출력 파일 (YAML)
-- `02-screens/layouts/layout-system.yaml` - 전체 Layout 시스템
-- `02-screens/layouts/components.yaml` - 공통 컴포넌트
+- `02-wireframes/layouts/layout-system.yaml` - 전체 Layout 시스템
+- `02-wireframes/layouts/components.yaml` - 공통 컴포넌트
 
 ### 5. Generate Wireframes (YAML 형식)
 
@@ -105,8 +113,8 @@ Auto-detect and apply framework idioms:
 **Reference:** `skills/shared/references/yaml-ui-frame/09-complete-example.md`
 
 ```
-입력: layout-system.yaml + screen-list.md
-출력: wireframes/{screen-id}.yaml
+입력: layout-system.yaml + 02-wireframes/<domain>/<user-type>/screen-list.md + 02-wireframes/<domain>/shared.md
+출력: 02-wireframes/<domain>/<user-type>/wireframes/{screen-id}.yaml
 
 각 와이어프레임은:
 1. 사용할 Layout 참조
@@ -155,24 +163,14 @@ Skip low-value animations (hover effects on every element).
 ```markdown
 # Screen List
 
-## Design Direction
-- Aesthetic: Minimalist with bold typography
-- Emotion: Professional confidence
-- Differentiator: Asymmetric layouts, oversized headings
+domain: product
+user_type: buyer
 
 ## Screens
-| # | Screen Name | URL | Purpose |
-|---|-------------|-----|---------|
-| 1 | Login | /login | First impression, brand moment |
-| 2 | Dashboard | /dashboard | Information density, quick actions |
-
-## Screen Flow
-```
-[Landing] ─→ [Login] ─→ [Dashboard]
-                │              │
-                ↓              ↓
-           [Forgot PW]    [Settings]
-```
+| id | title | flow | priority | notes | depends_on |
+|----|-------|------|----------|-------|------------|
+| product-buyer-list-01 | Product List | browse | P0 | Filters + sort | |
+| product-buyer-detail-01 | Product Detail | detail | P0 | Reviews tab | product-buyer-list-01 |
 ```
 
 ## Wireframe Output (YAML)
@@ -219,10 +217,11 @@ responsive:
 
 ## Writing Location
 
-- `tmp/{session-id}/02-screens/screen-list.md`
-- `tmp/{session-id}/02-screens/layouts/layout-system.yaml`
-- `tmp/{session-id}/02-screens/layouts/components.yaml`
-- `tmp/{session-id}/02-screens/wireframes/*.yaml`
+- `tmp/{session-id}/02-wireframes/<domain>/<user-type>/screen-list.md`
+- `tmp/{session-id}/02-wireframes/<domain>/shared.md`
+- `tmp/{session-id}/02-wireframes/layouts/layout-system.yaml`
+- `tmp/{session-id}/02-wireframes/layouts/components.yaml`
+- `tmp/{session-id}/02-wireframes/<domain>/<user-type>/wireframes/*.yaml`
 
 ## Output Rules
 

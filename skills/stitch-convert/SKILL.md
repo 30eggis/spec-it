@@ -31,7 +31,7 @@ $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-m
 | Argument | Required | Description |
 |----------|----------|-------------|
 | session-id | Yes | Session directory (e.g., `20260130-123456`) |
-| --files | No | Comma-separated wireframe files. If omitted, auto-detect from `02-screens/wireframes/` |
+| --files | No | Comma-separated wireframe files. If omitted, auto-detect from `02-wireframes/**/wireframes/` |
 
 ## Examples
 
@@ -65,7 +65,7 @@ If MCP tools are not available, output error and stop.
 IF --files provided:
   wireframes = parse comma-separated list
 ELSE:
-  wireframes = Glob(tmp/{session-id}/02-screens/wireframes/*.{yaml,json})
+  wireframes = Glob(tmp/{session-id}/02-wireframes/**/wireframes/*.{yaml,json})
 ```
 
 If no wireframes found, output error and stop.
@@ -79,7 +79,7 @@ mcp__stitch__create_project(name: "spec-it-{session-id}")
 mcp__stitch__set_workspace_project(projectId: projectId)
 ```
 
-Save metadata to `tmp/{session-id}/02-screens/stitch-project.json`:
+Save metadata to `tmp/{session-id}/02-wireframes/stitch-project.json`:
 ```json
 {
   "projectId": "{projectId}",
@@ -120,18 +120,18 @@ mcp__stitch__export_design_system(
 
 Create directories:
 ```bash
-mkdir -p tmp/{session-id}/02-screens/html
-mkdir -p tmp/{session-id}/02-screens/assets
+mkdir -p tmp/{session-id}/02-wireframes/html
+mkdir -p tmp/{session-id}/02-wireframes/assets
 ```
 
 Save exported content:
-- `02-screens/html/{screen-name}.html` - One per screen
-- `02-screens/assets/styles.css` - Design system styles
-- `02-screens/assets/tokens.json` - Design tokens (if available)
+- `02-wireframes/html/{screen-id}.html` - One per screen
+- `02-wireframes/assets/styles.css` - Design system styles
+- `02-wireframes/assets/tokens.json` - Design tokens (if available)
 
 ### Step 7: Generate Index
 
-Create `02-screens/html/index.html`:
+Create `02-wireframes/html/index.html`:
 
 ```html
 <!DOCTYPE html>
@@ -181,15 +181,15 @@ Update `stitch-project.json`:
 
 ### Success
 ```
-Done. {N} screens exported to 02-screens/html/
-Index: tmp/{session-id}/02-screens/html/index.html
+Done. {N} screens exported to 02-wireframes/html/
+Index: tmp/{session-id}/02-wireframes/html/index.html
 ```
 
 ### Partial Success
 ```
 Partial. {N}/{M} screens exported.
 Failed: {list of failed screens}
-See: tmp/{session-id}/02-screens/stitch-project.json
+See: tmp/{session-id}/02-wireframes/stitch-project.json
 ```
 
 ### Failure
@@ -218,7 +218,7 @@ Failed: {reason}
 ## Files Created
 
 ```
-tmp/{session-id}/02-screens/
+tmp/{session-id}/02-wireframes/
 ├── stitch-project.json      # Project metadata
 ├── html/
 │   ├── index.html           # Gallery index

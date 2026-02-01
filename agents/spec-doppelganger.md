@@ -30,7 +30,7 @@ Search in priority order:
 1. `tmp/00-requirements/` - Requirements docs
 2. `tmp/01-chapters/decisions/` - Design decisions
 3. `tmp/06-final/` - Final specs
-4. `tmp/02-screens/wireframes/` - UI definitions
+4. `tmp/02-wireframes/<domain>/<user-type>/wireframes/` - UI definitions
 
 ### 2. Extract Key Concepts
 

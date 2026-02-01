@@ -17,7 +17,7 @@ BATCH_SIZE=4
 
 case "$TYPE" in
   "wireframe")
-    JSON_FILE="$DOCS_DIR/02-screens/screens.json"
+    JSON_FILE="$DOCS_DIR/02-wireframes/screen-groups.json"
     ;;
   "component")
     JSON_FILE="$DOCS_DIR/03-components/components.json"
@@ -52,8 +52,8 @@ echo "BATCH_ITEMS:$ITEMS"
 
 # Output individual items for agent dispatch
 echo "$ITEMS" | jq -c '.[]' | while read -r item; do
-  NAME=$(echo "$item" | jq -r '.name')
-  echo "ITEM:$NAME"
+  SCREEN_LIST=$(echo "$item" | jq -r '.screenList')
+  echo "ITEM:$SCREEN_LIST"
 done
 
 REMAINING=$((TOTAL - END))
