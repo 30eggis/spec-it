@@ -103,7 +103,7 @@ Task(
 | 00-requirements | -requirement | 0-auth-requirement.md |
 | 01-chapters/decisions | -decision | 0-scope-decision.md |
 | 01-chapters/alternatives | -alternative | 0-state-alternative.md |
-| 02-screens | -screen | 0-login-screen.md |
+| 02-wireframes | -screen | 0-login-screen.md |
 | 03-components/new | -component | 0-button-component.md |
 | 03-components/migrations | -migration | 0-datatable-migration.md |
 | 04-review/scenarios | -scenario | 0-login-scenario.md |
@@ -135,7 +135,7 @@ Task(
 | ... | ... | ... | ... |
 
 ## Cross References
-- Related: [../02-screens/](../02-screens/)
+- Related: [../02-wireframes/](../02-wireframes/)
 - Dependencies: [../03-components/](../03-components/)
 ```
 
@@ -376,7 +376,7 @@ Resume 시 로딩할 파일 (최소한만):
 다음 폴더에 파일 생성 시 자동으로 SPEC-IT 파일 생성:
 
 ```
-02-screens/wireframes/*  → SPEC-IT 생성
+02-wireframes/**/wireframes/*  → SPEC-IT 생성
 03-components/new/*      → SPEC-IT 생성
 06-final/*               → SPEC-IT 생성
 ```
@@ -397,7 +397,7 @@ HASH = 파일경로의 MD5 앞 8자리 대문자
 {
   "hashes": {
     "A1B2C3D4": {
-      "path": "02-screens/wireframes/SPEC-IT-A1B2C3D4.md",
+      "path": "02-wireframes/product/buyer/wireframes/SPEC-IT-A1B2C3D4.md",
       "source": "wireframe-dashboard.yaml",
       "created": "2026-01-29T23:40:00+09:00"
     }

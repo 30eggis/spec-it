@@ -98,8 +98,8 @@ Task(ui-architect, sonnet):
     |-------------|-----------|----------|
 
     === OUTPUT ===
-    Output: {spec-folder}/02-screens/wireframes/
-    Output: {spec-folder}/02-screens/layouts/
+    Output: {spec-folder}/02-wireframes/<domain>/<user-type>/wireframes/
+    Output: {spec-folder}/02-wireframes/layouts/
 
     OUTPUT RULES: (standard)
   "
@@ -224,7 +224,7 @@ Task(
 #    → "Immersive" 선택
 
 # 3. 생성된 wireframe 확인
-cat tmp/02-screens/wireframes/SCR-*.yaml | grep -A 20 "Design Direction"
+cat tmp/02-wireframes/**/wireframes/*.yaml | grep -A 20 "Design Direction"
 
 # 4. Design Direction 섹션 존재 여부 확인
 #    - Applied Trends

@@ -65,12 +65,12 @@ No duplicates found.
 
 **Direct impact (4 files):**
 - 01-chapters/decisions/CH-02.md
-- 02-screens/wireframes/login-screen.yaml
+- 02-wireframes/product/buyer/wireframes/product-buyer-login-01.yaml
 - 03-components/new/auth-form.md
 - 05-tests/scenarios/auth-test.md
 
 **Indirect impact (1 file):**
-- 02-screens/wireframes/dashboard-screen.yaml (review recommended)
+- 02-wireframes/product/buyer/wireframes/product-buyer-dashboard-01.yaml (review recommended)
 
 ## Recommended Actions
 
@@ -147,7 +147,7 @@ Status: READY
 
 ### 3.2 Dependent Change: Wireframe
 
-**File**: `02-screens/wireframes/login-screen.yaml`
+**File**: `02-wireframes/product/buyer/wireframes/product-buyer-login-01.yaml`
 
 ```diff
 @@ -20,6 +20,10 @@
@@ -234,10 +234,10 @@ CH-02.md ──────────────────┐
 ## 5. Execution Order
 
 1. `01-chapters/decisions/CH-02.md` (decision)
-2. `02-screens/wireframes/login-screen.yaml` (wireframe)
+2. `02-wireframes/product/buyer/wireframes/product-buyer-login-01.yaml` (wireframe)
 3. `03-components/new/auth-form.md` (component)
 4. `05-tests/scenarios/auth-test.md` (test)
-5. Review: `02-screens/wireframes/dashboard-screen.yaml`
+5. Review: `02-wireframes/product/buyer/wireframes/product-buyer-dashboard-01.yaml`
 
 ---
 
@@ -258,7 +258,7 @@ If issues arise:
 ```bash
 # Option 1: Git restore
 git checkout -- 01-chapters/decisions/CH-02.md
-git checkout -- 02-screens/wireframes/login-screen.yaml
+git checkout -- 02-wireframes/product/buyer/wireframes/product-buyer-login-01.yaml
 # ... etc
 
 # Option 2: Restore from backup

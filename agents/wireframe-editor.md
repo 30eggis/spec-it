@@ -151,7 +151,7 @@ components:
 # Wireframe Change Plan
 
 ## Primary Change
-- **File**: 02-screens/wireframes/login-screen.yaml
+- **File**: 02-wireframes/product/buyer/wireframes/product-buyer-login-01.yaml
 - **Action**: Add OAuth login options and forgot password link
 
 ## Component Changes

@@ -10,32 +10,38 @@ BASE_DIR="${2:-.}"
 
 # Document artifacts are in tmp/ (without sessionId)
 DOCS_DIR="$BASE_DIR/tmp"
-SCREEN_LIST="$DOCS_DIR/02-screens/screen-list.md"
-OUTPUT_FILE="$DOCS_DIR/02-screens/screens.json"
+WIRE_DIR="$DOCS_DIR/02-wireframes"
+OUTPUT_FILE="$WIRE_DIR/screen-groups.json"
 
-if [ ! -f "$SCREEN_LIST" ]; then
-  echo "ERROR:SCREEN_LIST_NOT_FOUND"
+if [ ! -d "$WIRE_DIR" ]; then
+  echo "ERROR:WIRE_DIR_NOT_FOUND"
   exit 1
 fi
 
-# Extract screens from markdown (lines starting with ## or - followed by screen name)
-# Format: {"name": "screen-name", "layout": "layout-type"}
-screens=$(grep -E "^(##|\-)\s+" "$SCREEN_LIST" | \
-  sed -E 's/^(##|\-)\s+//' | \
-  sed -E 's/\s*\(([^)]+)\)$/|\1/' | \
-  while IFS='|' read -r name layout; do
-    layout=${layout:-dashboard}
-    name=$(echo "$name" | tr '[:upper:]' '[:lower:]' | tr ' ' '-')
-    echo "{\"name\":\"$name\",\"layout\":\"$layout\"}"
-  done | jq -s '.')
+screen_groups=$(find "$WIRE_DIR" -type f -path "$WIRE_DIR/*/*/screen-list.md" -print0 | \
+  while IFS= read -r -d '' file; do
+    dir=$(dirname "$file")
+    user_type=$(basename "$dir")
+    domain=$(basename "$(dirname "$dir")")
+    shared="$WIRE_DIR/$domain/shared.md"
+    rel_file="${file#$DOCS_DIR/}"
+    rel_shared="${shared#$DOCS_DIR/}"
+    rel_output_dir="${dir#$DOCS_DIR/}"
+    echo "{\"domain\":\"$domain\",\"userType\":\"$user_type\",\"screenList\":\"$rel_file\",\"shared\":\"$rel_shared\",\"outputDir\":\"$rel_output_dir\"}"
+  done | jq -s 'sort_by(.domain, .userType)')
 
-echo "$screens" > "$OUTPUT_FILE"
+COUNT=$(echo "$screen_groups" | jq 'length')
+if [ "$COUNT" -eq 0 ]; then
+  echo "ERROR:SCREEN_LISTS_NOT_FOUND"
+  exit 1
+fi
 
-COUNT=$(echo "$screens" | jq 'length')
-echo "SCREENS_READY:$COUNT"
+echo "$screen_groups" > "$OUTPUT_FILE"
+
+echo "SCREEN_GROUPS_READY:$COUNT"
 echo "OUTPUT:$OUTPUT_FILE"
 
-# Output batch info (4 screens per batch)
+# Output batch info (4 groups per batch)
 BATCHES=$(( (COUNT + 3) / 4 ))
 echo "BATCHES:$BATCHES"
 echo "BATCH_SIZE:4"

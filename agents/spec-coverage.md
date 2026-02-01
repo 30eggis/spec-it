@@ -93,7 +93,7 @@ Write to: `.spec-it/{sessionId}/plan/_analysis/coverage.json`
       "priority": "medium",
       "description": "No empty state defined for search results",
       "suggestion": "Add: 'When no results found, display helpful message with search suggestions'",
-      "affectedFiles": ["02-screens/wireframes/search-results.yaml"]
+      "affectedFiles": ["02-wireframes/product/buyer/wireframes/product-buyer-search-results-01.yaml"]
     },
     {
       "category": "accessibility",

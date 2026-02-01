@@ -307,7 +307,7 @@ tmp/
 │   ├── critique-final.md      ◀── Moderator synthesis
 │   └── chapter-plan-final.md
 │
-├── 02-screens/
+├── 02-wireframes/
 │   ├── screen-list.md
 │   ├── layouts/
 │   ├── wireframes/            ◀── YAML/JSON wireframes

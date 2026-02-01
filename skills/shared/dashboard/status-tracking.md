@@ -43,7 +43,7 @@
   },
 
   "recentFiles": [
-    "02-screens/wireframes/wireframe-dashboard.yaml",
+    "02-wireframes/product/buyer/wireframes/product-buyer-dashboard-01.yaml",
     "03-components/inventory.md"
   ],
 

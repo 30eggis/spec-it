@@ -199,13 +199,19 @@ Task(ui-architect, sonnet):
     Read: 00-requirements/quick-brief.md
 
     === OUTPUT ===
-    1. 02-screens/screen-list.md
-       - List all screens with IDs (SCR-001, SCR-002, ...)
-       - Brief description per screen
+    1. 02-wireframes/<domain>/shared.md
+       - Design direction + shared UI components
 
-    2. 02-screens/layouts/layout-system.md
+    2. 02-wireframes/<domain>/<user-type>/screen-list.md
+       - user_type: buyer | seller | admin | operator
+       - id format: <domain>-<user>-<flow>-<seq>
+       - fields: id, title, flow, priority, notes, depends_on(optional)
+
+    3. 02-wireframes/layouts/layout-system.yaml
        - Layout structure based on design style
-       - Include Design Direction section
+
+    4. 02-wireframes/layouts/components.yaml
+       - Shared layout components
   "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect "" 2.1
@@ -214,16 +220,21 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/sta
 ### Step 2.2: Wireframes (Parallel)
 
 ```
-# Get screen count from screen-list.md
-Read: 02-screens/screen-list.md
-Extract: screen IDs
+# Get screen groups from screen-list.md files
+Glob: 02-wireframes/*/*/screen-list.md
+Extract: domain, user_type, screen IDs
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect-wireframes
 
-FOR each screen (parallel, max 4):
+FOR each screen-list group (parallel, max 4):
   Task(ui-architect, sonnet):
     prompt: "
       Role: ui-architect (Fast Mode)
+
+      Screen list: {screenListPath}
+      Read: {screenListPath}
+      Read: 02-wireframes/<domain>/shared.md (same domain as screen list)
+      Render all screens in this list (respect depends_on order)
 
       === DESIGN REFERENCE (MUST READ) ===
       Read: {_meta.designTrendsPath}/references/trends-summary.md
@@ -233,7 +244,6 @@ FOR each screen (parallel, max 4):
       Design Style: {_meta.designStyle}
 
       === WIREFRAME REQUIREMENTS ===
-      Screen: {screenId} - {screenName}
 
       Each wireframe MUST include '## Design Direction' section:
 
@@ -262,7 +272,7 @@ FOR each screen (parallel, max 4):
       - Use grid.areas for layout (CSS Grid syntax)
       - Include testId for all interactive elements
 
-      Output: 02-screens/wireframes/{screenId}.yaml
+      Output: 02-wireframes/<domain>/<user-type>/wireframes/{screenId}.yaml
     "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect-wireframes "" 2.2
@@ -285,7 +295,7 @@ Task(spec-assembler, haiku):
 
     Read all files in:
     - 00-requirements/
-    - 02-screens/
+    - 02-wireframes/
 
     Generate:
     1. 06-final/FAST-SPEC-SUMMARY.md
@@ -356,10 +366,12 @@ See `spec-it-execute/SKILL.md` for full details.
 tmp/
 ├── 00-requirements/
 │   └── quick-brief.md
-├── 02-screens/
-│   ├── screen-list.md
+├── 02-wireframes/
 │   ├── layouts/layout-system.yaml
-│   └── wireframes/wireframe-*.yaml (with Design Direction)
+│   ├── layouts/components.yaml
+│   ├── <domain>/shared.md
+│   ├── <domain>/<user-type>/screen-list.md
+│   └── <domain>/<user-type>/wireframes/{screen-id}.yaml
 └── 06-final/
     ├── FAST-SPEC-SUMMARY.md
     └── design-checklist.md

@@ -11,7 +11,7 @@ Impact analysis from spec-butterfly agent.
 ```json
 {
   "directImpact": {
-    "wireframe": "02-screens/wireframes/login-screen.yaml",
+    "wireframe": "02-wireframes/product/buyer/wireframes/product-buyer-login-01.yaml",
     "changeType": "modify",
     "affectedSections": [
       "form-section",
@@ -24,8 +24,8 @@ Impact analysis from spec-butterfly agent.
       "change": "new OAuth variant needed",
       "currentSpec": "03-components/new/button-component.md",
       "otherUsages": [
-        "02-screens/wireframes/signup-screen.yaml",
-        "02-screens/wireframes/settings-screen.yaml"
+        "02-wireframes/product/buyer/wireframes/product-buyer-signup-01.yaml",
+        "02-wireframes/product/buyer/wireframes/product-buyer-settings-01.yaml"
       ],
       "action": "review"
     },
@@ -34,7 +34,7 @@ Impact analysis from spec-butterfly agent.
       "change": "add OAuth props",
       "currentSpec": "03-components/new/auth-form-component.md",
       "otherUsages": [
-        "02-screens/wireframes/signup-screen.yaml"
+        "02-wireframes/product/buyer/wireframes/product-buyer-signup-01.yaml"
       ],
       "action": "update"
     }
@@ -53,7 +53,7 @@ Impact analysis from spec-butterfly agent.
   ],
   "screenImpact": [
     {
-      "screen": "02-screens/wireframes/signup-screen.yaml",
+      "screen": "02-wireframes/product/buyer/wireframes/product-buyer-signup-01.yaml",
       "reason": "Uses same AuthForm component",
       "action": "review"
     }
@@ -156,7 +156,7 @@ Execution plan for applying changes.
 
 ## 1. Primary Change
 
-**File**: `02-screens/wireframes/login-screen.yaml`
+**File**: `02-wireframes/product/buyer/wireframes/product-buyer-login-01.yaml`
 **Action**: Add OAuth login options and forgot password link
 
 ### Element Changes
@@ -228,7 +228,7 @@ Execution plan for applying changes.
 ## 6. Stitch Mode (if applicable)
 
 If Stitch mode is active:
-- Regenerate HTML: `02-screens/html/login-screen.html`
+- Regenerate HTML: `02-wireframes/html/product-buyer-login-01.html`
 - Update design tokens if new styles needed
 ```
 
@@ -242,7 +242,7 @@ Flag file created in affected directories.
 # Review Required
 
 **Triggered by**: Wireframe change
-**Source**: 02-screens/wireframes/login-screen.yaml
+**Source**: 02-wireframes/product/buyer/wireframes/product-buyer-login-01.yaml
 **Change**: Add OAuth login options
 **Date**: 2026-01-30T12:00:00+09:00
 
@@ -260,7 +260,7 @@ This component/test is affected by the wireframe change above.
 
 ## Related Files
 
-- Modified wireframe: `02-screens/wireframes/login-screen.yaml`
+- Modified wireframe: `02-wireframes/product/buyer/wireframes/product-buyer-login-01.yaml`
 - Change plan: `_analysis/wireframe-plan.md`
 - Impact analysis: `_analysis/wireframe-impact.json`
 ```

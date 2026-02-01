@@ -68,7 +68,7 @@ Generate specification in spec-it compatible format.
 {output-folder}/
 ├── 01-persona/
 │   └── personas.md
-├── 02-screens/
+├── 02-wireframes/
 │   ├── screen-list.md
 │   └── wireframes/
 │       ├── screen-{name}.md
@@ -97,7 +97,7 @@ Generate specification in spec-it compatible format.
 - User personas with goals, pain points, behaviors
 - Device preferences, usage patterns
 
-**02-screens/**
+**02-wireframes/**
 - Screen list with routes and purposes
 - YAML/JSON wireframes for each screen
 - Component mapping per screen
@@ -163,7 +163,7 @@ Skill(hack-2-spec --source codebase --output docs/_mirror/)
 # 결과물
 docs/_mirror/
 ├── 03-components/specs/  → 구현된 컴포넌트 스펙
-├── 02-screens/           → 구현된 화면 스펙
+├── 02-wireframes/        → 구현된 화면 스펙
 └── 06-final/final-spec.md → 통합 스펙 (REQ-### 형식)
 ```
 

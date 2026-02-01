@@ -197,7 +197,7 @@ render_dashboard() {
         # Spec-it mode: calculate by folder content
         local req_files=$(find "$SESSION_PATH/00-requirements" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
         local ch_files=$(find "$SESSION_PATH/01-chapters" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
-        local scr_files=$(find "$SESSION_PATH/02-screens" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
+        local scr_files=$(find "$SESSION_PATH/02-wireframes" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
         local comp_files=$(find "$SESSION_PATH/03-components" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
         local rev_files=$(find "$SESSION_PATH/04-review" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')
         local test_files=$(find "$SESSION_PATH/05-tests" -name "*.md" -type f 2>/dev/null | wc -l | tr -d ' ')

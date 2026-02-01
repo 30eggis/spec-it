@@ -222,17 +222,26 @@ Task(ui-architect, sonnet):
 
     Design Style: {_meta.designStyle}
 
-    Output: screen-list.md, layouts/layout-system.yaml
+    Output:
+      - 02-wireframes/layouts/layout-system.yaml
+      - 02-wireframes/layouts/components.yaml
+      - 02-wireframes/<domain>/shared.md
+      - 02-wireframes/<domain>/<user-type>/screen-list.md
   "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
 
-FOR each batch (4 screens):
+FOR each batch (4 groups):
   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/executors/batch-runner.sh {sessionId} wireframe {i}
 
   Task(ui-architect, sonnet, parallel x4):
     prompt: "
       Role: ui-architect
+
+      Screen list: {screenListPath}
+      Read: {screenListPath}
+      Read: 02-wireframes/<domain>/shared.md (same domain as screen list)
+      Render all screens in this list (respect depends_on order)
 
       === YAML UI FRAME REFERENCE (MUST READ) ===
       Read: skills/shared/references/yaml-ui-frame/03-components.md
@@ -246,7 +255,7 @@ FOR each batch (4 screens):
 
       === OUTPUT FORMAT (YAML) ===
       Use template: assets/templates/UI_WIREFRAME_TEMPLATE.yaml
-      Output file: wireframes/{screen}.yaml
+      Output file: 02-wireframes/<domain>/<user-type>/wireframes/{screen-id}.yaml
 
       === CRITICAL RULES ===
       - NEVER use ASCII box characters

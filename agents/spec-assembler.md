@@ -126,7 +126,7 @@ Component → Screen → Integration
 | 00-requirements | -requirement | 0-auth-requirement.md |
 | 01-chapters/decisions | -decision | 0-scope-decision.md |
 | 01-chapters/alternatives | -alternative | 0-state-alternative.md |
-| 02-screens | -screen | 0-login-screen.md |
+| 02-wireframes | -screen | 0-login-screen.md |
 | 03-components/new | -component | 0-button-component.md |
 | 03-components/migrations | -migration | 0-datatable-migration.md |
 | 04-review/scenarios | -scenario | 0-login-scenario.md |
