@@ -16,6 +16,18 @@ Transform PRD/vibe-coding into frontend specifications with **maximum automation
 
 See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rules.md](../shared/context-rules.md).
 
+### ⚠️ Main Orchestrator File Writing (CRITICAL)
+
+**메인 오케스트레이터에서 Bash로 파일 쓰기 절대 금지:**
+- ❌ `cat > file <<` (heredoc)
+- ❌ `echo ... > file`
+- ❌ 모든 Bash 리다이렉션
+
+**대신 사용:**
+- ✅ 상태 파일 → status-update.sh 스크립트
+- ✅ 일반 파일 → Write 도구
+- ✅ 대용량 파일 → Task(서브에이전트)에 위임
+
 ## Workflow
 
 ```

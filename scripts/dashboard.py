@@ -408,7 +408,7 @@ class Dashboard:
         completed_phases = [int(p) for p in completed_phases]
         status = data.get("status", "in_progress")
 
-        start_time_str = data.get("startTime", data.get("lastCheckpoint", ""))
+        start_time_str = data.get("startTime") or data.get("startedAt", "")
         if start_time_str:
             start_time = self.parse_iso_time(start_time_str)
             runtime = max(0, int((datetime.now() - start_time).total_seconds()))
