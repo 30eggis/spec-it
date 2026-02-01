@@ -15,6 +15,7 @@ Transform PRD/vibe-coding into frontend specifications with **maximum automation
 ## Rules
 
 See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rules.md](../shared/context-rules.md).
+See [shared/rules/50-question-policy.md](../shared/rules/50-question-policy.md) (Question Policy: Auto).
 
 ### ⚠️ Main Orchestrator File Writing (CRITICAL)
 
@@ -37,7 +38,7 @@ See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rule
       ↓
 [Auto: Critical Review]
       ↓
-[IF ambiguity: User Question]
+[IF hard stop risk: User Question]
       ↓
 [Auto: Test Spec → Assembly]
       ↓

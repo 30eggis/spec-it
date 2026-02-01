@@ -13,6 +13,7 @@ Transform PRD/vibe-coding into frontend specifications with **auto-validation** 
 ## Rules
 
 See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rules.md](../shared/context-rules.md).
+See [shared/rules/50-question-policy.md](../shared/rules/50-question-policy.md) (Question Policy: Hybrid).
 
 ### ⚠️ Main Orchestrator File Writing (CRITICAL)
 

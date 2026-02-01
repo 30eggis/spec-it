@@ -94,6 +94,7 @@ CASE selection:
 | Feature | Step-by-Step | Complex | Automation | Fast |
 |---------|--------------|---------|------------|------|
 | Approvals | Every chapter | 4 milestones | Final only | Final only |
+| Question Policy | Confirm | Hybrid | Auto | Auto |
 | Control | Maximum | Balanced | Minimal | Minimal |
 | Speed | Slowest | Medium | Fast | **Fastest** |
 | Learning | Best | Good | Limited | None |

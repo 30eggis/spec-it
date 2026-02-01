@@ -6,6 +6,7 @@ Load order is intentional. Each file is under 400 lines.
 2) `skills/shared/rules/20-state-role-auth.md`
 3) `skills/shared/rules/30-ui-ssr-time.md`
 4) `skills/shared/rules/40-test-checklists.md`
+5) `skills/shared/rules/50-question-policy.md`
 
 Usage:
 - Include the rule keywords in spec-it or spec-it-execute prompts.

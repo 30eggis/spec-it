@@ -32,6 +32,7 @@ Transform PRD/vibe-coding into frontend wireframes with **minimal process** and 
 ## Rules
 
 See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rules.md](../shared/context-rules.md).
+See [shared/rules/50-question-policy.md](../shared/rules/50-question-policy.md) (Question Policy: Auto).
 
 ### ⚠️ Main Orchestrator File Writing (CRITICAL)
 
