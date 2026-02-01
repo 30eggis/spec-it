@@ -686,10 +686,10 @@ WHILE _state.qaAttempts < _state.maxQaAttempts:
       Run QA checks and report results:
 
       Commands to run:
-      1. npm run lint 2>&1 || true
-      2. npm run type-check 2>&1 || true
-      3. npm run test 2>&1 || true
-      4. npm run build 2>&1 || true
+      1. npm run lint 2>&1
+      2. npm run type-check 2>&1
+      3. npm run test 2>&1
+      4. npm run build 2>&1
 
       Output format:
       LINT: [PASS/FAIL] {summary}
@@ -703,6 +703,7 @@ WHILE _state.qaAttempts < _state.maxQaAttempts:
       OUTPUT RULES:
       1. Return results in format above
       2. Do NOT fix anything - just report
+      3. If any command fails, mark it FAIL and set ALL_PASSED=false
     "
   )
 
@@ -761,11 +762,13 @@ WHILE _state.qaAttempts < _state.maxQaAttempts:
   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "qaAttempts" "{_state.qaAttempts}"
 
 IF _state.qaAttempts >= _state.maxQaAttempts AND NOT allPassed:
-  # Autopilot: Continue to next phase after max attempts
-  Output: "⚠️ QA failed after 5 attempts. Proceeding to next phase (autopilot mode)."
-  Write(.spec-it/execute/{sessionId}/logs/qa-warning.md, "QA incomplete - proceeded after 5 attempts")
+  # Hard gate: stop and wait for user intervention
+  Write(.spec-it/execute/{sessionId}/logs/qa-warning.md, "QA failed after max attempts - awaiting user decision")
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" waiting "QA failed after max attempts. Review logs and decide next action."
+  Output: "⛔ QA failed after max attempts. Execution paused."
+  STOP
 
-# Phase 4 complete - use unified status-update.sh
+# Phase 4 complete only when QA passed
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 4 5 "5.1"
 ```
 
@@ -944,11 +947,13 @@ WHILE _state.mirrorAttempts < _state.maxMirrorAttempts:
   GOTO Phase 4 (QA check only, no phase update)
 
 IF _state.mirrorAttempts >= _state.maxMirrorAttempts AND missingItems.length > 0:
-  # Autopilot: Continue to next phase after max attempts
-  Output: "⚠️ Spec-Mirror: {missingItems.length} items still missing after 5 attempts. Proceeding (autopilot mode)."
+  # Hard gate: stop and wait for user intervention
   Write(.spec-it/execute/{sessionId}/logs/mirror-warning.md, "Mirror incomplete - {missingItems.length} items missing")
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" waiting "Spec-Mirror failed after max attempts. Review missing items and decide next action."
+  Output: "⛔ Spec-Mirror failed after max attempts. Execution paused."
+  STOP
 
-# Phase 5 complete - use unified status-update.sh
+# Phase 5 complete only when Mirror passed
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 5 6 "6.1"
 
 Output: "
@@ -1281,11 +1286,13 @@ WHILE _state.scenarioAttempts < _state.maxScenarioAttempts:
   Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" state-update "scenarioAttempts" "{_state.scenarioAttempts}"
 
 IF _state.scenarioAttempts >= _state.maxScenarioAttempts AND _state.scenarioResults.failed > 0:
-  # Autopilot: Continue to validation after max attempts
-  Output: "⚠️ E2E: {_state.scenarioResults.failed} tests still failing after 5 attempts. Proceeding (autopilot mode)."
+  # Hard gate: stop and wait for user intervention
   Write(.spec-it/execute/{sessionId}/logs/e2e-warning.md, "E2E incomplete - {_state.scenarioResults.failed} failures")
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" waiting "E2E failed after max attempts. Review failures and decide next action."
+  Output: "⛔ E2E failed after max attempts. Execution paused."
+  STOP
 
-# Phase 7 complete - use unified status-update.sh
+# Phase 7 complete only when E2E passed
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh ".spec-it/execute/{sessionId}" phase-complete 7 8 "8.1"
 
 Output: "
