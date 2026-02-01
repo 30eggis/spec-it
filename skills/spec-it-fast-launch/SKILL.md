@@ -199,22 +199,44 @@ Task(ui-architect, sonnet):
     Read: 00-requirements/quick-brief.md
 
     === OUTPUT ===
-    1. 02-wireframes/<domain>/shared.md
-       - Design direction + shared UI components
-
-    2. 02-wireframes/<domain>/<user-type>/screen-list.md
-       - user_type: buyer | seller | admin | operator
-       - id format: <domain>-<user>-<flow>-<seq>
-       - fields: id, title, flow, priority, notes, depends_on(optional)
-
-    3. 02-wireframes/layouts/layout-system.yaml
+    1. 02-wireframes/layouts/layout-system.yaml
        - Layout structure based on design style
 
-    4. 02-wireframes/layouts/components.yaml
+    2. 02-wireframes/layouts/components.yaml
        - Shared layout components
+
+    3. 02-wireframes/domain-map.md (domains + user types)
   "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect "" 2.1
+```
+
+### Step 2.1b: Shared + Screen Lists (Parallel)
+
+```
+FOR each domain in domain-map (parallel, max 4):
+  Task(ui-architect, sonnet, parallel):
+    prompt: "
+      Role: ui-architect
+      Domain: {domain}
+
+      Output: 02-wireframes/<domain>/shared.md
+      Include design direction + shared UI components
+    "
+
+FOR each domain/user-type in domain-map (parallel, max 4):
+  Task(ui-architect, sonnet, parallel):
+    prompt: "
+      Role: ui-architect
+      Domain: {domain}
+      User type: {userType}
+
+      Output: 02-wireframes/<domain>/<user-type>/screen-list.md
+      Screen list rules:
+        - user_type: buyer | seller | admin | operator
+        - id format: <domain>-<user>-<flow>-<seq>
+        - fields: id, title, flow, priority, notes, depends_on(optional)
+    "
 ```
 
 ### Step 2.2: Wireframes (Parallel)
@@ -369,6 +391,7 @@ tmp/
 ├── 02-wireframes/
 │   ├── layouts/layout-system.yaml
 │   ├── layouts/components.yaml
+│   ├── domain-map.md
 │   ├── <domain>/shared.md
 │   ├── <domain>/<user-type>/screen-list.md
 │   └── <domain>/<user-type>/wireframes/{screen-id}.yaml

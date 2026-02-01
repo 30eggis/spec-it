@@ -225,9 +225,32 @@ Task(ui-architect, sonnet):
     Output:
       - 02-wireframes/layouts/layout-system.yaml
       - 02-wireframes/layouts/components.yaml
-      - 02-wireframes/<domain>/shared.md
-      - 02-wireframes/<domain>/<user-type>/screen-list.md
+      - 02-wireframes/domain-map.md (domains + user types)
   "
+
+FOR each domain in domain-map (parallel, max 4):
+  Task(ui-architect, sonnet, parallel):
+    prompt: "
+      Role: ui-architect
+      Domain: {domain}
+
+      Output: 02-wireframes/<domain>/shared.md
+      Include design direction + shared UI components
+    "
+
+FOR each domain/user-type in domain-map (parallel, max 4):
+  Task(ui-architect, sonnet, parallel):
+    prompt: "
+      Role: ui-architect
+      Domain: {domain}
+      User type: {userType}
+
+      Output: 02-wireframes/<domain>/<user-type>/screen-list.md
+      Screen list rules:
+        - user_type: buyer | seller | admin | operator
+        - id format: <domain>-<user>-<flow>-<seq>
+        - fields: id, title, flow, priority, notes, depends_on(optional)
+    "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
 

@@ -144,6 +144,7 @@ tmp/
 ├── 01-chapters/
 ├── 02-wireframes/
 │   ├── layouts/
+│   ├── domain-map.md
 │   ├── <domain>/shared.md
 │   ├── <domain>/<user-type>/screen-list.md
 │   ├── <domain>/<user-type>/wireframes/
