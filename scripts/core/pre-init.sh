@@ -7,22 +7,28 @@ PLUGIN_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SESSION_ID=$(date +%Y%m%d-%H%M%S)
 WORK_DIR="$(pwd)"
 
-SESSION_DIR="$WORK_DIR/tmp/$SESSION_ID"
+# Session state goes to .spec-it/{sessionId}/plan/
+SESSION_DIR="$WORK_DIR/.spec-it/$SESSION_ID/plan"
+# Document artifacts go to tmp/
+DOCS_DIR="$WORK_DIR/tmp"
 
 # Create minimal folder structure
 mkdir -p "$SESSION_DIR"
+mkdir -p "$DOCS_DIR"
 
 # Create initial _meta.json (uiMode will be updated later)
 cat > "$SESSION_DIR/_meta.json" << EOF
 {
   "sessionId": "$SESSION_ID",
+  "mode": "plan",
   "status": "initializing",
   "currentPhase": 0,
   "currentStep": "0.0",
   "completedSteps": [],
   "lastCheckpoint": "$(date -Iseconds)",
   "canResume": true,
-  "uiMode": "pending"
+  "uiMode": "pending",
+  "docsDir": "$DOCS_DIR"
 }
 EOF
 
@@ -30,11 +36,13 @@ EOF
 cat > "$SESSION_DIR/_status.json" << EOF
 {
   "sessionId": "$SESSION_ID",
+  "mode": "plan",
   "startTime": "$(date -Iseconds)",
   "currentPhase": 0,
   "currentStep": "0.0",
   "progress": 0,
   "status": "initializing",
+  "docsDir": "$DOCS_DIR",
   "agents": [],
   "stats": {"filesCreated": 0, "linesWritten": 0, "totalSize": "0KB"},
   "recentFiles": [],

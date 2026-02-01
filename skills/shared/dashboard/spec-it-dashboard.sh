@@ -1,7 +1,7 @@
 #!/bin/bash
 # SPEC-IT Real-time Dashboard
 # Usage: ./spec-it-dashboard.sh [session-path]
-# Example: ./spec-it-dashboard.sh ./tmp/20260130-123456
+# Example: ./spec-it-dashboard.sh ./.spec-it/20260130-123456/plan
 
 set -e
 
@@ -35,18 +35,18 @@ else
         PROJECT_DIR="$(pwd)"
     fi
 
-    # Search for session in project's tmp directory
-    SESSION_PATH=$(find "$PROJECT_DIR" -maxdepth 5 -path "*/tmp/*" -name "_status.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+    # Search for session in .spec-it directory (new structure)
+    SESSION_PATH=$(find "$PROJECT_DIR" -maxdepth 5 -path "*/.spec-it/*/plan" -name "_status.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
     if [ -z "$SESSION_PATH" ]; then
-        SESSION_PATH=$(find "$PROJECT_DIR" -maxdepth 5 -path "*/tmp/*" -name "_meta.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+        SESSION_PATH=$(find "$PROJECT_DIR" -maxdepth 5 -path "*/.spec-it/*/execute" -name "_status.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
     fi
 
     # Fallback to current directory search
     if [ -z "$SESSION_PATH" ]; then
-        SESSION_PATH=$(find . -maxdepth 3 -name "_status.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+        SESSION_PATH=$(find . -maxdepth 5 -path "*/.spec-it/*/plan" -name "_status.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
     fi
     if [ -z "$SESSION_PATH" ]; then
-        SESSION_PATH=$(find . -maxdepth 3 -name "_meta.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
+        SESSION_PATH=$(find . -maxdepth 5 -path "*/.spec-it/*/execute" -name "_status.json" -type f 2>/dev/null | head -1 | xargs dirname 2>/dev/null || echo "")
     fi
 fi
 
@@ -255,8 +255,8 @@ render_dashboard() {
         fi
     fi
 
-    # Also detect by path pattern
-    if [[ "$SESSION_PATH" == *".spec-it/execute"* ]]; then
+    # Also detect by path pattern (new structure: .spec-it/{id}/execute)
+    if [[ "$SESSION_PATH" == */execute ]] || [[ "$SESSION_PATH" == */execute/ ]]; then
         mode="execute"
         total_phases=5
         mode_label="SPEC-IT EXECUTE"

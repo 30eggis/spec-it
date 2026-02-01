@@ -43,7 +43,8 @@ IF args contains "fast" OR "quick" OR "rapid":
 
 IF args contains "--resume":
   # Resume needs to know which mode - check session _meta.json
-  Read: tmp/{sessionId}/_meta.json
+  # New structure: .spec-it/{sessionId}/(plan|execute)/_meta.json
+  Read: .spec-it/{sessionId}/plan/_meta.json OR .spec-it/{sessionId}/execute/_meta.json
   route to appropriate skill based on mode stored in meta
   STOP
 ```

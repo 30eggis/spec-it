@@ -17,8 +17,8 @@ class Dashboard:
     def __init__(self, session_path: str):
         self.session_path = Path(session_path)
         self.status_file = self.session_path / "_status.json"
-        self.state_file = self.session_path / "_state.json"
         self.meta_file = self.session_path / "_meta.json"
+        # Note: _state.json is no longer used - all state is in _meta.json
 
     def read_json(self, filepath: Path) -> dict:
         try:
@@ -29,18 +29,16 @@ class Dashboard:
 
     def get_status(self) -> dict:
         status = self.read_json(self.status_file)
-        state = self.read_json(self.state_file)
         meta = self.read_json(self.meta_file)
 
-        # Merge with smart array handling: prefer non-empty arrays
-        result = {**meta, **status, **state}
+        # Merge: meta provides base, status provides runtime updates
+        result = {**meta, **status}
 
         # For arrays, prefer non-empty version from any source
         for key in ['completedSteps', 'completedPhases', 'agents', 'errors', 'recentFiles']:
             values = [
                 meta.get(key, []),
-                status.get(key, []),
-                state.get(key, [])
+                status.get(key, [])
             ]
             # Use the longest (most populated) array
             non_empty = [v for v in values if isinstance(v, list) and len(v) > 0]
@@ -55,9 +53,17 @@ class Dashboard:
         return result
 
     def detect_mode(self, data: dict) -> str:
-        if data.get('specSource') or data.get('qaAttempts') is not None:
+        # Check mode field first (new unified approach)
+        mode = data.get('mode')
+        if mode == 'execute':
             return 'execute'
-        if '.spec-it/execute' in str(self.session_path):
+        if mode == 'plan':
+            return 'spec-it'
+        # Fallback: check path pattern
+        if '/execute/' in str(self.session_path) or str(self.session_path).endswith('/execute'):
+            return 'execute'
+        # Fallback: check execute-specific fields
+        if data.get('specSource') or data.get('qaAttempts') is not None:
             return 'execute'
         return 'spec-it'
 
@@ -634,7 +640,13 @@ class Dashboard:
 
 
 def find_session(start_path: str = ".") -> str:
-    for pattern in ["tmp/*/_status.json", "**/tmp/*/_status.json", ".spec-it/execute/*/_state.json"]:
+    # New structure: .spec-it/{sessionId}/(plan|execute)
+    for pattern in [
+        ".spec-it/*/plan/_status.json",
+        ".spec-it/*/execute/_status.json",
+        "**/.spec-it/*/plan/_status.json",
+        "**/.spec-it/*/execute/_status.json"
+    ]:
         for f in Path(start_path).glob(pattern):
             return str(f.parent)
     return ""

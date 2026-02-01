@@ -115,7 +115,7 @@ sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all status
 
 ```
 IF --resume in args:
-  Read: tmp/{sessionId}/_meta.json
+  Read: .spec-it/{sessionId}/plan/_meta.json
   GOTO: _meta.currentStep
 ```
 
@@ -356,21 +356,21 @@ Options: [
 IF "Proceed to Execute" OR "Proceed":
   Output: "Starting implementation with spec-it-execute..."
 
-  # Auto-invoke spec-it-execute
-  Skill(spec-it-execute, "tmp/{sessionId}")
+  # Auto-invoke spec-it-execute (specs are in tmp/)
+  Skill(spec-it-execute, "tmp")
 
 ELIF "Review First":
   Output: "
   Spec saved. To execute later:
-  /spec-it-execute tmp/{sessionId}
+  /spec-it-execute tmp
   "
 
 ELSE ("Spec Only"):
   AskUserQuestion: "Handle tmp folder?"
   Options: [Archive, Keep, Delete]
 
-  IF Archive: mv tmp/{sessionId} archive/
-  IF Delete: rm -rf tmp/{sessionId}
+  IF Archive: mv tmp archive/specs-{sessionId}
+  IF Delete: rm -rf tmp
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
 ```

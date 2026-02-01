@@ -129,7 +129,7 @@ _meta.specFormat = "yaml"  # Default to YAML for new projects
 
 ```
 IF --resume in args:
-  Read: tmp/{sessionId}/_meta.json
+  Read: .spec-it/{sessionId}/plan/_meta.json
   GOTO: _meta.currentStep
 ```
 

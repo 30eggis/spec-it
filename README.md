@@ -163,16 +163,23 @@ All spec-it modes support resume:
 /spec-it-automation --resume 20260130-123456
 ```
 
-Session state is saved in `tmp/{sessionId}/_meta.json`.
+Session state is saved in `.spec-it/{sessionId}/plan/_meta.json`.
 
 ---
 
 ## Output Structure
 
 ```
-tmp/{sessionId}/
-├── _meta.json              # Checkpoint state
-├── _status.json            # Runtime stats
+.spec-it/{sessionId}/
+├── plan/
+│   ├── _meta.json          # Checkpoint state (plan mode)
+│   └── _status.json        # Runtime stats (plan mode)
+├── execute/
+│   ├── _meta.json          # Checkpoint state (execute mode)
+│   └── _status.json        # Runtime stats (execute mode)
+└── runtime-log.md          # Session-wide activity log
+
+tmp/                        # Document artifacts (archive)
 ├── 00-requirements/        # Requirements
 ├── 01-chapters/            # Design decisions
 ├── 02-screens/             # Wireframes, HTML

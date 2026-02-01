@@ -107,7 +107,7 @@ sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script
 
 ```
 IF --resume in args:
-  Read: tmp/{sessionId}/_meta.json
+  Read: .spec-it/{sessionId}/plan/_meta.json
   GOTO: _meta.currentStep
 ```
 

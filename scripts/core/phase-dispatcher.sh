@@ -14,17 +14,26 @@ PHASE="$2"
 BASE_DIR="${3:-.}"
 
 # Determine SESSION_DIR
+# New structure: .spec-it/{sessionId}/(plan|execute)
 if [ -d "$SESSION_ARG" ] && [ -f "$SESSION_ARG/_meta.json" ]; then
   SESSION_DIR="$SESSION_ARG"
-  SESSION_ID=$(basename "$SESSION_DIR")
-elif [ -d "$BASE_DIR/tmp/$SESSION_ARG" ]; then
+  PARENT_DIR=$(dirname "$SESSION_DIR")
+  SESSION_ID=$(basename "$PARENT_DIR")
+elif [ -d "$BASE_DIR/.spec-it/$SESSION_ARG/plan" ]; then
   SESSION_ID="$SESSION_ARG"
-  SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
+  SESSION_DIR="$BASE_DIR/.spec-it/$SESSION_ID/plan"
+elif [ -d "$BASE_DIR/.spec-it/$SESSION_ARG/execute" ]; then
+  SESSION_ID="$SESSION_ARG"
+  SESSION_DIR="$BASE_DIR/.spec-it/$SESSION_ID/execute"
 else
   SESSION_ID="$SESSION_ARG"
   for search_dir in "$BASE_DIR" "$(pwd)" "$HOME"; do
-    if [ -d "$search_dir/tmp/$SESSION_ID" ]; then
-      SESSION_DIR="$search_dir/tmp/$SESSION_ID"
+    if [ -d "$search_dir/.spec-it/$SESSION_ID/plan" ]; then
+      SESSION_DIR="$search_dir/.spec-it/$SESSION_ID/plan"
+      break
+    fi
+    if [ -d "$search_dir/.spec-it/$SESSION_ID/execute" ]; then
+      SESSION_DIR="$search_dir/.spec-it/$SESSION_ID/execute"
       break
     fi
   done
@@ -38,6 +47,13 @@ if [ ! -f "$META_FILE" ]; then
 fi
 
 UI_MODE=$(jq -r '.uiMode' "$META_FILE")
+# Get docs directory from meta (for plan mode document artifacts)
+DOCS_DIR=$(jq -r '.docsDir // ""' "$META_FILE")
+if [ -z "$DOCS_DIR" ] || [ "$DOCS_DIR" = "null" ]; then
+  # Fallback: derive from session path
+  WORK_DIR=$(dirname $(dirname $(dirname "$SESSION_DIR")))
+  DOCS_DIR="$WORK_DIR/tmp"
+fi
 CURRENT_STEP=$(jq -r '.currentStep' "$META_FILE")
 
 case "$PHASE" in
@@ -58,8 +74,8 @@ case "$PHASE" in
     echo "ACTION:parallel_critical_ambiguity"
     ;;
   "3.2"|"ambiguity")
-    # Check if must-resolve exists
-    AMBIG_FILE="$SESSION_DIR/04-review/ambiguities.md"
+    # Check if must-resolve exists (in docs directory)
+    AMBIG_FILE="$DOCS_DIR/04-review/ambiguities.md"
     if [ -f "$AMBIG_FILE" ] && grep -q "Must Resolve" "$AMBIG_FILE"; then
       echo "DISPATCH:user-question"
       echo "ACTION:ask_ambiguity_resolution"
