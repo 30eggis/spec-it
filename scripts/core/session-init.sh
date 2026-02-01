@@ -51,10 +51,14 @@ get_parent_terminal_info() {
 
 PARENT_TERMINAL_INFO=$(get_parent_terminal_info)
 
-# Create _meta.json
-cat > "$SESSION_DIR/_meta.json" << EOF
-{
-  "sessionId": "$SESSION_ID",
+# Create _meta.json and _status.json (avoid shell redirection writes)
+CURRENT_TIME=$(date -Iseconds)
+export SESSION_ID SESSION_DIR UI_MODE DOCS_DIR PARENT_TERMINAL_INFO CURRENT_TIME
+
+python3 -c 'import json, os
+session_dir = os.environ["SESSION_DIR"]
+data = {
+  "sessionId": os.environ["SESSION_ID"],
   "mode": "plan",
   "status": "in_progress",
   "currentPhase": 1,
@@ -62,39 +66,43 @@ cat > "$SESSION_DIR/_meta.json" << EOF
   "completedSteps": [],
   "completedPhases": [],
   "pendingSteps": ["1.1","1.2","1.3","1.4","2.1","2.2","3.1","3.2","4.1","5.1","6.1"],
-  "lastCheckpoint": "$(date -Iseconds)",
-  "canResume": true,
-  "uiMode": "$UI_MODE",
-  "docsDir": "$DOCS_DIR",
+  "lastCheckpoint": os.environ["CURRENT_TIME"],
+  "canResume": True,
+  "uiMode": os.environ["UI_MODE"],
+  "docsDir": os.environ["DOCS_DIR"],
   "techStack": {
     "framework": "Next.js 15 (App Router)",
     "ui": "React + shadcn/ui",
     "styling": "Tailwind CSS"
   },
-  "parentTerminal": $PARENT_TERMINAL_INFO
+  "parentTerminal": json.loads(os.environ["PARENT_TERMINAL_INFO"])
 }
-EOF
+with open(f"{session_dir}/_meta.json", "w") as f:
+  json.dump(data, f, indent=2)
+'
 
-# Create _status.json
-cat > "$SESSION_DIR/_status.json" << EOF
-{
-  "sessionId": "$SESSION_ID",
+python3 -c 'import json, os
+session_dir = os.environ["SESSION_DIR"]
+data = {
+  "sessionId": os.environ["SESSION_ID"],
   "mode": "plan",
-  "startTime": "$(date -Iseconds)",
+  "startTime": os.environ["CURRENT_TIME"],
   "currentPhase": 1,
   "currentStep": "1.1",
   "completedSteps": [],
   "completedPhases": [],
   "progress": 0,
   "status": "running",
-  "docsDir": "$DOCS_DIR",
+  "docsDir": os.environ["DOCS_DIR"],
   "agents": [],
   "stats": {"filesCreated": 0, "linesWritten": 0, "totalSize": "0KB"},
   "recentFiles": [],
   "errors": [],
-  "lastUpdate": "$(date -Iseconds)"
+  "lastUpdate": os.environ["CURRENT_TIME"]
 }
-EOF
+with open(f"{session_dir}/_status.json", "w") as f:
+  json.dump(data, f, indent=2)
+'
 
 # Auto-launch dashboard in separate terminal with logging
 DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"

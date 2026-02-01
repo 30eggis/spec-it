@@ -51,45 +51,50 @@ get_parent_terminal_info() {
 PARENT_TERMINAL_INFO=$(get_parent_terminal_info)
 CURRENT_TIME=$(date -Iseconds)
 
-# Create _meta.json (unified: includes resume state)
-cat > "$SESSION_DIR/_meta.json" << EOF
-{
-  "sessionId": "$SESSION_ID",
+# Create _meta.json and _status.json (avoid shell redirection writes)
+export SESSION_ID SESSION_DIR SPEC_FOLDER WORK_DIR PARENT_TERMINAL_INFO CURRENT_TIME
+
+python3 -c 'import json, os
+session_dir = os.environ["SESSION_DIR"]
+data = {
+  "sessionId": os.environ["SESSION_ID"],
   "mode": "execute",
-  "specSource": "$SPEC_FOLDER",
-  "workDir": "$WORK_DIR",
+  "specSource": os.environ.get("SPEC_FOLDER", ""),
+  "workDir": os.environ["WORK_DIR"],
   "status": "in_progress",
   "currentPhase": 1,
   "currentStep": "1.1",
   "completedPhases": [],
   "completedTasks": [],
   "completedSteps": [],
-  "startedAt": "$CURRENT_TIME",
-  "lastCheckpoint": "$CURRENT_TIME",
-  "canResume": true,
-  "livePreview": false,
+  "startedAt": os.environ["CURRENT_TIME"],
+  "lastCheckpoint": os.environ["CURRENT_TIME"],
+  "canResume": True,
+  "livePreview": False,
   "qaAttempts": 0,
   "maxQaAttempts": 5,
   "mirrorAttempts": 0,
   "maxMirrorAttempts": 5,
-  "lastMirrorReport": { "matchCount": 0, "missingCount": 0, "overCount": 0 },
+  "lastMirrorReport": {"matchCount": 0, "missingCount": 0, "overCount": 0},
   "coverageAttempts": 0,
   "maxCoverageAttempts": 5,
   "targetCoverage": 95,
-  "currentCoverage": { "statements": 0, "branches": 0, "functions": 0, "lines": 0 },
+  "currentCoverage": {"statements": 0, "branches": 0, "functions": 0, "lines": 0},
   "scenarioAttempts": 0,
   "maxScenarioAttempts": 5,
-  "scenarioResults": { "total": 0, "passed": 0, "failed": 0 },
-  "parentTerminal": $PARENT_TERMINAL_INFO
+  "scenarioResults": {"total": 0, "passed": 0, "failed": 0},
+  "parentTerminal": json.loads(os.environ["PARENT_TERMINAL_INFO"])
 }
-EOF
+with open(f"{session_dir}/_meta.json", "w") as f:
+  json.dump(data, f, indent=2)
+'
 
-# Create _status.json (for dashboard display)
-cat > "$SESSION_DIR/_status.json" << EOF
-{
-  "sessionId": "$SESSION_ID",
+python3 -c 'import json, os
+session_dir = os.environ["SESSION_DIR"]
+data = {
+  "sessionId": os.environ["SESSION_ID"],
   "mode": "execute",
-  "specSource": "$SPEC_FOLDER",
+  "specSource": os.environ.get("SPEC_FOLDER", ""),
   "status": "in_progress",
   "currentPhase": 1,
   "currentStep": "1.1",
@@ -100,10 +105,12 @@ cat > "$SESSION_DIR/_status.json" << EOF
   "progress": 0,
   "agents": [],
   "currentTask": "",
-  "startedAt": "$CURRENT_TIME",
-  "lastUpdate": "$CURRENT_TIME"
+  "startedAt": os.environ["CURRENT_TIME"],
+  "lastUpdate": os.environ["CURRENT_TIME"]
 }
-EOF
+with open(f"{session_dir}/_status.json", "w") as f:
+  json.dump(data, f, indent=2)
+'
 
 # Auto-launch dashboard in separate terminal with logging
 DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"

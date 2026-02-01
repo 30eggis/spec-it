@@ -16,40 +16,48 @@ DOCS_DIR="$WORK_DIR/tmp"
 mkdir -p "$SESSION_DIR"
 mkdir -p "$DOCS_DIR"
 
-# Create initial _meta.json (uiMode will be updated later)
-cat > "$SESSION_DIR/_meta.json" << EOF
-{
-  "sessionId": "$SESSION_ID",
+# Create initial _meta.json and _status.json (avoid shell redirection writes)
+CURRENT_TIME=$(date -Iseconds)
+export SESSION_ID SESSION_DIR DOCS_DIR CURRENT_TIME
+
+python3 -c 'import json, os
+session_dir = os.environ["SESSION_DIR"]
+data = {
+  "sessionId": os.environ["SESSION_ID"],
   "mode": "plan",
   "status": "initializing",
   "currentPhase": 0,
   "currentStep": "0.0",
   "completedSteps": [],
-  "lastCheckpoint": "$(date -Iseconds)",
-  "canResume": true,
+  "lastCheckpoint": os.environ["CURRENT_TIME"],
+  "canResume": True,
   "uiMode": "pending",
-  "docsDir": "$DOCS_DIR"
+  "docsDir": os.environ["DOCS_DIR"]
 }
-EOF
+with open(f"{session_dir}/_meta.json", "w") as f:
+  json.dump(data, f, indent=2)
+'
 
-# Create initial _status.json
-cat > "$SESSION_DIR/_status.json" << EOF
-{
-  "sessionId": "$SESSION_ID",
+python3 -c 'import json, os
+session_dir = os.environ["SESSION_DIR"]
+data = {
+  "sessionId": os.environ["SESSION_ID"],
   "mode": "plan",
-  "startTime": "$(date -Iseconds)",
+  "startTime": os.environ["CURRENT_TIME"],
   "currentPhase": 0,
   "currentStep": "0.0",
   "progress": 0,
   "status": "initializing",
-  "docsDir": "$DOCS_DIR",
+  "docsDir": os.environ["DOCS_DIR"],
   "agents": [],
   "stats": {"filesCreated": 0, "linesWritten": 0, "totalSize": "0KB"},
   "recentFiles": [],
   "errors": [],
-  "lastUpdate": "$(date -Iseconds)"
+  "lastUpdate": os.environ["CURRENT_TIME"]
 }
-EOF
+with open(f"{session_dir}/_status.json", "w") as f:
+  json.dump(data, f, indent=2)
+'
 
 # Launch dashboard with logging
 DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"
