@@ -6,6 +6,53 @@
 
 ## 1. 파일 작성 규칙
 
+### 1.0 메인 오케스트레이터 Bash 파일 쓰기 금지 (CRITICAL)
+
+**메인 오케스트레이터에서 Bash로 파일 쓰기 절대 금지**
+
+```
+# ❌ BAD - 권한 요청 발생 (흐름 중단)
+Bash: cat > /path/to/file.json << 'EOF'
+{...}
+EOF
+
+Bash: echo '{"key": "value"}' > /path/to/file.json
+
+# ✅ GOOD - Write 도구 사용
+Write(/path/to/file.json, '{"key": "value"}')
+
+# ✅ GOOD - 상태 파일은 스크립트 사용
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
+```
+
+**이유:**
+- 서브에이전트(Task)는 `bypassPermission: true`로 Bash 권한 요청 없음
+- 메인 오케스트레이터는 `bypassPermission` 미적용
+- 메인에서 Bash로 파일 쓰기 시 권한 요청 발생 → **automation 모드 흐름 중단**
+
+**허용되는 Bash 명령 (메인 오케스트레이터):**
+- ✅ status-update.sh 호출
+- ✅ meta-checkpoint.sh 호출
+- ✅ session-init.sh 호출
+- ✅ execute-session-init.sh 호출
+- ✅ planner/executor 스크립트 호출
+- ✅ 읽기 전용 명령 (ls, cat, grep 등)
+
+**금지되는 Bash 명령 (메인 오케스트레이터):**
+- ❌ `cat > file <<` (heredoc)
+- ❌ `echo ... > file` (리다이렉션)
+- ❌ `printf ... > file`
+- ❌ `tee file`
+- ❌ `sed -i` (in-place 편집)
+- ❌ 모든 파일 쓰기/수정 Bash 명령
+
+**파일 작성이 필요할 때:**
+1. 상태 파일 → status-update.sh 스크립트 사용
+2. 일반 파일 → Write 도구 사용
+3. 대용량 파일 → 서브에이전트(Task)에게 위임
+
+---
+
 ### 1.1 직접 Write 금지 조건
 
 **메인 컨텍스트에서 100줄 이상 파일 직접 작성 금지**
@@ -364,6 +411,7 @@ HASH = 파일경로의 MD5 앞 8자리 대문자
 
 실행 전 확인:
 
+- [ ] **메인 오케스트레이터에서 Bash로 파일 쓰기하려 하지 않는가?** (cat >, echo >, heredoc 등)
 - [ ] 100줄 이상 파일을 직접 Write하려 하지 않는가?
 - [ ] 5개 이상 에이전트를 동시에 실행하려 하지 않는가?
 - [ ] 에이전트 프롬프트에 "요약만 반환" 규칙이 포함되어 있는가?
