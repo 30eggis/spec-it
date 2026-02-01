@@ -81,6 +81,12 @@ Auto-detect and apply framework idioms:
 - One screen-list file per domain + user type (no mixed user types)
 - Required fields per screen: `id`, `title`, `flow`, `priority`, `notes`, `depends_on` (optional)
 
+### 2.2 Parallel Authoring Assignments
+- If assigned to domain map only: write `02-wireframes/domain-map.md`
+- If assigned to a domain: write `02-wireframes/<domain>/shared.md` only
+- If assigned to a domain/user-type: write `02-wireframes/<domain>/<user-type>/screen-list.md` only
+- Do not overwrite files owned by other parallel tasks
+
 ### 3. Create Flow Diagram
 - Screen transition diagram
 - Entry/exit points

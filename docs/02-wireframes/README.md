@@ -29,6 +29,12 @@ Define a screen-list architecture that scales by domain and user type, and enabl
 - Cross-user flows and shared states live in `shared.md`
 - If a screen is shared across user types, define it only in `shared.md`
 
+## Screen List Parallel Authoring
+- Build a domain map first (domain + user-type pairs)
+- Create `shared.md` per domain in parallel
+- Create `screen-list.md` per domain/user-type in parallel
+- Only one task writes `shared.md` per domain; others must not overwrite it
+
 ## Execute Parallelization (Implementation)
 - Parallel unit: `domain/user-type` folder
 - Order: `shared.md` first, then each user-type in parallel

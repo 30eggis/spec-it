@@ -190,7 +190,7 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/sta
 
 ## Phase 2: UI Architecture
 
-### Step 2.1: Layout System + Screen List
+### Step 2.1: Layout System + Domain Map
 
 ```
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect
@@ -215,22 +215,48 @@ Task(ui-architect, sonnet):
     Use template: assets/templates/LAYOUT_TEMPLATE.yaml
     Reference design tokens: shared/design-tokens.yaml
 
-    Generate: 02-wireframes/layouts/layout-system.yaml and 02-wireframes/layouts/components.yaml
-    Generate screen lists per domain/user type:
-      - 02-wireframes/<domain>/shared.md
-      - 02-wireframes/<domain>/<user-type>/screen-list.md
-    Screen list rules:
-      - user_type: buyer | seller | admin | operator
-      - id format: <domain>-<user>-<flow>-<seq>
-      - fields: id, title, flow, priority, notes, depends_on(optional)
-    Include design direction in domain shared.md
+    Generate:
+      - 02-wireframes/layouts/layout-system.yaml
+      - 02-wireframes/layouts/components.yaml
+      - 02-wireframes/domain-map.md (domains + user types)
+    Do not generate screen lists in this step
   "
+```
+
+### Step 2.1b: Shared + Screen Lists (Parallel)
+
+```
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect-screenlists
+
+FOR each domain in domain-map (parallel, max 4):
+  Task(ui-architect, sonnet, parallel):
+    prompt: "
+      Role: ui-architect
+      Domain: {domain}
+
+      Output: 02-wireframes/<domain>/shared.md
+      Include design direction + shared UI components
+    "
+
+FOR each domain/user-type in domain-map (parallel, max 4):
+  Task(ui-architect, sonnet, parallel):
+    prompt: "
+      Role: ui-architect
+      Domain: {domain}
+      User type: {userType}
+
+      Output: 02-wireframes/<domain>/<user-type>/screen-list.md
+      Screen list rules:
+        - user_type: buyer | seller | admin | operator
+        - id format: <domain>-<user>-<flow>-<seq>
+        - fields: id, title, flow, priority, notes, depends_on(optional)
+    "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
 → Creates screen-groups.json
 ```
 
-### Step 2.1b: Generate Wireframes (Parallel Batch)
+### Step 2.1c: Generate Wireframes (Parallel Batch)
 
 ```
 FOR each batch (4 groups):
