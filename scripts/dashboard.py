@@ -22,7 +22,7 @@ class Dashboard:
 
     def read_json(self, filepath: Path) -> dict:
         try:
-            with open(filepath, 'r') as f:
+            with open(filepath, "r") as f:
                 return json.load(f)
         except:
             return {}
@@ -35,37 +35,42 @@ class Dashboard:
         result = {**meta, **status}
 
         # For arrays, prefer non-empty version from any source
-        for key in ['completedSteps', 'completedPhases', 'agents', 'errors', 'recentFiles']:
-            values = [
-                meta.get(key, []),
-                status.get(key, [])
-            ]
+        for key in [
+            "completedSteps",
+            "completedPhases",
+            "agents",
+            "errors",
+            "recentFiles",
+        ]:
+            values = [meta.get(key, []), status.get(key, [])]
             # Use the longest (most populated) array
             non_empty = [v for v in values if isinstance(v, list) and len(v) > 0]
             if non_empty:
                 result[key] = max(non_empty, key=len)
 
         # For progress, use max value from status or calculated from meta
-        status_progress = status.get('progress', 0)
+        status_progress = status.get("progress", 0)
         if status_progress and status_progress > 0:
-            result['progress'] = status_progress
+            result["progress"] = status_progress
 
         return result
 
     def detect_mode(self, data: dict) -> str:
         # Check mode field first (new unified approach)
-        mode = data.get('mode')
-        if mode == 'execute':
-            return 'execute'
-        if mode == 'plan':
-            return 'spec-it'
+        mode = data.get("mode")
+        if mode == "execute":
+            return "execute"
+        if mode == "plan":
+            return "spec-it"
         # Fallback: check path pattern
-        if '/execute/' in str(self.session_path) or str(self.session_path).endswith('/execute'):
-            return 'execute'
+        if "/execute/" in str(self.session_path) or str(self.session_path).endswith(
+            "/execute"
+        ):
+            return "execute"
         # Fallback: check execute-specific fields
-        if data.get('specSource') or data.get('qaAttempts') is not None:
-            return 'execute'
-        return 'spec-it'
+        if data.get("specSource") or data.get("qaAttempts") is not None:
+            return "execute"
+        return "spec-it"
 
     def format_duration(self, seconds: int) -> str:
         if seconds < 0:
@@ -77,12 +82,12 @@ class Dashboard:
 
     def parse_iso_time(self, iso_str: str) -> datetime:
         try:
-            if 'T' in iso_str:
-                dt_part = iso_str.split('T')[0]
-                time_part = iso_str.split('T')[1].split('+')[0].split('-')[0]
-                if '.' in time_part:
-                    time_part = time_part.split('.')[0]
-                return datetime.strptime(f"{dt_part} {time_part}", '%Y-%m-%d %H:%M:%S')
+            if "T" in iso_str:
+                dt_part = iso_str.split("T")[0]
+                time_part = iso_str.split("T")[1].split("+")[0].split("-")[0]
+                if "." in time_part:
+                    time_part = time_part.split(".")[0]
+                return datetime.strptime(f"{dt_part} {time_part}", "%Y-%m-%d %H:%M:%S")
         except:
             pass
         return datetime.now()
@@ -116,30 +121,64 @@ class Dashboard:
         for yy in range(start_y, start_y + box_height):
             for xx in range(start_x, start_x + box_width):
                 try:
-                    stdscr.addch(yy, xx, ' ', curses.color_pair(6))
+                    stdscr.addch(yy, xx, " ", curses.color_pair(6))
                 except curses.error:
                     pass
 
-        self.safe_addstr(stdscr, start_y, start_x, "╔" + "═" * (box_width - 2) + "╗", curses.color_pair(3) | curses.A_BOLD)
-        self.safe_addstr(stdscr, start_y + box_height - 1, start_x, "╚" + "═" * (box_width - 2) + "╝", curses.color_pair(3) | curses.A_BOLD)
+        self.safe_addstr(
+            stdscr,
+            start_y,
+            start_x,
+            "╔" + "═" * (box_width - 2) + "╗",
+            curses.color_pair(3) | curses.A_BOLD,
+        )
+        self.safe_addstr(
+            stdscr,
+            start_y + box_height - 1,
+            start_x,
+            "╚" + "═" * (box_width - 2) + "╝",
+            curses.color_pair(3) | curses.A_BOLD,
+        )
         for yy in range(start_y + 1, start_y + box_height - 1):
-            self.safe_addstr(stdscr, yy, start_x, "║", curses.color_pair(3) | curses.A_BOLD)
-            self.safe_addstr(stdscr, yy, start_x + box_width - 1, "║", curses.color_pair(3) | curses.A_BOLD)
+            self.safe_addstr(
+                stdscr, yy, start_x, "║", curses.color_pair(3) | curses.A_BOLD
+            )
+            self.safe_addstr(
+                stdscr,
+                yy,
+                start_x + box_width - 1,
+                "║",
+                curses.color_pair(3) | curses.A_BOLD,
+            )
             self.safe_addstr(stdscr, yy, start_x + 1, " " * (box_width - 2))
 
         exclaim_art = ["██", "██", "██", "  ", "██"]
         art_start_y = start_y + 2
         for i, line in enumerate(exclaim_art):
             cx = start_x + (box_width - len(line)) // 2
-            self.safe_addstr(stdscr, art_start_y + i, cx, line, curses.color_pair(3) | curses.A_BOLD)
+            self.safe_addstr(
+                stdscr, art_start_y + i, cx, line, curses.color_pair(3) | curses.A_BOLD
+            )
 
         msg = "USER INPUT REQUIRED"
-        self.safe_addstr(stdscr, start_y + 8, start_x + (box_width - len(msg)) // 2, msg, curses.color_pair(3) | curses.A_BOLD)
+        self.safe_addstr(
+            stdscr,
+            start_y + 8,
+            start_x + (box_width - len(msg)) // 2,
+            msg,
+            curses.color_pair(3) | curses.A_BOLD,
+        )
 
         max_msg_len = box_width - 4
         if len(waiting_msg) > max_msg_len:
-            waiting_msg = waiting_msg[:max_msg_len - 3] + "..."
-        self.safe_addstr(stdscr, start_y + 9, start_x + (box_width - len(waiting_msg)) // 2, waiting_msg, curses.color_pair(5))
+            waiting_msg = waiting_msg[: max_msg_len - 3] + "..."
+        self.safe_addstr(
+            stdscr,
+            start_y + 9,
+            start_x + (box_width - len(waiting_msg)) // 2,
+            waiting_msg,
+            curses.color_pair(5),
+        )
 
     def render_execute(self, stdscr, data, width, height):
         """Render EXECUTE mode dashboard"""
@@ -151,44 +190,44 @@ class Dashboard:
 
         # Phase definitions (matches spec-it-execute SKILL.md)
         PHASES = {
-            1: {'name': 'LOAD', 'desc': 'Loading specs'},
-            2: {'name': 'PLAN', 'desc': 'Execution planning'},
-            3: {'name': 'EXECUTE', 'desc': 'Implementing code'},
-            4: {'name': 'QA', 'desc': 'Build & test loop'},
-            5: {'name': 'MIRROR', 'desc': 'Spec verification'},
-            6: {'name': 'UNIT', 'desc': 'Unit tests (95%)'},
-            7: {'name': 'E2E', 'desc': 'Playwright tests'},
-            8: {'name': 'REVIEW', 'desc': 'Code & security'},
-            9: {'name': 'DONE', 'desc': 'Complete'}
+            1: {"name": "LOAD", "desc": "Loading specs"},
+            2: {"name": "PLAN", "desc": "Execution planning"},
+            3: {"name": "EXECUTE", "desc": "Implementing code"},
+            4: {"name": "QA", "desc": "Build & test loop"},
+            5: {"name": "MIRROR", "desc": "Spec verification"},
+            6: {"name": "UNIT", "desc": "Unit tests (95%)"},
+            7: {"name": "E2E", "desc": "Playwright tests"},
+            8: {"name": "REVIEW", "desc": "Code & security"},
+            9: {"name": "DONE", "desc": "Complete"},
         }
 
         # Steps per phase
         PHASE_STEPS = {
-            1: ['1.1', '1.2', '1.3'],
-            2: ['2.1', '2.2'],
-            3: ['3.0', '3.1'],
-            4: ['4.1'],
-            5: ['5.1', '5.2'],
-            6: ['6.1', '6.2', '6.3'],
-            7: ['7.1', '7.2', '7.3'],
-            8: ['8.1', '8.2'],
-            9: ['9.1']
+            1: ["1.1", "1.2", "1.3"],
+            2: ["2.1", "2.2"],
+            3: ["3.0", "3.1"],
+            4: ["4.1"],
+            5: ["5.1", "5.2"],
+            6: ["6.1", "6.2", "6.3"],
+            7: ["7.1", "7.2", "7.3"],
+            8: ["8.1", "8.2"],
+            9: ["9.1"],
         }
 
-        session_id = data.get('sessionId', 'unknown')
-        current_phase = data.get('currentPhase', 1)
-        current_step = data.get('currentStep', '1.1')
-        completed_phases = data.get('completedPhases', [])
+        session_id = data.get("sessionId", "unknown")
+        current_phase = data.get("currentPhase", 1)
+        current_step = data.get("currentStep", "1.1")
+        completed_phases = data.get("completedPhases", [])
         # Normalize to integers
         completed_phases = [int(p) for p in completed_phases]
-        qa_attempts = data.get('qaAttempts', 0)
-        max_qa = data.get('maxQaAttempts', 5)
-        spec_source = data.get('specSource', '-')
-        completed_tasks = data.get('completedTasks', [])
-        current_task = data.get('currentTask', '')
-        status = data.get('status', 'in_progress')
+        qa_attempts = data.get("qaAttempts", 0)
+        max_qa = data.get("maxQaAttempts", 5)
+        spec_source = data.get("specSource", "-")
+        completed_tasks = data.get("completedTasks", [])
+        current_task = data.get("currentTask", "")
+        status = data.get("status", "in_progress")
 
-        start_time_str = data.get('startedAt', data.get('startTime', ''))
+        start_time_str = data.get("startedAt", data.get("startTime", ""))
         if start_time_str:
             start_time = self.parse_iso_time(start_time_str)
             runtime = max(0, int((datetime.now() - start_time).total_seconds()))
@@ -202,7 +241,9 @@ class Dashboard:
         y += 1
         self.safe_addstr(stdscr, y, 2, "SPEC-IT EXECUTE", GREEN | curses.A_BOLD)
         runtime_str = f"Runtime: {self.format_duration(runtime)}"
-        self.safe_addstr(stdscr, y, width - len(runtime_str) - 3, runtime_str, curses.A_BOLD)
+        self.safe_addstr(
+            stdscr, y, width - len(runtime_str) - 3, runtime_str, curses.A_BOLD
+        )
         y += 1
         self.safe_addstr(stdscr, y, 0, "═" * (width - 1), GREEN)
         y += 2
@@ -236,7 +277,9 @@ class Dashboard:
                 try:
                     step_index = phase_steps.index(current_step)
                     total_steps = len(phase_steps)
-                    progress = int((step_index / total_steps) * 100) + int(50 / total_steps)
+                    progress = int((step_index / total_steps) * 100) + int(
+                        50 / total_steps
+                    )
                 except (ValueError, ZeroDivisionError):
                     progress = 10
             else:
@@ -257,11 +300,13 @@ class Dashboard:
 
             self.safe_addstr(stdscr, y, 2, indicator, color)
             self.safe_addstr(stdscr, y, 4, f"{phase_num}.", color)
-            self.safe_addstr(stdscr, y, 7, phase_info['name'], color)
+            self.safe_addstr(stdscr, y, 7, phase_info["name"], color)
 
             # Progress bar for each phase
             self.safe_addstr(stdscr, y, 18, "[")
-            self.draw_progress_bar(stdscr, y, 19, bar_width, progress, GREEN if is_complete else YELLOW)
+            self.draw_progress_bar(
+                stdscr, y, 19, bar_width, progress, GREEN if is_complete else YELLOW
+            )
             self.safe_addstr(stdscr, y, 19 + bar_width, "]")
             self.safe_addstr(stdscr, y, 21 + bar_width, f"{progress:3d}%")
             y += 1
@@ -270,14 +315,16 @@ class Dashboard:
 
         # Overall Progress
         overall_progress = int(total_progress)
-        if status == 'completed':
+        if status == "completed":
             overall_progress = 100
         self.safe_addstr(stdscr, y, 0, "─" * (width - 1))
         y += 1
         self.safe_addstr(stdscr, y, 2, "OVERALL", curses.A_BOLD)
         overall_bar_width = min(40, width - 20)
         self.safe_addstr(stdscr, y, 12, "[")
-        self.draw_progress_bar(stdscr, y, 13, overall_bar_width, overall_progress, GREEN)
+        self.draw_progress_bar(
+            stdscr, y, 13, overall_bar_width, overall_progress, GREEN
+        )
         self.safe_addstr(stdscr, y, 13 + overall_bar_width, f"] {overall_progress:3d}%")
         y += 2
 
@@ -288,12 +335,18 @@ class Dashboard:
         y += 1
 
         if current_task:
-            self.safe_addstr(stdscr, y, 4, f"► {current_task[:width-10]}", YELLOW)
-        elif status == 'completed':
+            self.safe_addstr(stdscr, y, 4, f"► {current_task[: width - 10]}", YELLOW)
+        elif status == "completed":
             self.safe_addstr(stdscr, y, 4, "All tasks completed", GREEN)
         else:
-            phase_name = PHASES.get(current_phase, {}).get('name', 'Unknown')
-            self.safe_addstr(stdscr, y, 4, f"Phase {current_phase}: {phase_name} - Step {current_step}", CYAN)
+            phase_name = PHASES.get(current_phase, {}).get("name", "Unknown")
+            self.safe_addstr(
+                stdscr,
+                y,
+                4,
+                f"Phase {current_phase}: {phase_name} - Step {current_step}",
+                CYAN,
+            )
         y += 2
 
         # Stats Section
@@ -307,7 +360,9 @@ class Dashboard:
         self.safe_addstr(stdscr, y, 11 + len(str(len(completed_tasks))), " completed")
 
         self.safe_addstr(stdscr, y, 30, f"QA: ")
-        qa_color = RED if qa_attempts >= max_qa - 1 else YELLOW if qa_attempts > 0 else WHITE
+        qa_color = (
+            RED if qa_attempts >= max_qa - 1 else YELLOW if qa_attempts > 0 else WHITE
+        )
         self.safe_addstr(stdscr, y, 34, f"{qa_attempts}/{max_qa}", qa_color)
         y += 2
 
@@ -326,45 +381,55 @@ class Dashboard:
 
         # Phase definitions
         PHASES = {
-            1: {'name': 'BRAINSTORM', 'desc': 'Design Brainstorming'},
-            2: {'name': 'UI-ARCH', 'desc': 'UI Architecture'},
-            3: {'name': 'REVIEW', 'desc': 'Critical Review'},
-            4: {'name': 'TEST-SPEC', 'desc': 'Test Specification'},
-            5: {'name': 'ASSEMBLY', 'desc': 'Final Assembly'},
-            6: {'name': 'APPROVAL', 'desc': 'Final Approval'}
+            1: {"name": "BRAINSTORM", "desc": "Design Brainstorming"},
+            2: {"name": "UI-ARCH", "desc": "UI Architecture"},
+            3: {"name": "REVIEW", "desc": "Critical Review"},
+            4: {"name": "TEST-SPEC", "desc": "Test Specification"},
+            5: {"name": "ASSEMBLY", "desc": "Final Assembly"},
+            6: {"name": "APPROVAL", "desc": "Final Approval"},
         }
 
         # Steps per phase for progress calculation
         PHASE_STEPS = {
-            1: ['1.1', '1.2', '1.3', '1.4'],
-            2: ['2.1', '2.2'],
-            3: ['3.1', '3.2'],
-            4: ['4.1'],
-            5: ['5.1'],
-            6: ['6.1']
+            1: ["1.1", "1.2", "1.3", "1.4"],
+            2: ["2.1", "2.2"],
+            3: ["3.1", "3.2"],
+            4: ["4.1"],
+            5: ["5.1"],
+            6: ["6.1"],
         }
 
-        session_id = data.get('sessionId', 'unknown')
-        current_phase = data.get('currentPhase', 1)
-        current_step = data.get('currentStep', '1.1')
-        completed_steps = data.get('completedSteps', [])
-        completed_phases = data.get('completedPhases', [])
+        session_id = data.get("sessionId", "unknown")
+        current_phase = data.get("currentPhase", 1)
+        current_step = data.get("currentStep", "1.1")
+        completed_steps = data.get("completedSteps", [])
+        completed_phases = data.get("completedPhases", [])
         # Normalize to integers
         completed_phases = [int(p) for p in completed_phases]
-        status = data.get('status', 'in_progress')
+        status = data.get("status", "in_progress")
 
-        start_time_str = data.get('startTime', data.get('lastCheckpoint', ''))
+        start_time_str = data.get("startTime", data.get("lastCheckpoint", ""))
         if start_time_str:
             start_time = self.parse_iso_time(start_time_str)
             runtime = max(0, int((datetime.now() - start_time).total_seconds()))
         else:
             runtime = 0
 
-        # Calculate stats
+        # Calculate stats (prefer docsDir when available)
+        stats_root = self.session_path
+        docs_dir = data.get("docsDir")
+        if docs_dir:
+            try:
+                docs_path = Path(docs_dir)
+                if docs_path.exists():
+                    stats_root = docs_path
+            except Exception:
+                pass
+
         files_count = 0
         lines_count = 0
-        for md_file in self.session_path.glob('**/*.md'):
-            if not md_file.name.startswith('_'):
+        for md_file in stats_root.glob("**/*.md"):
+            if not md_file.name.startswith("_"):
                 files_count += 1
                 try:
                     lines_count += sum(1 for _ in open(md_file))
@@ -378,7 +443,9 @@ class Dashboard:
         y += 1
         self.safe_addstr(stdscr, y, 2, "SPEC-IT DASHBOARD", CYAN | curses.A_BOLD)
         runtime_str = f"Runtime: {self.format_duration(runtime)}"
-        self.safe_addstr(stdscr, y, width - len(runtime_str) - 3, runtime_str, curses.A_BOLD)
+        self.safe_addstr(
+            stdscr, y, width - len(runtime_str) - 3, runtime_str, curses.A_BOLD
+        )
         y += 1
         self.safe_addstr(stdscr, y, 0, "═" * (width - 1), CYAN)
         y += 2
@@ -399,7 +466,11 @@ class Dashboard:
 
         for phase_num, phase_info in PHASES.items():
             phase_steps = PHASE_STEPS.get(phase_num, [])
-            is_complete = phase_num in completed_phases or str(phase_num) in [str(p) for p in completed_phases] or (status == 'completed' and phase_num <= 6)
+            is_complete = (
+                phase_num in completed_phases
+                or str(phase_num) in [str(p) for p in completed_phases]
+                or (status == "completed" and phase_num <= 6)
+            )
             is_current = phase_num == current_phase and not is_complete
             is_future = phase_num > current_phase and not is_complete
 
@@ -413,7 +484,9 @@ class Dashboard:
                     step_index = phase_steps.index(current_step)
                     total_steps = len(phase_steps)
                     # Step in progress = (index / total) * 100 + partial
-                    progress = int((step_index / total_steps) * 100) + int(50 / total_steps)
+                    progress = int((step_index / total_steps) * 100) + int(
+                        50 / total_steps
+                    )
                 except (ValueError, ZeroDivisionError):
                     progress = 10  # fallback
             else:
@@ -435,11 +508,13 @@ class Dashboard:
 
             self.safe_addstr(stdscr, y, 2, indicator, color)
             self.safe_addstr(stdscr, y, 4, f"{phase_num}.", color)
-            self.safe_addstr(stdscr, y, 7, phase_info['name'], color)
+            self.safe_addstr(stdscr, y, 7, phase_info["name"], color)
 
             # Progress bar for each phase
             self.safe_addstr(stdscr, y, 18, "[")
-            self.draw_progress_bar(stdscr, y, 19, bar_width, progress, GREEN if is_complete else YELLOW)
+            self.draw_progress_bar(
+                stdscr, y, 19, bar_width, progress, GREEN if is_complete else YELLOW
+            )
             self.safe_addstr(stdscr, y, 19 + bar_width, "]")
             self.safe_addstr(stdscr, y, 21 + bar_width, f"{progress:3d}%")
             y += 1
@@ -452,10 +527,12 @@ class Dashboard:
         self.safe_addstr(stdscr, y, 2, "OVERALL", curses.A_BOLD)
         overall_bar_width = min(40, width - 20)
         overall_progress = int(total_progress)
-        if status == 'completed':
+        if status == "completed":
             overall_progress = 100
         self.safe_addstr(stdscr, y, 12, "[")
-        self.draw_progress_bar(stdscr, y, 13, overall_bar_width, overall_progress, GREEN)
+        self.draw_progress_bar(
+            stdscr, y, 13, overall_bar_width, overall_progress, GREEN
+        )
         self.safe_addstr(stdscr, y, 13 + overall_bar_width, f"] {overall_progress:3d}%")
         y += 2
 
@@ -465,11 +542,19 @@ class Dashboard:
         self.safe_addstr(stdscr, y, 2, "CURRENT", curses.A_BOLD)
         y += 1
 
-        if status == 'completed':
+        if status == "completed":
             self.safe_addstr(stdscr, y, 4, "All phases completed", GREEN)
         else:
-            phase_info = PHASES.get(current_phase, {'name': 'Unknown', 'desc': 'Unknown'})
-            self.safe_addstr(stdscr, y, 4, f"► Phase {current_phase}: {phase_info['desc']} - Step {current_step}", YELLOW)
+            phase_info = PHASES.get(
+                current_phase, {"name": "Unknown", "desc": "Unknown"}
+            )
+            self.safe_addstr(
+                stdscr,
+                y,
+                4,
+                f"► Phase {current_phase}: {phase_info['desc']} - Step {current_step}",
+                YELLOW,
+            )
         y += 2
 
         # Stats Section
@@ -492,13 +577,15 @@ class Dashboard:
         self.safe_addstr(stdscr, y, 2, "AGENTS", curses.A_BOLD)
         y += 1
 
-        agents = data.get('agents', [])
+        agents = data.get("agents", [])
         if agents:
-            running = [a for a in agents if a.get('status') == 'running']
-            completed = [a for a in agents if a.get('status') == 'completed']
+            running = [a for a in agents if a.get("status") == "running"]
+            completed = [a for a in agents if a.get("status") == "completed"]
 
             for agent in running[:2]:
-                self.safe_addstr(stdscr, y, 4, f"► {agent['name']}", GREEN | curses.A_BOLD)
+                self.safe_addstr(
+                    stdscr, y, 4, f"► {agent['name']}", GREEN | curses.A_BOLD
+                )
                 y += 1
             for agent in completed[-2:]:
                 self.safe_addstr(stdscr, y, 4, f"✓ {agent['name']}")
@@ -540,34 +627,37 @@ class Dashboard:
     def return_to_parent_terminal(self):
         """Return focus to the parent terminal where Claude is running (macOS only)"""
         meta = self.read_json(self.meta_file)
-        parent_info = meta.get('parentTerminal', {})
+        parent_info = meta.get("parentTerminal", {})
 
         if not parent_info:
             return False
 
-        os_type = parent_info.get('os', '')
-        window_id = parent_info.get('windowId', '')
+        os_type = parent_info.get("os", "")
+        window_id = parent_info.get("windowId", "")
 
-        if os_type == 'Darwin' and window_id:
+        if os_type == "Darwin" and window_id:
             try:
                 # Use AppleScript to activate Terminal window
-                script = f'''
+                script = f"""
                     tell application "Terminal"
                         activate
                         set index of window id {window_id} to 1
                     end tell
-                '''
-                subprocess.run(['osascript', '-e', script], capture_output=True)
+                """
+                subprocess.run(["osascript", "-e", script], capture_output=True)
                 return True
             except Exception:
                 pass
 
         # Fallback: try to activate Terminal app
-        if os_type == 'Darwin':
+        if os_type == "Darwin":
             try:
-                tty = parent_info.get('tty', '')
+                tty = parent_info.get("tty", "")
                 # Just activate Terminal app
-                subprocess.run(['osascript', '-e', 'tell application "Terminal" to activate'], capture_output=True)
+                subprocess.run(
+                    ["osascript", "-e", 'tell application "Terminal" to activate'],
+                    capture_output=True,
+                )
                 return True
             except Exception:
                 pass
@@ -595,20 +685,22 @@ class Dashboard:
                 data = self.get_status()
 
                 if not data:
-                    self.safe_addstr(stdscr, 1, 2, "Waiting for session...", curses.color_pair(3))
+                    self.safe_addstr(
+                        stdscr, 1, 2, "Waiting for session...", curses.color_pair(3)
+                    )
                     self.safe_addstr(stdscr, 2, 2, f"Path: {self.session_path}")
                     self.safe_addstr(stdscr, height - 1, 2, "Press 'q' to quit")
                     stdscr.refresh()
-                    if stdscr.getch() == ord('q'):
+                    if stdscr.getch() == ord("q"):
                         break
                     continue
 
                 mode = self.detect_mode(data)
-                waiting = data.get('waitingForUser', False)
-                waiting_msg = data.get('waitingMessage', 'Waiting for user input')
+                waiting = data.get("waitingForUser", False)
+                waiting_msg = data.get("waitingMessage", "Waiting for user input")
 
                 # Render based on mode
-                if mode == 'execute':
+                if mode == "execute":
                     self.render_execute(stdscr, data, width, height)
                 else:
                     self.render_spec_it(stdscr, data, width, height)
@@ -623,9 +715,9 @@ class Dashboard:
                 stdscr.refresh()
 
                 key = stdscr.getch()
-                if key == ord('q'):
+                if key == ord("q"):
                     break
-                elif key == ord('r'):
+                elif key == ord("r"):
                     if self.return_to_parent_terminal():
                         # Successfully switched, continue running dashboard
                         pass
@@ -635,21 +727,32 @@ class Dashboard:
             except Exception as e:
                 self.safe_addstr(stdscr, 0, 0, f"Error: {str(e)}")
                 stdscr.refresh()
-                if stdscr.getch() == ord('q'):
+                if stdscr.getch() == ord("q"):
                     break
 
 
 def find_session(start_path: str = ".") -> str:
     # New structure: .spec-it/{sessionId}/(plan|execute)
-    for pattern in [
+    candidates = []
+    patterns = [
         ".spec-it/*/plan/_status.json",
         ".spec-it/*/execute/_status.json",
         "**/.spec-it/*/plan/_status.json",
-        "**/.spec-it/*/execute/_status.json"
-    ]:
+        "**/.spec-it/*/execute/_status.json",
+    ]
+
+    for pattern in patterns:
         for f in Path(start_path).glob(pattern):
-            return str(f.parent)
-    return ""
+            try:
+                candidates.append((f.stat().st_mtime, f.parent))
+            except Exception:
+                continue
+
+    if not candidates:
+        return ""
+
+    candidates.sort(key=lambda item: item[0], reverse=True)
+    return str(candidates[0][1])
 
 
 def main():

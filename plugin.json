@@ -15,7 +15,7 @@
         ]
       },
       {
-        "matcher": "Skill(execute)",
+        "matcher": "Skill(spec-it-execute)",
         "hooks": [
           {
             "type": "command",
