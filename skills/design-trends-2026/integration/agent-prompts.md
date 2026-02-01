@@ -132,56 +132,49 @@ Reference: design-trends-2026/references/motion-presets.md
 
 ---
 
-## 2. Desktop Wireframe (≥ 1024px)
+## 2. Wireframe Spec (YAML + JSON)
 
-### 2.1 Full Layout
+### 2.1 YAML Structure (Required)
 
-{ASCII wireframe here}
+```yaml
+id: "SCR-001"
+name: "Login"
+route: "/login"
+layout:
+  type: "auth-layout"
+grid:
+  desktop: { columns: "1fr", areas: ["main"] }
+  tablet: { columns: "1fr", areas: ["main"] }
+  mobile: { columns: "1fr", areas: ["main"] }
+components:
+  - id: "login-card"
+    type: "Card"
+    zone: "main"
+interactions:
+  - trigger: "submit"
+    action: "POST /login"
+    feedback: "toast-success"
+states:
+  loading: "skeleton"
+  empty: "empty-panel"
+  error: "inline-error"
+accessibility:
+  focusOrder: ["email", "password", "submit"]
+  aria: ["aria-label: email", "aria-label: password"]
+designDirection:
+  style: "{style}"
+  trends: ["{trend-1}", "{trend-2}"]
+```
 
-### 2.2 Component Details
+### 2.2 JSON Companion (Optional)
 
-{Component breakdowns with IDs}
-
----
-
-## 3. Tablet Wireframe (640px ~ 1024px)
-
-{Tablet layout}
-
----
-
-## 4. Mobile Wireframe (< 640px)
-
-{Mobile layout}
-
----
-
-## 5. State Variations
-
-### 5.1 Loading State
-{Loading skeleton layout}
-
-### 5.2 Empty State
-{Empty state layout}
-
-### 5.3 Error State
-{Error state layout}
-
----
-
-## 6. Interaction Specifications
-
-| Trigger | Action | Feedback |
-|---------|--------|----------|
-| {element} | {action} | {animation/transition} |
-
----
-
-## 7. Accessibility Notes
-
-- Focus order: {description}
-- Screen reader: {ARIA labels}
-- Keyboard: {shortcuts}
+```json
+{
+  "screenId": "SCR-001",
+  "components": ["login-card", "email", "password", "submit"],
+  "states": ["loading", "empty", "error"]
+}
+```
 ```
 
 === TASK ===
@@ -192,10 +185,11 @@ Create wireframes for:
 Output to: {spec-folder}/02-screens/wireframes/
 
 OUTPUT RULES:
-1. Write each wireframe to separate file: SCR-{ID}-{slug}.md
-2. Always include Design Direction section
-3. Reference templates from design-trends-2026/
-4. Return: 'Done. Created {N} wireframes in {path}'
+1. Write each wireframe to separate file: SCR-{ID}-{slug}.yaml
+2. If JSON export is requested, also write: SCR-{ID}-{slug}.json
+3. Always include Design Direction in YAML
+4. Reference templates from design-trends-2026/
+5. Return: 'Done. Created {N} wireframes in {path}'
 ```
 
 ---
@@ -418,7 +412,7 @@ IF answer == "Custom":
 | `{sessionId}` | _meta.json | 현재 세션 ID |
 | `{_meta.designStyle}` | _meta.json | 선택된 디자인 스타일 |
 | `{_meta.designTrends}` | _meta.json | 선택된 트렌드 목록 (Custom) |
-| `{_meta.uiMode}` | _meta.json | UI 모드 (ascii/stitch) |
+| `{_meta.uiMode}` | _meta.json | UI 모드 (yaml/stitch) |
 | `{spec-folder}` | argument | tmp/ |
 | `{wireframe_path}` | task context | 해당 화면의 와이어프레임 경로 |
 | `{task.name}` | execution-plan | 태스크 이름 |

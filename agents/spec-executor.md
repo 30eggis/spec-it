@@ -5,6 +5,9 @@ model: opus
 context: fork
 permissionMode: bypassPermissions
 allowedTools: [Read, Write, Edit, Glob, Grep, Bash]
+references:
+  - docs/refs/agent-skills/skills/react-best-practices/README.md
+  - docs/refs/agent-skills/skills/composition-patterns/README.md
 ---
 
 # Spec Executor

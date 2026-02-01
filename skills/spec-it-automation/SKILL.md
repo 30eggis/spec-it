@@ -1,6 +1,6 @@
 ---
 name: spec-it-automation
-description: "Frontend spec generator (Full Auto mode). Maximum automation with minimal approval. Best for large projects."
+description: "Full-auto spec generator with minimal approvals for large projects."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 argument-hint: "[--resume <sessionId>]"
 permissionMode: bypassPermissions
@@ -195,6 +195,7 @@ Task(chapter-planner, opus):
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete chapter-planner "" 1.4
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate-output.sh "$(pwd)/tmp"
 ```
 
 ---
@@ -277,6 +278,7 @@ Task(component-migrator, sonnet, parallel):
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "component-builder,component-migrator" "" 2.2
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 2 3 "3.1"
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate-output.sh "$(pwd)/tmp"
 ```
 
 ---
@@ -318,6 +320,7 @@ ELSE:
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ambiguity-resolver "" 3.2
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 3 4 "4.1"
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate-output.sh "$(pwd)/tmp"
 ```
 
 ---
@@ -337,6 +340,7 @@ WAIT for both
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "persona-architect,test-spec-writer" "" 4.1
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 4 5 "5.1"
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate-output.sh "$(pwd)/tmp"
 ```
 
 ---
@@ -354,6 +358,7 @@ Task(spec-assembler, haiku):
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete spec-assembler "" 5.1
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 5 6 "6.1"
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate-output.sh "$(pwd)/tmp"
 ```
 
 ---
@@ -375,17 +380,11 @@ IF "Proceed to Execute" OR "Proceed":
 
   # Auto-invoke spec-it-execute (specs are in tmp/)
   Skill(spec-it-execute, "tmp")
-
 ELIF "Review First":
-  Output: "
-  Spec saved. To execute later:
-  /spec-it-execute tmp
-  "
-
+  Output: "Spec saved. Run /spec-it-execute tmp when ready."
 ELSE ("Spec Only"):
   AskUserQuestion: "Handle tmp folder?"
   Options: [Archive, Keep, Delete]
-
   IF Archive: mv tmp archive/specs-{sessionId}
   IF Delete: rm -rf tmp
 
@@ -393,106 +392,7 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/sta
 ```
 
 ---
-
-## Phase 7: Execute (Auto-invoked)
-
-When auto-execute is selected, spec-it-execute handles:
-
-| Phase | Description |
-|-------|-------------|
-| 0 | Initialize session |
-| 1 | Load specs |
-| 2 | Plan execution |
-| 3 | Implement code (batched parallel) |
-| 4 | QA loop (build/type/lint/test) |
-| 5 | Spec-mirror verification |
-| 6 | Unit tests (95% coverage target) |
-| 7 | E2E tests (100% pass target) |
-| 8 | Code & security review |
-| 9 | Complete |
-
-See `spec-it-execute/SKILL.md` for full details.
-
----
-
-## Output Structure
-
-```
-.spec-it/{sessionId}/plan/
-├── _meta.json, _status.json
-
-tmp/
-├── 00-requirements/
-├── 01-chapters/
-│   ├── alternatives/
-│   ├── critique-logic.md, critique-feasibility.md, critique-frontend.md
-│   ├── critique-final.md
-│   └── chapter-plan-final.md
-├── 02-screens/
-│   ├── screen-list.md, layouts/
-│   └── wireframes/ (YAML)
-├── 03-components/inventory.md, gap-analysis.md, new/, migrations/
-├── 04-review/scenarios/, exceptions/, ambiguities.md
-├── 05-tests/personas/, scenarios/, coverage-map.md
-└── 06-final/final-spec.md, dev-tasks.md, SPEC-SUMMARY.md
-```
-
----
-
-## Agents
-
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| design-interviewer | opus | Requirements |
-| divergent-thinker | sonnet | Alternatives |
-| critic-logic | sonnet | Logic validation |
-| critic-feasibility | sonnet | Feasibility check |
-| critic-frontend | sonnet | Frontend review |
-| critic-moderator | opus | Synthesize critiques |
-| chapter-planner | opus | Plan chapters |
-| ui-architect | sonnet | Wireframes |
-| component-auditor | haiku | Scan components |
-| component-builder | sonnet | Build specs |
-| component-migrator | sonnet | Migration plan |
-| critical-reviewer | opus | Scenario review |
-| ambiguity-detector | opus | Find ambiguities |
-| persona-architect | sonnet | Personas |
-| test-spec-writer | sonnet | Test specs |
-| spec-assembler | haiku | Final assembly |
-
----
-
-## Progress Tracking
-
-### Spec Generation (Phase 1-6)
-
-| Phase | Steps | Progress |
-|-------|-------|----------|
-| 1 | 1.1-1.4 | 0-16% |
-| 2 | 2.1-2.2 | 17-33% |
-| 3 | 3.1-3.2 | 34-50% |
-| 4 | 4.1 | 51-66% |
-| 5 | 5.1 | 67-83% |
-| 6 | 6.1 | 84-100% |
-
-### Implementation (Phase 7 - spec-it-execute)
-
-| Execute Phase | Progress |
-|---------------|----------|
-| LOAD | 0-10% |
-| PLAN | 10-20% |
-| EXECUTE | 20-50% |
-| QA | 50-60% |
-| SPEC-MIRROR | 60-70% |
-| UNIT-TEST | 70-80% |
-| SCENARIO-TEST | 80-90% |
-| VALIDATE | 90-95% |
-| COMPLETE | 100% |
-
----
-
 ## Resume
-
 ```
 /frontend-skills:spec-it-automation --resume {sessionId}
 ```

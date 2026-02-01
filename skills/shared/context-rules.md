@@ -398,7 +398,7 @@ HASH = 파일경로의 MD5 앞 8자리 대문자
   "hashes": {
     "A1B2C3D4": {
       "path": "02-screens/wireframes/SPEC-IT-A1B2C3D4.md",
-      "source": "wireframe-dashboard.md",
+      "source": "wireframe-dashboard.yaml",
       "created": "2026-01-29T23:40:00+09:00"
     }
   }

@@ -55,7 +55,7 @@
 ║  │ PHASE 0: INITIALIZATION                                                 │  ║
 ║  │                                                                         │  ║
 ║  │   User Input ──▶ [UI Mode Selection] ──▶ session-init.sh               │  ║
-║  │                   • ASCII Wireframe                                     │  ║
+║  │                   • YAML/JSON Wireframe                                 │  ║
 ║  │                   • Google Stitch                                       │  ║
 ║  │                                                                         │  ║
 ║  │   IF --resume: Load _meta.json → GOTO saved checkpoint                 │  ║
@@ -99,10 +99,10 @@
 ║  ┌─────────────────────────────────────────────────────────────────────────┐  ║
 ║  │ PHASE 2: UI + COMPONENTS (Auto)                               [17-33%] │  ║
 ║  │                                                                         │  ║
-║  │   phase-dispatcher.sh ──▶ DISPATCH:stitch OR DISPATCH:ascii            │  ║
+║  │   phase-dispatcher.sh ──▶ DISPATCH:stitch OR DISPATCH:yaml             │  ║
 ║  │                                                                         │  ║
 ║  │   ┌─────────────────────────┐    ┌─────────────────────────┐           │  ║
-║  │   │    IF STITCH MODE       │    │    IF ASCII MODE        │           │  ║
+║  │   │    IF STITCH MODE       │    │    IF YAML MODE         │           │  ║
 ║  │   │                         │    │                         │           │  ║
 ║  │   │  1. ui-architect        │    │  ui-architect           │           │  ║
 ║  │   │     → wireframes/       │    │    (Sonnet)             │           │  ║
@@ -115,7 +115,7 @@
 ║  │   │                         │    │  └─────┴─────┴─────┘   │ (batch 4) │  ║
 ║  │   │  Output:                │    │                         │           │  ║
 ║  │   │  - wireframes/          │    │  Output:                │           │  ║
-║  │   │  - html/                │    │  - wireframes/*.md      │           │  ║
+║  │   │  - html/                │    │  - wireframes/*.yaml    │           │  ║
 ║  │   │  - assets/              │    │                         │           │  ║
 ║  │   └─────────────────────────┘    └─────────────────────────┘           │  ║
 ║  │                                                                         │  ║
@@ -310,7 +310,7 @@ tmp/
 ├── 02-screens/
 │   ├── screen-list.md
 │   ├── layouts/
-│   ├── wireframes/            ◀── ASCII wireframes
+│   ├── wireframes/            ◀── YAML/JSON wireframes
 │   ├── html/                  ◀── Stitch HTML export
 │   └── assets/                ◀── Stitch assets
 │

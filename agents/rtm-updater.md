@@ -90,7 +90,7 @@ Write to: `.spec-it/{sessionId}/plan/_traceability/rtm.json`
 
   "wireframes": {
     "login-screen": {
-      "source": "02-screens/wireframes/login-screen.md",
+      "source": "02-screens/wireframes/login-screen.yaml",
       "designLinks": ["CH-02"],
       "componentLinks": ["auth-form", "social-buttons"],
       "testLinks": ["TEST-001"]

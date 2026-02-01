@@ -11,7 +11,7 @@ Impact analysis from spec-butterfly agent.
 ```json
 {
   "directImpact": {
-    "wireframe": "02-screens/wireframes/login-screen.md",
+    "wireframe": "02-screens/wireframes/login-screen.yaml",
     "changeType": "modify",
     "affectedSections": [
       "form-section",
@@ -24,8 +24,8 @@ Impact analysis from spec-butterfly agent.
       "change": "new OAuth variant needed",
       "currentSpec": "03-components/new/button-component.md",
       "otherUsages": [
-        "02-screens/wireframes/signup-screen.md",
-        "02-screens/wireframes/settings-screen.md"
+        "02-screens/wireframes/signup-screen.yaml",
+        "02-screens/wireframes/settings-screen.yaml"
       ],
       "action": "review"
     },
@@ -34,7 +34,7 @@ Impact analysis from spec-butterfly agent.
       "change": "add OAuth props",
       "currentSpec": "03-components/new/auth-form-component.md",
       "otherUsages": [
-        "02-screens/wireframes/signup-screen.md"
+        "02-screens/wireframes/signup-screen.yaml"
       ],
       "action": "update"
     }
@@ -53,7 +53,7 @@ Impact analysis from spec-butterfly agent.
   ],
   "screenImpact": [
     {
-      "screen": "02-screens/wireframes/signup-screen.md",
+      "screen": "02-screens/wireframes/signup-screen.yaml",
       "reason": "Uses same AuthForm component",
       "action": "review"
     }
@@ -75,7 +75,7 @@ Before/after comparison with change summary.
 ```markdown
 # Wireframe Change Preview
 
-**Wireframe**: login-screen.md
+**Wireframe**: login-screen.yaml
 **Change**: Add OAuth login options
 
 ---
@@ -156,7 +156,7 @@ Execution plan for applying changes.
 
 ## 1. Primary Change
 
-**File**: `02-screens/wireframes/login-screen.md`
+**File**: `02-screens/wireframes/login-screen.yaml`
 **Action**: Add OAuth login options and forgot password link
 
 ### Element Changes
@@ -242,7 +242,7 @@ Flag file created in affected directories.
 # Review Required
 
 **Triggered by**: Wireframe change
-**Source**: 02-screens/wireframes/login-screen.md
+**Source**: 02-screens/wireframes/login-screen.yaml
 **Change**: Add OAuth login options
 **Date**: 2026-01-30T12:00:00+09:00
 
@@ -260,25 +260,17 @@ This component/test is affected by the wireframe change above.
 
 ## Related Files
 
-- Modified wireframe: `02-screens/wireframes/login-screen.md`
+- Modified wireframe: `02-screens/wireframes/login-screen.yaml`
 - Change plan: `_analysis/wireframe-plan.md`
 - Impact analysis: `_analysis/wireframe-impact.json`
 ```
 
 ---
 
-## ASCII Wireframe Conventions
+## Legacy ASCII Wireframe Conventions (Deprecated)
 
-Reference for wireframe editing.
-
-### Box Characters
-
-```
-┌───┐  Top corners and horizontal line
-│   │  Vertical sides
-├───┤  Horizontal divider with connections
-└───┘  Bottom corners
-```
+ASCII wireframe editing is deprecated. Use YAML/JSON wireframes only.
+For legacy conversions, see `skills/shared/references/yaml-ui-frame/10-migration.md`.
 
 ### Interactive Elements
 

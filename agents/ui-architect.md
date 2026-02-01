@@ -15,6 +15,8 @@ references:
   - skills/shared/references/yaml-ui-frame/01-basic-structure.md
   - skills/shared/references/yaml-ui-frame/02-grid-definition.md
   - skills/shared/references/yaml-ui-frame/03-components.md
+  - docs/refs/agent-skills/skills/composition-patterns/README.md
+  - docs/refs/agent-skills/skills/react-best-practices/rules/rendering-hydration-no-flicker.md
 ---
 
 # UI Architect

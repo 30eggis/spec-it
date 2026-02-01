@@ -43,7 +43,7 @@
   },
 
   "recentFiles": [
-    "02-screens/wireframes/wireframe-dashboard.md",
+    "02-screens/wireframes/wireframe-dashboard.yaml",
     "03-components/inventory.md"
   ],
 
@@ -170,7 +170,7 @@ agent = _status.agents.find(a => a.name == "ui-architect")
 agent.status = "completed"
 agent.completedAt = "{ISO timestamp}"
 agent.duration = {seconds}
-agent.output = "wireframe-dashboard.md (120줄)"
+agent.output = "wireframe-dashboard.yaml (120줄)"
 
 # 통계 업데이트
 _status.stats.filesCreated += 1

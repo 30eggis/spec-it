@@ -168,8 +168,8 @@ Task(
 
     === OUTPUT ===
 
-    Output: {spec-folder}/02-screens/wireframes/SCR-{id}.md
-    Output: {spec-folder}/02-screens/layouts/layout-{name}.md
+    Output: {spec-folder}/02-screens/wireframes/SCR-{id}.yaml
+    Output: {spec-folder}/02-screens/layouts/layout-{name}.yaml
 
     OUTPUT RULES: (standard)
   "
@@ -339,7 +339,7 @@ Task(
 │       │                                                            │
 │       ▼                                                            │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ 02-screens/wireframes/SCR-*.md                              │   │
+│  │ 02-screens/wireframes/SCR-*.yaml                            │   │
 │  │                                                             │   │
 │  │ ## Design Direction                                         │   │
 │  │ ### Applied Trends                                          │   │

@@ -48,7 +48,7 @@ skills/spec-it/
 │   ├── TEST_SPEC_TEMPLATE.md
 │   └── UI_WIREFRAME_TEMPLATE.md
 ├── references/ (3개)
-│   ├── ascii-wireframe-guide.md
+│   ├── legacy-ascii-wireframe-guide.md (deprecated)
 │   ├── shadcn-component-list.md
 │   └── test-patterns.md
 └── hooks/ (notification)
@@ -431,7 +431,7 @@ Phase 0-9: 자동 실행 (spec-it-execute)
 | **Utility** | spec-mirror | 스펙 vs 구현 비교 |
 | | spec-it-api-mcp | API → MCP 변환 |
 | | init-spec-md | 기존 코드용 스펙 |
-| | stitch-convert | ASCII → HTML |
+| | stitch-convert | YAML/JSON → HTML |
 | **Loaders** | spec-component-loader | 컴포넌트 로딩 |
 | | spec-test-loader | 테스트 로딩 |
 | | spec-scenario-loader | 시나리오 로딩 |

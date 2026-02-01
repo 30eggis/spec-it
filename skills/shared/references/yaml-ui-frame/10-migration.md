@@ -2,6 +2,8 @@
 
 ASCII art에서 YAML로 마이그레이션.
 
+**Legacy Notice:** 기존 ASCII 문서 변환용이며 신규 ASCII 와이어프레임 생성은 금지.
+
 ## Element Mapping
 
 ### Containers

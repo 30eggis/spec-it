@@ -8,6 +8,9 @@ allowedTools: [Read, Write, Glob]
 templates:
   - skills/spec-it/assets/templates/TEST_SPEC_TEMPLATE.md
   - skills/spec-it/assets/templates/COVERAGE_MAP_TEMPLATE.md
+references:
+  - docs/refs/agent-skills/skills/react-best-practices/rules/rendering-hydration-no-flicker.md
+  - docs/refs/agent-skills/skills/react-best-practices/rules/client-localstorage-schema.md
 ---
 
 # Test Spec Writer
@@ -166,201 +169,19 @@ Every test spec MUST address:
 
 ## Output Format
 
-```markdown
-# Test Spec: Login Feature
+- Use `TEST_SPEC_TEMPLATE.md` and `COVERAGE_MAP_TEMPLATE.md`
+- Include unit, integration, and E2E sections
+- Map every REQ/feature to at least one test
 
-## Framework
-Vitest + React Testing Library + Playwright (detected)
+## Do
 
-## Coverage Target
-- Unit: 85%
-- Integration: 75%
-- E2E: Critical paths (login, signup, checkout)
+- Enforce RED-GREEN-REFACTOR ordering
+- Define coverage targets and edge cases
 
----
+## Don't
 
-## Unit Tests
-
-### Component: LoginForm
-
-```typescript
-import { render, screen, fireEvent } from '@testing-library/react';
-import { LoginForm } from './LoginForm';
-
-describe('LoginForm', () => {
-  // RED: Write this test first
-  describe('Rendering', () => {
-    it('renders email and password inputs', () => {
-      render(<LoginForm />);
-      expect(screen.getByLabelText(/email/i)).toBeInTheDocument();
-      expect(screen.getByLabelText(/password/i)).toBeInTheDocument();
-    });
-
-    it('renders submit button', () => {
-      render(<LoginForm />);
-      expect(screen.getByRole('button', { name: /sign in/i })).toBeInTheDocument();
-    });
-  });
-
-  // RED: Then this test
-  describe('Validation', () => {
-    it('shows error for invalid email', async () => {
-      render(<LoginForm />);
-      fireEvent.change(screen.getByLabelText(/email/i), {
-        target: { value: 'invalid' }
-      });
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-      expect(await screen.findByText(/invalid email/i)).toBeInTheDocument();
-    });
-
-    it('shows error for short password', async () => {
-      render(<LoginForm />);
-      fireEvent.change(screen.getByLabelText(/password/i), {
-        target: { value: '123' }
-      });
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-      expect(await screen.findByText(/at least 8 characters/i)).toBeInTheDocument();
-    });
-  });
-
-  // RED: Then this test
-  describe('Submission', () => {
-    it('calls onSubmit with credentials', async () => {
-      const onSubmit = jest.fn();
-      render(<LoginForm onSubmit={onSubmit} />);
-
-      fireEvent.change(screen.getByLabelText(/email/i), {
-        target: { value: 'test@example.com' }
-      });
-      fireEvent.change(screen.getByLabelText(/password/i), {
-        target: { value: 'password123' }
-      });
-      fireEvent.click(screen.getByRole('button', { name: /sign in/i }));
-
-      expect(onSubmit).toHaveBeenCalledWith({
-        email: 'test@example.com',
-        password: 'password123'
-      });
-    });
-  });
-});
-```
-
-### Execution Order
-1. ⬜ Run test → Should FAIL (component doesn't exist)
-2. ⬜ Create minimal component → Should PASS
-3. ⬜ Run next test → Should FAIL
-4. ⬜ Add feature → Should PASS
-5. ⬜ Repeat...
-
----
-
-## Integration Tests
-
-```typescript
-import { createServer } from '@/test/server';
-
-describe('POST /api/auth/login', () => {
-  // RED first
-  it('returns token for valid credentials', async () => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        email: 'test@example.com',
-        password: 'password123'
-      })
-    });
-
-    expect(res.status).toBe(200);
-    expect(await res.json()).toHaveProperty('token');
-  });
-
-  // RED
-  it('returns 401 for invalid password', async () => {
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({
-        email: 'test@example.com',
-        password: 'wrong'
-      })
-    });
-
-    expect(res.status).toBe(401);
-  });
-
-  // RED
-  it('returns 429 after 5 failed attempts', async () => {
-    for (let i = 0; i < 5; i++) {
-      await fetch('/api/auth/login', {
-        method: 'POST',
-        body: JSON.stringify({ email: 'test@example.com', password: 'wrong' })
-      });
-    }
-
-    const res = await fetch('/api/auth/login', {
-      method: 'POST',
-      body: JSON.stringify({ email: 'test@example.com', password: 'wrong' })
-    });
-
-    expect(res.status).toBe(429);
-  });
-});
-```
-
----
-
-## E2E Tests
-
-```typescript
-import { test, expect } from '@playwright/test';
-
-test.describe('Login Flow', () => {
-  // RED first
-  test('successful login redirects to dashboard', async ({ page }) => {
-    await page.goto('/login');
-
-    await page.fill('[data-testid="email"]', 'test@example.com');
-    await page.fill('[data-testid="password"]', 'password123');
-    await page.click('[data-testid="submit"]');
-
-    await expect(page).toHaveURL('/dashboard');
-    await expect(page.locator('h1')).toContainText('Welcome');
-  });
-
-  // RED
-  test('invalid credentials shows error', async ({ page }) => {
-    await page.goto('/login');
-
-    await page.fill('[data-testid="email"]', 'test@example.com');
-    await page.fill('[data-testid="password"]', 'wrong');
-    await page.click('[data-testid="submit"]');
-
-    await expect(page.locator('[data-testid="error"]')).toBeVisible();
-    await expect(page).toHaveURL('/login');
-  });
-});
-```
-
----
-
-## Coverage Map
-
-| Component/Feature | Unit | Integration | E2E | Total |
-|-------------------|------|-------------|-----|-------|
-| LoginForm | 8 | - | - | 8 |
-| /api/auth/login | - | 5 | - | 5 |
-| Login Flow | - | - | 4 | 4 |
-| **Total** | 8 | 5 | 4 | **17** |
-
-## Execution Checklist
-
-- [ ] All unit tests written BEFORE components
-- [ ] All integration tests written BEFORE API routes
-- [ ] All E2E tests written BEFORE user flows
-- [ ] Coverage meets targets (80%+)
-- [ ] Edge cases covered
-- [ ] No skipped tests without justification
-```
+- Write production code
+- Mark tests as passing without execution
 
 ## Writing Location
 

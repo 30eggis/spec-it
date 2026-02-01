@@ -138,7 +138,7 @@ Status: READY | NEEDS_REVISION | BLOCKED
 
 ### 3.2 Dependent Changes
 
-**File**: 02-screens/wireframes/login-screen.md
+**File**: 02-screens/wireframes/login-screen.yaml
 
 ```diff
 @@ -20,6 +20,8 @@

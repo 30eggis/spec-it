@@ -6,7 +6,12 @@ context: fork
 permissionMode: bypassPermissions
 allowedTools: [Read, Write, Glob]
 templates:
-  - skills/spec-it/assets/templates/COMPONENT_SPEC_TEMPLATE.md
+  - skills/spec-it-stepbystep/assets/templates/COMPONENT_SPEC_TEMPLATE.md
+references:
+  - docs/refs/agent-skills/skills/composition-patterns/README.md
+  - docs/refs/agent-skills/skills/composition-patterns/rules/architecture-compound-components.md
+  - docs/refs/agent-skills/skills/react-best-practices/README.md
+  - docs/refs/agent-skills/skills/react-best-practices/rules/rerender-memo.md
 ---
 
 # Component Builder

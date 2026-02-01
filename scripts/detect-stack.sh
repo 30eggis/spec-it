@@ -66,6 +66,13 @@ if command -v jq &> /dev/null; then
     end
   ')
 
+  # Detect scripts
+  LINT_SCRIPT=$(cat "$PKG" | jq -r 'if .scripts["lint"] then "lint" else "" end')
+  TYPECHECK_SCRIPT=$(cat "$PKG" | jq -r 'if .scripts["typecheck"] then "typecheck" else "" end')
+  TEST_SCRIPT=$(cat "$PKG" | jq -r 'if .scripts["test"] then "test" else "" end')
+  BUILD_SCRIPT=$(cat "$PKG" | jq -r 'if .scripts["build"] then "build" else "" end')
+  E2E_SCRIPT=$(cat "$PKG" | jq -r 'if .scripts["test:e2e"] then "test:e2e" elif .scripts["e2e"] then "e2e" elif .scripts["e2e:ci"] then "e2e:ci" else "" end')
+
   # Detect package manager
   if [ -f "$PROJECT_DIR/pnpm-lock.yaml" ]; then
     PKG_MANAGER="pnpm"
@@ -98,6 +105,13 @@ if command -v jq &> /dev/null; then
   "testFramework": "$TEST_FRAMEWORK",
   "ui": "$UI_LIB",
   "css": "$CSS_FRAMEWORK",
+  "scripts": {
+    "lint": "$LINT_SCRIPT",
+    "typecheck": "$TYPECHECK_SCRIPT",
+    "test": "$TEST_SCRIPT",
+    "build": "$BUILD_SCRIPT",
+    "e2e": "$E2E_SCRIPT"
+  },
   "packageManager": "$PKG_MANAGER",
   "typescript": $TYPESCRIPT,
   "monorepo": $MONOREPO,
@@ -146,6 +160,13 @@ else
   "testFramework": "$TEST_FRAMEWORK",
   "ui": "$UI_LIB",
   "css": "unknown",
+  "scripts": {
+    "lint": "",
+    "typecheck": "",
+    "test": "",
+    "build": "",
+    "e2e": ""
+  },
   "packageManager": "npm",
   "typescript": false,
   "monorepo": false,

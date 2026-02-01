@@ -1,6 +1,6 @@
 ---
 name: spec-it-fast-launch
-description: "Frontend spec generator (Fast Launch mode). Skip brainstorming, component design, and test spec. Quick wireframes with design trends. Best for rapid prototyping and design testing."
+description: "Fast wireframe generator with design trends for rapid prototyping."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 ---
 
@@ -27,6 +27,7 @@ Transform PRD/vibe-coding into frontend wireframes with **minimal process** and 
 | Design Style Selection | Apply design-trends-2026 |
 | UI Architecture (wireframes) | Core output |
 | Design Direction in wireframes | Test design trends |
+| Minimal QA (lint/typecheck) | Prevent obvious build breaks |
 
 ## Rules
 
@@ -265,6 +266,7 @@ FOR each screen (parallel, max 4):
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect-wireframes "" 2.2
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 2 3 "3.1"
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate-output.sh "$(pwd)/tmp"
 ```
 
 ---
@@ -299,9 +301,21 @@ Task(spec-assembler, haiku):
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete spec-assembler "" 3.1
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate-output.sh "$(pwd)/tmp"
 ```
 
-### Step 3.2: Auto-Execute
+### Step 3.2: Minimal QA Gate (Default)
+
+```
+# Run minimal QA before execute
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/qa/run-qa.sh "$(pwd)" --skip-test --skip-build
+
+IF failed:
+  Output: "QA failed. Fix lint/type errors, then re-run /spec-it-execute."
+  STOP
+```
+
+### Step 3.3: Auto-Execute
 
 ```
 Read: 06-final/FAST-SPEC-SUMMARY.md
@@ -343,8 +357,8 @@ tmp/
 │   └── quick-brief.md
 ├── 02-screens/
 │   ├── screen-list.md
-│   ├── layouts/layout-system.md
-│   └── wireframes/wireframe-*.md (with Design Direction)
+│   ├── layouts/layout-system.yaml
+│   └── wireframes/wireframe-*.yaml (with Design Direction)
 └── 06-final/
     ├── FAST-SPEC-SUMMARY.md
     └── design-checklist.md

@@ -1,9 +1,6 @@
 ---
 name: spec-component-loader
-description: |
-  점진적으로 컴포넌트 스펙을 로딩합니다.
-  카테고리별, 우선순위별, 의존성 기반 로딩 지원.
-  Agent의 컨텍스트 효율성을 위해 필요한 부분만 선택적으로 로딩합니다.
+description: "Progressive component spec loader with category and dependency filters."
 allowed-tools: Read, Glob, Grep
 argument-hint: "<spec-folder> [--list] [--category <layout|display|cards|forms|...>] [--name <ComponentName>] [--with-deps] [--gap]"
 permissionMode: bypassPermissions
@@ -27,55 +24,7 @@ permissionMode: bypassPermissions
 /spec-component-loader {spec-folder} --list
 ```
 
-**출력:**
-```markdown
-# 컴포넌트 목록
-
-## 카테고리별 분류
-
-### Layout (4개)
-- Header
-- Sidebar
-- Footer
-- MainLayout
-
-### Cards (6개)
-- StockCard
-- PortfolioCard
-- NewsCard
-- AlertCard
-- WatchlistCard
-- SummaryCard
-
-### Display (8개)
-- PriceDisplay
-- ChangeIndicator
-- Sparkline
-- ChartWidget
-- DataTable
-- Badge
-- Tooltip
-- Avatar
-
-### Forms (5개)
-- SearchInput
-- OrderForm
-- AlertForm
-- SettingsForm
-- LoginForm
-
-### Feedback (3개)
-- Toast
-- LoadingSpinner
-- ErrorBoundary
-
-## 의존성 요약
-| 컴포넌트 | 의존 | 피의존 | 복잡도 |
-|----------|------|--------|--------|
-| StockCard | 3 | 5 | HIGH |
-| PriceDisplay | 1 | 8 | MEDIUM |
-| Header | 2 | 1 | LOW |
-```
+**출력:** 카테고리별 목록 + 의존성 요약 테이블
 
 ### 카테고리별 로딩
 
@@ -103,28 +52,7 @@ permissionMode: bypassPermissions
 /spec-component-loader {spec-folder} --name StockCard --with-deps
 ```
 
-**출력:**
-```markdown
-# StockCard + 의존성
-
-## 의존성 트리
-StockCard
-├── PriceDisplay (display)
-├── ChangeIndicator (display)
-└── Sparkline (display)
-
-## 1. PriceDisplay (의존성)
-{PriceDisplay spec content}
-
-## 2. ChangeIndicator (의존성)
-{ChangeIndicator spec content}
-
-## 3. Sparkline (의존성)
-{Sparkline spec content}
-
-## 4. StockCard (대상)
-{StockCard spec content}
-```
+**출력:** 의존성 트리 + 의존성 우선 순서로 스펙 출력
 
 ### Gap Analysis (미구현 컴포넌트)
 
@@ -132,67 +60,13 @@ StockCard
 /spec-component-loader {spec-folder} --gap
 ```
 
-**출력:**
-```markdown
-# 컴포넌트 Gap Analysis
-
-## 미구현 컴포넌트 (12개)
-
-### 우선순위별
-| 우선순위 | 컴포넌트 | 카테고리 | 복잡도 |
-|----------|----------|----------|--------|
-| P0 | StockCard | cards | HIGH |
-| P0 | PriceDisplay | display | MEDIUM |
-| P1 | Header | layout | LOW |
-| ... |
-
-## 권장 구현 순서
-1. PriceDisplay (display) - 의존성 없음, 8개 컴포넌트가 의존
-2. ChangeIndicator (display) - 의존성 없음, 5개 컴포넌트가 의존
-3. Sparkline (display) - 의존성 없음, 3개 컴포넌트가 의존
-4. StockCard (cards) - 위 3개 의존, P0 우선순위
-...
-
-## 구현 배치 (병렬화 가능)
-### Batch 1 (의존성 없음)
-- PriceDisplay
-- ChangeIndicator
-- Sparkline
-- Badge
-
-### Batch 2 (Batch 1 완료 후)
-- StockCard
-- PortfolioCard
-- AlertCard
-
-### Batch 3
-...
-```
+**출력:** 미구현 컴포넌트 목록 + 우선순위/의존성 기반 구현 순서
 
 ## Spec 폴더 구조
 
-```
-{spec-folder}/03-components/
-├── component-inventory.md     → 전체 컴포넌트 목록
-├── gap-analysis.md            → Gap 분석 결과
-└── specs/
-    ├── layout/
-    │   ├── Header.md          → Markdown (legacy)
-    │   ├── Header.yaml        → YAML (preferred)
-    │   ├── Sidebar.md
-    │   └── Footer.md
-    ├── cards/
-    │   ├── StockCard.md
-    │   ├── StockCard.yaml     → YAML format
-    │   └── PortfolioCard.md
-    ├── display/
-    │   ├── PriceDisplay.md
-    │   └── ChangeIndicator.md
-    ├── forms/
-    │   └── SearchInput.md
-    └── feedback/
-        └── Toast.md
-```
+- `{spec-folder}/03-components/component-inventory.md`
+- `{spec-folder}/03-components/gap-analysis.md`
+- `{spec-folder}/03-components/specs/{category}/{Component}.{yaml|md}`
 
 ## Format Detection
 
@@ -256,147 +130,10 @@ When both formats exist for a component, YAML takes precedence.
 3. 구현 순서 권장 (의존성 고려)
 ```
 
-## YAML Parsing Guide
+## Output Notes
 
-YAML 포맷 컴포넌트 스펙에서 데이터 추출:
-
-```yaml
-# 메타데이터
-id: "CMP-001"           → 컴포넌트 ID
-name: "StockCard"       → 컴포넌트 이름
-category: "cards"       → 카테고리
-priority: "P0"          → 우선순위
-
-# 의존성
-dependencies:
-  internal:
-    - name: "PriceDisplay"
-    - name: "ChangeIndicator"
-
-# Props
-props:
-  - name: "symbol"
-    type: "string"
-    required: true
-
-# Design tokens reference
-styles:
-  _ref: "../../shared/design-tokens.yaml"
-```
-
-## 컴포넌트 스펙 포맷
-
-각 컴포넌트 스펙은 다음 형식을 따릅니다:
-
-```markdown
-# StockCard
-
-**카테고리:** cards
-**우선순위:** P0
-**복잡도:** HIGH
-
-## 의존성 (Dependencies)
-- PriceDisplay
-- ChangeIndicator
-- Sparkline
-
-## 피의존성 (Used By)
-- Dashboard
-- WatchlistPage
-- SearchResults
-
-## Props
-
-| Prop | Type | Required | Default | Description |
-|------|------|----------|---------|-------------|
-| symbol | string | Yes | - | 종목 코드 |
-| onSelect | () => void | No | - | 선택 시 콜백 |
-| variant | 'compact' \| 'full' | No | 'full' | 표시 모드 |
-
-## States
-
-| State | Description | Visual |
-|-------|-------------|--------|
-| default | 기본 상태 | 흰색 배경 |
-| hover | 마우스 오버 | 밝은 그림자 |
-| selected | 선택됨 | 파란 테두리 |
-| loading | 로딩 중 | 스켈레톤 |
-| error | 에러 | 빨간 테두리 |
-
-## Interactions
-
-| Trigger | Action | Result |
-|---------|--------|--------|
-| Click | onSelect 호출 | 상세 페이지 이동 |
-| Long Press | 컨텍스트 메뉴 | 빠른 액션 표시 |
-
-## 접근성 (a11y)
-- role: article
-- aria-label: "{symbol} 주식 카드"
-- 키보드: Enter/Space로 선택
-
-## 테스트 힌트
-- 실시간 가격 업데이트 테스트
-- 로딩 상태 렌더링
-- 에러 상태 렌더링
-```
-
-## Agent 연동 예시
-
-### Phase 3: EXECUTE에서 사용
-
-```
-Task(spec-executor, opus):
-  prompt: "
-    # Step 1: 구현할 컴포넌트 스펙 로딩
-    Skill(spec-component-loader {spec-folder} --name PriceDisplay --with-deps)
-
-    # Step 2: 구현
-    - 의존성부터 구현
-    - 대상 컴포넌트 구현
-    - 테스트 작성
-
-    # Step 3: 다음 컴포넌트
-    Skill(spec-component-loader {spec-folder} --name StockCard --with-deps)
-  "
-```
-
-### 점진적 로딩 패턴
-
-```
-# 1단계: 전체 구조 파악
-Skill(spec-component-loader specs --list)
-
-# 2단계: Gap 분석으로 구현 순서 결정
-Skill(spec-component-loader specs --gap)
-
-# 3단계: Batch 1 컴포넌트 (의존성 없음) 병렬 구현
-Skill(spec-component-loader specs --category display)
-
-# 4단계: Batch 2 컴포넌트 (의존성 있음)
-Skill(spec-component-loader specs --name StockCard --with-deps)
-```
-
-## 출력 포맷
-
-모든 출력은 Markdown 형식으로 제공됩니다:
-
-```markdown
-# {로딩 타입} 결과
-
-## 메타데이터
-- 로딩 일시: {timestamp}
-- 소스: {spec-folder}
-- 필터: {filter-type}
-- 컴포넌트 수: {count}
-
-## 내용
-
-{actual content}
-
----
-*Loaded by spec-component-loader*
-```
+- YAML 우선, MD fallback
+- 로딩 결과는 Markdown으로 반환
 
 ## 관련 Skill
 

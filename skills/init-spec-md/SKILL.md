@@ -1,6 +1,6 @@
 ---
 name: init-spec-md
-description: "Generate SPEC-IT-{HASH}.md files for existing UI code. Enables progressive context loading for legacy codebases. Use when starting to track an existing project."
+description: "Generate SPEC-IT-{HASH}.md metadata for existing UI codebases."
 allowed-tools: Read, Write, Glob, Grep, Bash, Task
 argument-hint: "[path] [--dry-run] [--force]"
 permissionMode: bypassPermissions
@@ -84,7 +84,7 @@ Generate `SPEC-IT-{HASH}.md` metadata files for existing UI code to enable **pro
 │  │  - Read file → Extract features                            │    │
 │  │  - Parse Props interface                                   │    │
 │  │  - Use JSDoc comments                                      │    │
-│  │  - Generate ASCII wireframe (for components)               │    │
+│  │  - Generate YAML/JSON wireframe summary (for components)   │    │
 │  └────────────────────────────────────────────────────────────┘    │
 │                              │                                      │
 │                              ▼                                      │
@@ -155,14 +155,15 @@ Primary action button with loading state support.
 | disabled | boolean | N | Disabled |
 | onClick | () => void | Y | Click handler |
 
-### Wireframe (ASCII)
-┌─────────────────────────┐
-│  [Icon]  Button Text    │  ← Normal
-└─────────────────────────┘
-
-┌─────────────────────────┐
-│  [Spinner] Loading...   │  ← Loading
-└─────────────────────────┘
+### Wireframe (YAML)
+```yaml
+component: "Button"
+states:
+  - name: "default"
+    content: ["icon", "label"]
+  - name: "loading"
+    content: ["spinner", "label"]
+```
 
 ### Related Documents
 - **Parent**: [SPEC-IT-E5F6G7H8](../SPEC-IT-E5F6G7H8.md)

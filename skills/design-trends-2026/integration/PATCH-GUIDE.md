@@ -190,7 +190,7 @@ Task(
 ```json
 {
   "sessionId": "...",
-  "uiMode": "ascii",
+  "uiMode": "yaml",
 
   // NEW: Design Trends
   "designStyle": "minimal | immersive | organic | custom",
@@ -224,7 +224,7 @@ Task(
 #    → "Immersive" 선택
 
 # 3. 생성된 wireframe 확인
-cat tmp/02-screens/wireframes/SCR-*.md | grep -A 20 "Design Direction"
+cat tmp/02-screens/wireframes/SCR-*.yaml | grep -A 20 "Design Direction"
 
 # 4. Design Direction 섹션 존재 여부 확인
 #    - Applied Trends

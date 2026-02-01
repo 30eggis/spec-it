@@ -1,6 +1,6 @@
 ---
 name: design-trends-2026
-description: "2026 Design Trends & Templates. Apply trendy UI patterns to wireframes and components. Reference for ui-architecture agents."
+description: "2026 design trends reference pack with templates and motion presets."
 allowed-tools: Read, Write, Edit, Glob, Grep
 argument-hint: "[component|page|dashboard|form] [--style <organic|minimal|immersive>]"
 permissionMode: default

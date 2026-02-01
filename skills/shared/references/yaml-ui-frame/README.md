@@ -2,6 +2,8 @@
 
 YAML 구조적 와이어프레임 작성 가이드. ui-architect 에이전트 및 모든 spec-it 스킬에서 사용.
 
+**Legacy Notice:** ASCII wireframes are deprecated. Use YAML/JSON only; ASCII content is kept for migration reference.
+
 ## Why YAML?
 
 | 항목 | ASCII art | YAML |

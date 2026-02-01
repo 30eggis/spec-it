@@ -1,6 +1,6 @@
 ---
 name: prompt-inspector
-description: "Visual API binding tool for connecting UI elements to REST APIs. Use when: (1) User wants to connect UI elements to APIs visually, (2) User needs to discover APIs in a React/Next.js project, (3) User asks to set up API calls with success/failure handlers, (4) User wants to generate API binding specifications or code, (5) User mentions prompt-inspector or visual API binding."
+description: "Visual API binding for React/Next.js UI elements and REST endpoints."
 permissionMode: bypassPermissions
 ---
 

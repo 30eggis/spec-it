@@ -1,6 +1,6 @@
 ---
 name: spec-it
-description: "Frontend specification generator. Transforms PRD/requirements into comprehensive frontend specs with wireframes, component specs, and test plans."
+description: "Spec-it router that selects automation, complex, or step-by-step mode."
 allowed-tools: AskUserQuestion, Skill
 argument-hint: "[mode] [--resume <sessionId>]"
 permissionMode: bypassPermissions

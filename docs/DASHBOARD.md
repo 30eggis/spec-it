@@ -51,8 +51,8 @@ watch -n 2 ~/.claude/plugins/frontend-skills/skills/shared/dashboard/spec-it-sta
 ║  Lines: 1847 written
 ║
 ║  Recent:
-║    + wireframe-login.md
-║    + wireframe-dashboard.md
+║    + wireframe-login.yaml
+║    + wireframe-dashboard.yaml
 ╚══════════════════════════════════════════════════════════════════╝
 ```
 

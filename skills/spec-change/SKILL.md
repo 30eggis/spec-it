@@ -1,6 +1,6 @@
 ---
 name: spec-change
-description: "Spec modification router with comprehensive validation. Detects duplicates, conflicts, quality issues, and impact before applying changes. Use for any spec add/remove/modify requests."
+description: "Spec change router with validation for conflicts, clarity, coverage, and impact."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion, Glob, Grep
 argument-hint: "<sessionId> <action> [--target <path>] [--skip-checks]"
 permissionMode: bypassPermissions

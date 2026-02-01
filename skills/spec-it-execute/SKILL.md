@@ -1,6 +1,6 @@
 ---
 name: spec-it-execute
-description: "Autopilot-style executor. Transforms spec-it specifications into working code with minimal intervention. 9-phase workflow: Load → Plan → Execute → QA → Spec-Mirror → Unit-Test → Scenario-Test → Validate → Complete."
+description: "Autopilot executor that turns spec-it output into working code (9 phases)."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task
 argument-hint: "<spec-folder> [--resume <sessionId>]"
 permissionMode: bypassPermissions

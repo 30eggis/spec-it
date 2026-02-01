@@ -65,12 +65,12 @@ No duplicates found.
 
 **Direct impact (4 files):**
 - 01-chapters/decisions/CH-02.md
-- 02-screens/wireframes/login-screen.md
+- 02-screens/wireframes/login-screen.yaml
 - 03-components/new/auth-form.md
 - 05-tests/scenarios/auth-test.md
 
 **Indirect impact (1 file):**
-- 02-screens/wireframes/dashboard-screen.md (review recommended)
+- 02-screens/wireframes/dashboard-screen.yaml (review recommended)
 
 ## Recommended Actions
 
@@ -147,7 +147,7 @@ Status: READY
 
 ### 3.2 Dependent Change: Wireframe
 
-**File**: `02-screens/wireframes/login-screen.md`
+**File**: `02-screens/wireframes/login-screen.yaml`
 
 ```diff
 @@ -20,6 +20,10 @@
@@ -234,10 +234,10 @@ CH-02.md ──────────────────┐
 ## 5. Execution Order
 
 1. `01-chapters/decisions/CH-02.md` (decision)
-2. `02-screens/wireframes/login-screen.md` (wireframe)
+2. `02-screens/wireframes/login-screen.yaml` (wireframe)
 3. `03-components/new/auth-form.md` (component)
 4. `05-tests/scenarios/auth-test.md` (test)
-5. Review: `02-screens/wireframes/dashboard-screen.md`
+5. Review: `02-screens/wireframes/dashboard-screen.yaml`
 
 ---
 
@@ -258,7 +258,7 @@ If issues arise:
 ```bash
 # Option 1: Git restore
 git checkout -- 01-chapters/decisions/CH-02.md
-git checkout -- 02-screens/wireframes/login-screen.md
+git checkout -- 02-screens/wireframes/login-screen.yaml
 # ... etc
 
 # Option 2: Restore from backup

@@ -108,7 +108,7 @@ Write to: `.spec-it/{sessionId}/plan/_analysis/butterfly.json`
   "forwardTrace": {
     "direct": [
       {
-        "path": "02-screens/wireframes/login-screen.md",
+        "path": "02-screens/wireframes/login-screen.yaml",
         "dependency": "implements auth UI",
         "impact": "high",
         "action": "update required"
@@ -122,7 +122,7 @@ Write to: `.spec-it/{sessionId}/plan/_analysis/butterfly.json`
     ],
     "indirect": [
       {
-        "path": "02-screens/wireframes/dashboard-screen.md",
+        "path": "02-screens/wireframes/dashboard-screen.yaml",
         "dependency": "requires authenticated state",
         "impact": "low",
         "action": "review recommended"
@@ -174,7 +174,7 @@ Write to: `.spec-it/{sessionId}/plan/_analysis/butterfly.json`
   },
   "changeOrder": [
     "1. Update 01-chapters/decisions/CH-02.md",
-    "2. Update 02-screens/wireframes/login-screen.md",
+    "2. Update 02-screens/wireframes/login-screen.yaml",
     "3. Update 03-components/new/auth-form.md",
     "4. Update 05-tests/scenarios/auth-test.md",
     "5. Regenerate 06-final/final-spec.md"

@@ -99,7 +99,7 @@ Generate specification in spec-it compatible format.
 
 **02-screens/**
 - Screen list with routes and purposes
-- ASCII wireframes for each screen
+- YAML/JSON wireframes for each screen
 - Component mapping per screen
 
 **03-components/**

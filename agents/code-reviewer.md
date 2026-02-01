@@ -5,6 +5,11 @@ model: opus
 context: fork
 permissionMode: bypassPermissions
 allowedTools: [Read, Glob, Grep, Bash]
+references:
+  - docs/refs/agent-skills/skills/react-best-practices/README.md
+  - docs/refs/agent-skills/skills/react-best-practices/rules/server-serialization.md
+  - docs/refs/agent-skills/skills/react-best-practices/rules/server-cache-react.md
+  - docs/refs/agent-skills/skills/react-best-practices/rules/bundle-dynamic-imports.md
 ---
 
 # Code Reviewer

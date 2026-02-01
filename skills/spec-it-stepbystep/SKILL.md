@@ -1,6 +1,6 @@
 ---
 name: spec-it-stepbystep
-description: "Frontend spec generator (Step-by-Step mode). Chapter-by-chapter user approval. Best for small projects or learning."
+description: "Step-by-step spec generator with chapter approvals for small projects."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 argument-hint: "[--resume <sessionId>]"
 permissionMode: bypassPermissions
@@ -380,47 +380,7 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/sta
 
 ## Output Structure
 
-```
-.spec-it/{sessionId}/plan/
-├── _meta.json, _status.json
-
-tmp/
-├── 00-requirements/
-├── 01-chapters/decisions/, alternatives/
-├── 02-screens/
-│   ├── wireframes/
-│   │   ├── dashboard.yaml       ← YAML format (preferred)
-│   │   ├── login.yaml
-│   │   └── settings.yaml
-│   ├── layouts/
-│   │   └── layout-system.yaml   ← YAML format
-│   └── [html/, assets/]         ← Stitch mode only
-├── 03-components/
-│   ├── new/
-│   │   ├── StockCard.yaml       ← YAML format
-│   │   └── PriceDisplay.yaml
-│   └── migrations/
-├── 04-review/scenarios/, exceptions/
-├── 05-tests/personas/, scenarios/
-└── 06-final/
-```
-
----
-
-## Agents
-
-| Agent | Model | Purpose |
-|-------|-------|---------|
-| design-interviewer | opus | Chapter Q&A |
-| ui-architect | sonnet | Wireframes |
-| component-auditor | haiku | Component scan |
-| component-builder | sonnet | Component spec |
-| component-migrator | sonnet | Migration plan |
-| critical-reviewer | opus | Scenario/IA review |
-| ambiguity-detector | opus | Find ambiguities |
-| persona-architect | sonnet | Persona definition |
-| test-spec-writer | sonnet | Test specs |
-| spec-assembler | haiku | Final assembly |
+See `README.md` for the full output tree and examples.
 
 ---
 

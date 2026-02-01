@@ -1,6 +1,6 @@
 ---
 name: spec-it-complex
-description: "Frontend spec generator (Hybrid mode). Auto-validation with 4 milestone approvals. Best for medium projects."
+description: "Hybrid spec generator with milestone approvals for medium projects."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 argument-hint: "[--resume <sessionId>]"
 permissionMode: bypassPermissions

@@ -1,14 +1,14 @@
 ---
 name: stitch-convert
-description: "Convert ASCII wireframes to HTML via Stitch MCP. Reads wireframes and exports hi-fi HTML designs."
-argument-hint: "<session-id> [--files file1.md,file2.md]"
+description: "Convert YAML/JSON wireframes to HTML via Stitch MCP."
+argument-hint: "<session-id> [--files file1.yaml,file2.yaml]"
 allowed-tools: Read, Write, Edit, Bash, Glob, mcp__stitch__create_project, mcp__stitch__set_workspace_project, mcp__stitch__generate_screen_from_text, mcp__stitch__design_qa, mcp__stitch__export_design_system
 permissionMode: bypassPermissions
 ---
 
 # stitch-convert
 
-Convert ASCII wireframes to high-fidelity HTML using Stitch MCP.
+Convert YAML/JSON wireframes to high-fidelity HTML using Stitch MCP.
 
 ## Prerequisites
 
@@ -40,7 +40,7 @@ $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-m
 /stitch-convert 20260130-123456
 
 # Specific files only
-/stitch-convert 20260130-123456 --files wireframe-login.md,wireframe-dashboard.md
+/stitch-convert 20260130-123456 --files wireframe-login.yaml,wireframe-dashboard.yaml
 ```
 
 ---
@@ -65,7 +65,7 @@ If MCP tools are not available, output error and stop.
 IF --files provided:
   wireframes = parse comma-separated list
 ELSE:
-  wireframes = Glob(tmp/{session-id}/02-screens/wireframes/*.md)
+  wireframes = Glob(tmp/{session-id}/02-screens/wireframes/*.{yaml,json})
 ```
 
 If no wireframes found, output error and stop.
@@ -94,12 +94,12 @@ Save metadata to `tmp/{session-id}/02-screens/stitch-project.json`:
 
 For each wireframe file:
 
-1. **Read** wireframe content
+1. **Read** wireframe content (YAML/JSON)
 2. **Call** Stitch MCP:
    ```
    mcp__stitch__generate_screen_from_text(
      projectId: projectId,
-     prompt: "Convert this ASCII wireframe to a high-fidelity UI design. Maintain layout structure and component hierarchy:\n\n{wireframe_content}"
+     prompt: "Convert this YAML/JSON wireframe to a high-fidelity UI design. Maintain layout structure and component hierarchy:\n\n{wireframe_content}"
    )
    ```
 3. **Save** screenId to stitch-project.json

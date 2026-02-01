@@ -1,6 +1,6 @@
 ---
 name: spec-it-api-mcp
-description: "Generate local MCP server from OpenAPI/Swagger spec. Creates mock API endpoints for spec-it-executor development. Use when user provides API documentation."
+description: "Generate local MCP server from OpenAPI/Swagger for frontend development."
 allowed-tools: Read, Write, Edit, Bash, Task, WebFetch, Glob
 argument-hint: "<api-doc-path> [--output <dir>] [--port <port>]"
 permissionMode: bypassPermissions
