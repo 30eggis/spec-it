@@ -168,6 +168,9 @@ CH-07: Non-Functional Requirements
    # stepNum: 1.1 (CH-00), 1.2 (CH-01~CH-03), 1.3 (CH-04~CH-05), 1.4 (CH-06~CH-07)
 
 6. IF No/Questions: Revise and re-ask
+
+# After CH-07 (step 1.4) completes:
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
 ```
 
 ---
@@ -262,6 +265,7 @@ Task(component-auditor, haiku):
   Output: 03-components/inventory.md, gap-analysis.md
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete component-auditor "" 2.2
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 2 3 "3.1"
 
 AskUserQuestion: "UI Architecture complete. Continue?"
 ```
@@ -298,6 +302,7 @@ Task(component-migrator, sonnet):
   Output: 03-components/migrations/migration-plan.md
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "component-builder,component-migrator" "" 3.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 3 4 "4.1"
 
 AskUserQuestion: "Components complete. Continue?"
 ```
@@ -316,6 +321,7 @@ Task(ambiguity-detector, opus):
   Output: 04-review/ambiguities.md
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "critical-reviewer,ambiguity-detector" "" 4.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 4 5 "5.1"
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ambiguity
 → IF must-resolve: AskUserQuestion for resolution
@@ -335,6 +341,7 @@ Task(test-spec-writer, sonnet):
   Output: 05-tests/scenarios/, components/, coverage-map.md
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "persona-architect,test-spec-writer" "" 5.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 5 6 "6.1"
 
 AskUserQuestion: "Tests complete. Continue?"
 ```

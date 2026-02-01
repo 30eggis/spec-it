@@ -182,6 +182,7 @@ Task(chapter-planner, opus):
   Output: 01-chapters/chapter-plan-final.md
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete chapter-planner "" 1.4
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
 ```
 
 ---
@@ -263,6 +264,7 @@ Task(component-migrator, sonnet, parallel):
   Output: 03-components/migrations/migration-plan.md
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "component-builder,component-migrator" "" 2.2
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 2 3 "3.1"
 ```
 
 ---
@@ -303,6 +305,7 @@ ELSE:
   Auto-proceed
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ambiguity-resolver "" 3.2
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 3 4 "4.1"
 ```
 
 ---
@@ -321,6 +324,7 @@ Task(test-spec-writer, sonnet, parallel):
 WAIT for both
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "persona-architect,test-spec-writer" "" 4.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 4 5 "5.1"
 ```
 
 ---
@@ -337,6 +341,7 @@ Task(spec-assembler, haiku):
   - 06-final/SPEC-SUMMARY.md
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete spec-assembler "" 5.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 5 6 "6.1"
 ```
 
 ---

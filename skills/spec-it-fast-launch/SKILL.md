@@ -157,6 +157,7 @@ Write: 00-requirements/quick-brief.md
   - User's original request (PRD/description)
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 1.1
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
 ```
 
 ---
@@ -251,6 +252,7 @@ FOR each screen (parallel, max 4):
     "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect-wireframes "" 2.2
+Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 2 3 "3.1"
 ```
 
 ---
