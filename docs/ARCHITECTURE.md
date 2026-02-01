@@ -308,11 +308,12 @@ tmp/
 │   └── chapter-plan-final.md
 │
 ├── 02-wireframes/
-│   ├── screen-list.md
 │   ├── layouts/
-│   ├── wireframes/            ◀── YAML/JSON wireframes
-│   ├── html/                  ◀── Stitch HTML export
-│   └── assets/                ◀── Stitch assets
+│   ├── <domain>/shared.md
+│   ├── <domain>/<user-type>/screen-list.md
+│   ├── <domain>/<user-type>/wireframes/  ◀── YAML/JSON wireframes
+│   ├── html/                             ◀── Stitch HTML export
+│   └── assets/                           ◀── Stitch assets
 │
 ├── 03-components/
 │   ├── inventory.md
