@@ -8,9 +8,10 @@ set -e
 SESSION_ID="$1"
 BASE_DIR="${2:-.}"
 
-SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
-SCREEN_LIST="$SESSION_DIR/02-screens/screen-list.md"
-OUTPUT_FILE="$SESSION_DIR/02-screens/screens.json"
+# Document artifacts are in tmp/ (without sessionId)
+DOCS_DIR="$BASE_DIR/tmp"
+SCREEN_LIST="$DOCS_DIR/02-screens/screen-list.md"
+OUTPUT_FILE="$DOCS_DIR/02-screens/screens.json"
 
 if [ ! -f "$SCREEN_LIST" ]; then
   echo "ERROR:SCREEN_LIST_NOT_FOUND"

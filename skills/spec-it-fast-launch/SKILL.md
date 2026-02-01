@@ -61,7 +61,7 @@ sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script
 
 ```
 IF --resume in args:
-  Read: tmp/{sessionId}/_meta.json
+  Read: .spec-it/{sessionId}/plan/_meta.json
   GOTO: _meta.currentStep
 ```
 
@@ -295,7 +295,7 @@ Output to user: "Spec generation complete. Proceeding to implementation..."
 
 # Auto-proceed to spec-it-execute
 # No user approval needed - this is the Fast mode promise
-Skill(spec-it-execute, "tmp/{sessionId}")
+Skill(spec-it-execute, "tmp")
 ```
 
 ---
@@ -321,8 +321,10 @@ See `spec-it-execute/SKILL.md` for full details.
 ## Output Structure
 
 ```
-tmp/{sessionId}/
+.spec-it/{sessionId}/plan/
 ├── _meta.json, _status.json
+
+tmp/
 ├── 00-requirements/
 │   └── quick-brief.md
 ├── 02-screens/

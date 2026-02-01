@@ -262,7 +262,7 @@ git checkout -- 02-screens/wireframes/login-screen.md
 # ... etc
 
 # Option 2: Restore from backup
-cp tmp/{sessionId}/_backup/* ./
+cp .spec-it/{sessionId}/plan/_backup/* ./
 ```
 
 ---

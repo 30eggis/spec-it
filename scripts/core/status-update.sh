@@ -26,37 +26,42 @@ if [ ${#ARGS[@]} -gt 0 ]; then
 fi
 
 # Determine SESSION_DIR
+# New structure: .spec-it/{sessionId}/(plan|execute)
 if [ -d "$SESSION_ARG" ] && [ -f "$SESSION_ARG/_status.json" ]; then
   # SESSION_ARG is already a full path to session directory
   SESSION_DIR="$SESSION_ARG"
-  SESSION_ID=$(basename "$SESSION_DIR")
-elif [ -d "$BASE_DIR/tmp/$SESSION_ARG" ]; then
-  # SESSION_ARG is just the session ID (spec-it mode)
+  # Extract session ID (parent of plan/execute folder)
+  PARENT_DIR=$(dirname "$SESSION_DIR")
+  SESSION_ID=$(basename "$PARENT_DIR")
+elif [ -d "$BASE_DIR/.spec-it/$SESSION_ARG/plan" ]; then
+  # SESSION_ARG is just the session ID (plan mode)
   SESSION_ID="$SESSION_ARG"
-  SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
-elif [ -d "$BASE_DIR/.spec-it/execute/$SESSION_ARG" ]; then
+  SESSION_DIR="$BASE_DIR/.spec-it/$SESSION_ID/plan"
+elif [ -d "$BASE_DIR/.spec-it/$SESSION_ARG/execute" ]; then
   # SESSION_ARG is just the session ID (execute mode)
   SESSION_ID="$SESSION_ARG"
-  SESSION_DIR="$BASE_DIR/.spec-it/execute/$SESSION_ID"
+  SESSION_DIR="$BASE_DIR/.spec-it/$SESSION_ID/execute"
 else
   # Try to find session directory by searching common locations
   SESSION_ID="$SESSION_ARG"
   for search_dir in "$BASE_DIR" "$(pwd)" "$HOME"; do
-    # Check spec-it mode (tmp/)
-    if [ -d "$search_dir/tmp/$SESSION_ID" ]; then
-      SESSION_DIR="$search_dir/tmp/$SESSION_ID"
+    # Check plan mode (.spec-it/{id}/plan/)
+    if [ -d "$search_dir/.spec-it/$SESSION_ID/plan" ]; then
+      SESSION_DIR="$search_dir/.spec-it/$SESSION_ID/plan"
       break
     fi
-    # Check execute mode (.spec-it/execute/)
-    if [ -d "$search_dir/.spec-it/execute/$SESSION_ID" ]; then
-      SESSION_DIR="$search_dir/.spec-it/execute/$SESSION_ID"
+    # Check execute mode (.spec-it/{id}/execute/)
+    if [ -d "$search_dir/.spec-it/$SESSION_ID/execute" ]; then
+      SESSION_DIR="$search_dir/.spec-it/$SESSION_ID/execute"
       break
     fi
   done
 fi
 
 STATUS_FILE="$SESSION_DIR/_status.json"
-RUNTIME_LOG="$SESSION_DIR/runtime-log.md"
+# Runtime log is at session level (parent of plan/execute)
+SESSION_ROOT=$(dirname "$SESSION_DIR")
+RUNTIME_LOG="$SESSION_ROOT/runtime-log.md"
 
 # Debug output
 echo "DEBUG:SESSION_DIR=$SESSION_DIR" >&2
@@ -169,7 +174,7 @@ case "$ACTION" in
         .lastUpdate = $ts
       ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
 
-      # Also update _meta.json (spec-it mode)
+      # Update _meta.json (unified for both plan and execute modes)
       META_FILE="$SESSION_DIR/_meta.json"
       if [ -f "$META_FILE" ]; then
         jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
@@ -179,17 +184,6 @@ case "$ACTION" in
           .completedSteps += [$step] |
           .completedSteps |= unique
         ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
-      fi
-
-      # Also update _state.json (execute mode)
-      STATE_FILE="$SESSION_DIR/_state.json"
-      if [ -f "$STATE_FILE" ]; then
-        jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
-          .currentStep = $step |
-          .currentPhase = $phase |
-          .lastCheckpoint = $ts |
-          (if .completedSteps then .completedSteps += [$step] | .completedSteps |= unique else . end)
-        ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
       fi
 
       echo "STEP_COMPLETED:$STEP"
@@ -275,14 +269,14 @@ case "$ACTION" in
       .lastUpdate = $ts
     ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
 
-    # Also update _state.json (execute mode)
-    STATE_FILE="$SESSION_DIR/_state.json"
-    if [ -f "$STATE_FILE" ]; then
+    # Update _meta.json
+    META_FILE="$SESSION_DIR/_meta.json"
+    if [ -f "$META_FILE" ]; then
       jq --arg ts "$TIMESTAMP" --arg msg "$WAITING_MSG" '
         .waitingForUser = true |
         .waitingMessage = $msg |
         .lastCheckpoint = $ts
-      ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+      ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
     fi
 
     echo "WAITING:$WAITING_MSG"
@@ -295,14 +289,14 @@ case "$ACTION" in
       .lastUpdate = $ts
     ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
 
-    # Also update _state.json (execute mode)
-    STATE_FILE="$SESSION_DIR/_state.json"
-    if [ -f "$STATE_FILE" ]; then
+    # Update _meta.json
+    META_FILE="$SESSION_DIR/_meta.json"
+    if [ -f "$META_FILE" ]; then
       jq --arg ts "$TIMESTAMP" '
         .waitingForUser = false |
         .waitingMessage = null |
         .lastCheckpoint = $ts
-      ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+      ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
     fi
 
     echo "RESUMED"
@@ -344,7 +338,7 @@ case "$ACTION" in
       ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
     fi
 
-    # Also update _meta.json (spec-it mode)
+    # Update _meta.json (unified for both plan and execute modes)
     META_FILE="$SESSION_DIR/_meta.json"
     if [ -f "$META_FILE" ]; then
       jq --argjson phase "$PHASE" --argjson nextPhase "${NEXT_PHASE:-0}" --arg nextStep "$NEXT_STEP" --arg ts "$TIMESTAMP" '
@@ -354,18 +348,6 @@ case "$ACTION" in
         (if $nextStep != "" then .currentStep = $nextStep else . end) |
         .lastCheckpoint = $ts
       ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
-    fi
-
-    # Also update _state.json (execute mode)
-    STATE_FILE="$SESSION_DIR/_state.json"
-    if [ -f "$STATE_FILE" ]; then
-      jq --argjson phase "$PHASE" --argjson nextPhase "${NEXT_PHASE:-0}" --arg nextStep "$NEXT_STEP" --arg ts "$TIMESTAMP" '
-        .completedPhases += [$phase] |
-        .completedPhases |= unique |
-        (if $nextPhase > 0 then .currentPhase = $nextPhase else . end) |
-        (if $nextStep != "" then .currentStep = $nextStep else . end) |
-        .lastCheckpoint = $ts
-      ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
     fi
 
     echo "PHASE_COMPLETED:$PHASE"
@@ -386,7 +368,7 @@ case "$ACTION" in
       .lastUpdate = $ts
     ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
 
-    # Also update _meta.json
+    # Update _meta.json (unified for both plan and execute modes)
     META_FILE="$SESSION_DIR/_meta.json"
     if [ -f "$META_FILE" ]; then
       jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
@@ -396,40 +378,30 @@ case "$ACTION" in
       ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
     fi
 
-    # Also update _state.json
-    STATE_FILE="$SESSION_DIR/_state.json"
-    if [ -f "$STATE_FILE" ]; then
-      jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
-        .currentStep = $step |
-        .currentPhase = $phase |
-        .lastCheckpoint = $ts
-      ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
-    fi
-
     echo "STEP:$STEP"
     ;;
   "state-update")
-    # Generic state update for execute mode (_state.json specific fields)
+    # Generic state update (updates _meta.json)
     KEY="${ARGS[0]}"
     VALUE="${ARGS[1]}"
 
-    STATE_FILE="$SESSION_DIR/_state.json"
-    if [ -f "$STATE_FILE" ]; then
+    META_FILE="$SESSION_DIR/_meta.json"
+    if [ -f "$META_FILE" ]; then
       # Try to parse VALUE as JSON, fallback to string
       if echo "$VALUE" | jq . >/dev/null 2>&1; then
         jq --arg key "$KEY" --argjson val "$VALUE" --arg ts "$TIMESTAMP" '
           .[$key] = $val |
           .lastCheckpoint = $ts
-        ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+        ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
       else
         jq --arg key "$KEY" --arg val "$VALUE" --arg ts "$TIMESTAMP" '
           .[$key] = $val |
           .lastCheckpoint = $ts
-        ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+        ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
       fi
       echo "STATE_UPDATED:$KEY=$VALUE"
     else
-      echo "ERROR:STATE_FILE_NOT_FOUND"
+      echo "ERROR:META_FILE_NOT_FOUND"
     fi
     ;;
   "complete")
@@ -441,23 +413,14 @@ case "$ACTION" in
       .lastUpdate = $ts
     ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
 
-    # Also update _meta.json (spec-it mode)
+    # Update _meta.json (unified for both plan and execute modes)
     META_FILE="$SESSION_DIR/_meta.json"
     if [ -f "$META_FILE" ]; then
       jq --arg ts "$TIMESTAMP" '
         .status = "completed" |
-        .lastCheckpoint = $ts
-      ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
-    fi
-
-    # Also update _state.json (execute mode)
-    STATE_FILE="$SESSION_DIR/_state.json"
-    if [ -f "$STATE_FILE" ]; then
-      jq --arg ts "$TIMESTAMP" '
-        .status = "completed" |
         .completedAt = $ts |
         .lastCheckpoint = $ts
-      ' "$STATE_FILE" > "$STATE_FILE.tmp" && mv "$STATE_FILE.tmp" "$STATE_FILE"
+      ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
     fi
 
     # Update runtime-log.md summary

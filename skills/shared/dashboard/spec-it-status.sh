@@ -4,9 +4,9 @@
 
 SESSION_PATH="${1:-.}"
 
-# Find status file
-STATUS_FILE=$(find "$SESSION_PATH" -maxdepth 3 -name "_status.json" -type f 2>/dev/null | head -1)
-META_FILE=$(find "$SESSION_PATH" -maxdepth 3 -name "_meta.json" -type f 2>/dev/null | head -1)
+# Find status file (new structure: .spec-it/{id}/(plan|execute))
+STATUS_FILE=$(find "$SESSION_PATH" -maxdepth 5 -path "*/.spec-it/*" -name "_status.json" -type f 2>/dev/null | head -1)
+META_FILE=$(find "$SESSION_PATH" -maxdepth 5 -path "*/.spec-it/*" -name "_meta.json" -type f 2>/dev/null | head -1)
 
 if [ -z "$STATUS_FILE" ] && [ -z "$META_FILE" ]; then
     echo "⏳ Waiting for spec-it session..."

@@ -74,7 +74,7 @@ LOW: Nice-to-have coverage
 
 ## Output
 
-Write to: `tmp/{sessionId}/_analysis/coverage.json`
+Write to: `.spec-it/{sessionId}/plan/_analysis/coverage.json`
 
 ```json
 {
@@ -138,6 +138,6 @@ Write to: `tmp/{sessionId}/_analysis/coverage.json`
 ## CRITICAL OUTPUT RULES
 
 1. Save all results to file
-2. Return only: "Done. Files: tmp/{sessionId}/_analysis/coverage.json ({lines})"
+2. Return only: "Done. Files: .spec-it/{sessionId}/plan/_analysis/coverage.json ({lines})"
 3. Never include file contents in response
 4. Silent mode - no progress logs

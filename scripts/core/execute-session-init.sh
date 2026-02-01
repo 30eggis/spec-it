@@ -20,7 +20,10 @@ if [[ -n "$SPEC_FOLDER" && "$SPEC_FOLDER" != /* ]]; then
     SPEC_FOLDER="$(cd "$WORK_DIR" && cd "$SPEC_FOLDER" 2>/dev/null && pwd)" || SPEC_FOLDER="$WORK_DIR/$SPEC_FOLDER"
 fi
 
-SESSION_DIR="$WORK_DIR/.spec-it/execute/$SESSION_ID"
+# Session state goes to .spec-it/{sessionId}/execute/
+SESSION_DIR="$WORK_DIR/.spec-it/$SESSION_ID/execute"
+# Shared runtime log at session level
+RUNTIME_LOG_DIR="$WORK_DIR/.spec-it/$SESSION_ID"
 
 echo "DEBUG:WORK_DIR=$WORK_DIR"
 echo "DEBUG:SESSION_DIR=$SESSION_DIR"
@@ -28,6 +31,7 @@ echo "DEBUG:SPEC_FOLDER=$SPEC_FOLDER"
 
 # Create folder structure
 mkdir -p "$SESSION_DIR"/{plans,logs,reviews,screenshots}
+mkdir -p "$RUNTIME_LOG_DIR"
 
 # Get parent terminal info for 'r' key feature
 get_parent_terminal_info() {
@@ -47,45 +51,36 @@ get_parent_terminal_info() {
 PARENT_TERMINAL_INFO=$(get_parent_terminal_info)
 CURRENT_TIME=$(date -Iseconds)
 
-# Create _meta.json
+# Create _meta.json (unified: includes resume state)
 cat > "$SESSION_DIR/_meta.json" << EOF
 {
   "sessionId": "$SESSION_ID",
+  "mode": "execute",
   "specSource": "$SPEC_FOLDER",
   "workDir": "$WORK_DIR",
-  "createdAt": "$CURRENT_TIME",
-  "parentTerminal": $PARENT_TERMINAL_INFO
-}
-EOF
-
-# Create _state.json (for resume support)
-cat > "$SESSION_DIR/_state.json" << EOF
-{
-  "sessionId": "$SESSION_ID",
-  "specSource": "$SPEC_FOLDER",
   "status": "in_progress",
   "currentPhase": 1,
   "currentStep": "1.1",
-  "qaAttempts": 0,
-  "maxQaAttempts": 5,
   "completedPhases": [],
   "completedTasks": [],
+  "completedSteps": [],
   "startedAt": "$CURRENT_TIME",
   "lastCheckpoint": "$CURRENT_TIME",
+  "canResume": true,
   "livePreview": false,
-
+  "qaAttempts": 0,
+  "maxQaAttempts": 5,
   "mirrorAttempts": 0,
   "maxMirrorAttempts": 5,
   "lastMirrorReport": { "matchCount": 0, "missingCount": 0, "overCount": 0 },
-
   "coverageAttempts": 0,
   "maxCoverageAttempts": 5,
   "targetCoverage": 95,
   "currentCoverage": { "statements": 0, "branches": 0, "functions": 0, "lines": 0 },
-
   "scenarioAttempts": 0,
   "maxScenarioAttempts": 5,
-  "scenarioResults": { "total": 0, "passed": 0, "failed": 0 }
+  "scenarioResults": { "total": 0, "passed": 0, "failed": 0 },
+  "parentTerminal": $PARENT_TERMINAL_INFO
 }
 EOF
 
@@ -93,6 +88,7 @@ EOF
 cat > "$SESSION_DIR/_status.json" << EOF
 {
   "sessionId": "$SESSION_ID",
+  "mode": "execute",
   "specSource": "$SPEC_FOLDER",
   "status": "in_progress",
   "currentPhase": 1,

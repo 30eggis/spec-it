@@ -16,13 +16,23 @@ if [[ "$WORK_DIR" != /* ]]; then
     WORK_DIR="$(cd "$WORK_DIR" 2>/dev/null && pwd)" || WORK_DIR="$(pwd)"
 fi
 
-SESSION_DIR="$WORK_DIR/tmp/$SESSION_ID"
+# Session state goes to .spec-it/{sessionId}/plan/
+SESSION_DIR="$WORK_DIR/.spec-it/$SESSION_ID/plan"
+# Document artifacts go to tmp/ (archive)
+DOCS_DIR="$WORK_DIR/tmp"
+# Shared runtime log at session level
+RUNTIME_LOG_DIR="$WORK_DIR/.spec-it/$SESSION_ID"
 
 echo "DEBUG:WORK_DIR=$WORK_DIR"
 echo "DEBUG:SESSION_DIR=$SESSION_DIR"
+echo "DEBUG:DOCS_DIR=$DOCS_DIR"
 
-# Create folder structure
-mkdir -p "$SESSION_DIR"/{00-requirements,01-chapters/{decisions,alternatives},02-screens/{wireframes,layouts},03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
+# Create state folder structure
+mkdir -p "$SESSION_DIR"
+mkdir -p "$RUNTIME_LOG_DIR"
+
+# Create document artifact folders (in tmp/)
+mkdir -p "$DOCS_DIR"/{00-requirements,01-chapters/{decisions,alternatives},02-screens/{wireframes,layouts},03-components/{new,migrations},04-review/{scenarios,exceptions},05-tests/{personas,scenarios,components},06-final}
 
 # Get parent terminal info for 'r' key feature
 get_parent_terminal_info() {
@@ -45,6 +55,7 @@ PARENT_TERMINAL_INFO=$(get_parent_terminal_info)
 cat > "$SESSION_DIR/_meta.json" << EOF
 {
   "sessionId": "$SESSION_ID",
+  "mode": "plan",
   "status": "in_progress",
   "currentPhase": 1,
   "currentStep": "1.1",
@@ -54,6 +65,7 @@ cat > "$SESSION_DIR/_meta.json" << EOF
   "lastCheckpoint": "$(date -Iseconds)",
   "canResume": true,
   "uiMode": "$UI_MODE",
+  "docsDir": "$DOCS_DIR",
   "techStack": {
     "framework": "Next.js 15 (App Router)",
     "ui": "React + shadcn/ui",
@@ -67,6 +79,7 @@ EOF
 cat > "$SESSION_DIR/_status.json" << EOF
 {
   "sessionId": "$SESSION_ID",
+  "mode": "plan",
   "startTime": "$(date -Iseconds)",
   "currentPhase": 1,
   "currentStep": "1.1",
@@ -74,6 +87,7 @@ cat > "$SESSION_DIR/_status.json" << EOF
   "completedPhases": [],
   "progress": 0,
   "status": "running",
+  "docsDir": "$DOCS_DIR",
   "agents": [],
   "stats": {"filesCreated": 0, "linesWritten": 0, "totalSize": "0KB"},
   "recentFiles": [],
@@ -95,4 +109,5 @@ fi
 
 echo "SESSION_ID:$SESSION_ID"
 echo "SESSION_DIR:$SESSION_DIR"
+echo "DOCS_DIR:$DOCS_DIR"
 echo "UI_MODE:$UI_MODE"

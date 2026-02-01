@@ -13,7 +13,7 @@ Maintains the Requirements Traceability Matrix (RTM) to ensure all requirements 
 
 ## Input
 
-- `tmp/{sessionId}/_analysis/change-plan.md` - Applied changes
+- `.spec-it/{sessionId}/plan/_analysis/change-plan.md` - Applied changes
 - `sessionId` - Session identifier
 
 ## Process
@@ -21,7 +21,7 @@ Maintains the Requirements Traceability Matrix (RTM) to ensure all requirements 
 ### 1. Load Existing RTM
 
 ```
-Read: tmp/{sessionId}/_traceability/rtm.json
+Read: .spec-it/{sessionId}/plan/_traceability/rtm.json
 
 IF not exists:
   Initialize empty RTM structure
@@ -52,7 +52,7 @@ Check for orphaned items:
 
 ## Output
 
-Write to: `tmp/{sessionId}/_traceability/rtm.json`
+Write to: `.spec-it/{sessionId}/plan/_traceability/rtm.json`
 
 ```json
 {
@@ -158,7 +158,7 @@ Write to: `tmp/{sessionId}/_traceability/rtm.json`
 
 ## Validation Report
 
-Also generate: `tmp/{sessionId}/_traceability/rtm-report.md`
+Also generate: `.spec-it/{sessionId}/plan/_traceability/rtm-report.md`
 
 ```markdown
 # Traceability Report
@@ -197,6 +197,6 @@ Generated: {timestamp}
 ## CRITICAL OUTPUT RULES
 
 1. Save all results to files
-2. Return only: "Done. Files: tmp/{sessionId}/_traceability/rtm.json ({lines}), rtm-report.md ({lines})"
+2. Return only: "Done. Files: .spec-it/{sessionId}/plan/_traceability/rtm.json ({lines}), rtm-report.md ({lines})"
 3. Never include file contents in response
 4. Silent mode - no progress logs

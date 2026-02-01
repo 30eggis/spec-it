@@ -107,7 +107,7 @@ sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script
 
 ```
 IF --resume in args:
-  Read: tmp/{sessionId}/_meta.json
+  Read: .spec-it/{sessionId}/plan/_meta.json
   GOTO: _meta.currentStep
 ```
 
@@ -337,8 +337,10 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/sta
 ## Output Structure
 
 ```
-tmp/{sessionId}/
+.spec-it/{sessionId}/plan/
 ├── _meta.json, _status.json
+
+tmp/
 ├── 00-requirements/
 ├── 01-chapters/
 │   ├── alternatives/, decisions/

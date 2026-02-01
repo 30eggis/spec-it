@@ -15,20 +15,33 @@ NEW_PHASE="${3:-}"
 BASE_DIR="${4:-.}"
 
 # Determine SESSION_DIR
+# New structure: .spec-it/{sessionId}/(plan|execute)
 if [ -d "$SESSION_ARG" ] && [ -f "$SESSION_ARG/_meta.json" ]; then
   # SESSION_ARG is already a full path to session directory
   SESSION_DIR="$SESSION_ARG"
-  SESSION_ID=$(basename "$SESSION_DIR")
-elif [ -d "$BASE_DIR/tmp/$SESSION_ARG" ]; then
-  # SESSION_ARG is just the session ID
+  # Extract session ID (parent of plan/execute folder)
+  PARENT_DIR=$(dirname "$SESSION_DIR")
+  SESSION_ID=$(basename "$PARENT_DIR")
+elif [ -d "$BASE_DIR/.spec-it/$SESSION_ARG/plan" ]; then
+  # SESSION_ARG is just the session ID (plan mode)
   SESSION_ID="$SESSION_ARG"
-  SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
+  SESSION_DIR="$BASE_DIR/.spec-it/$SESSION_ID/plan"
+elif [ -d "$BASE_DIR/.spec-it/$SESSION_ARG/execute" ]; then
+  # SESSION_ARG is just the session ID (execute mode)
+  SESSION_ID="$SESSION_ARG"
+  SESSION_DIR="$BASE_DIR/.spec-it/$SESSION_ID/execute"
 else
   # Try to find session directory by searching common locations
   SESSION_ID="$SESSION_ARG"
   for search_dir in "$BASE_DIR" "$(pwd)" "$HOME"; do
-    if [ -d "$search_dir/tmp/$SESSION_ID" ]; then
-      SESSION_DIR="$search_dir/tmp/$SESSION_ID"
+    # Check plan mode
+    if [ -d "$search_dir/.spec-it/$SESSION_ID/plan" ]; then
+      SESSION_DIR="$search_dir/.spec-it/$SESSION_ID/plan"
+      break
+    fi
+    # Check execute mode
+    if [ -d "$search_dir/.spec-it/$SESSION_ID/execute" ]; then
+      SESSION_DIR="$search_dir/.spec-it/$SESSION_ID/execute"
       break
     fi
   done

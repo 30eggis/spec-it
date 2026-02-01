@@ -44,7 +44,7 @@ Supports both YAML (preferred) and Markdown (legacy) spec formats:
 ┌─────────────────────────────────────────────────────────────────┐
 │                    spec-it-execute                               │
 ├─────────────────────────────────────────────────────────────────┤
-│  Input: spec-it output (tmp/{sessionId}/06-final/)               │
+│  Input: spec-it output (tmp/06-final/)                            │
 │  Output: Working implementation with tests                       │
 ├─────────────────────────────────────────────────────────────────┤
 │  Phase 0: INITIALIZE   → Session setup, dashboard launch        │

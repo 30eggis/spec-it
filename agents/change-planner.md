@@ -13,8 +13,8 @@ Synthesizes analysis results into an actionable change plan with diffs and execu
 
 ## Input
 
-- `tmp/{sessionId}/_analysis/summary.md` - Aggregated analysis
-- `tmp/{sessionId}/_analysis/butterfly.json` - Impact analysis
+- `.spec-it/{sessionId}/plan/_analysis/summary.md` - Aggregated analysis
+- `.spec-it/{sessionId}/plan/_analysis/butterfly.json` - Impact analysis
 - Original change request
 
 ## Process
@@ -77,7 +77,7 @@ For each change, document:
 
 ## Output
 
-Write to: `tmp/{sessionId}/_analysis/change-plan.md`
+Write to: `.spec-it/{sessionId}/plan/_analysis/change-plan.md`
 
 ```markdown
 # Change Plan
@@ -212,7 +212,7 @@ Step 6: Regenerate final-spec.md
 If issues arise after applying changes:
 
 1. Restore from git: `git checkout -- {files}`
-2. Or restore from backup: `tmp/{sessionId}/_backup/`
+2. Or restore from backup: `.spec-it/{sessionId}/plan/_backup/`
 3. Re-run validation: `/spec-change --verify {sessionId}`
 
 ---
@@ -235,6 +235,6 @@ Run `/spec-change` to apply these changes after approval.
 ## CRITICAL OUTPUT RULES
 
 1. Save all results to file
-2. Return only: "Done. Files: tmp/{sessionId}/_analysis/change-plan.md ({lines})"
+2. Return only: "Done. Files: .spec-it/{sessionId}/plan/_analysis/change-plan.md ({lines})"
 3. Never include file contents in response
 4. Silent mode - no progress logs

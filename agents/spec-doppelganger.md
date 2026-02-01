@@ -27,10 +27,10 @@ Identifies existing requirements, features, or implementations that semantically
 ### 1. Scan Existing Specs
 
 Search in priority order:
-1. `tmp/{sessionId}/00-requirements/` - Requirements docs
-2. `tmp/{sessionId}/01-chapters/decisions/` - Design decisions
-3. `tmp/{sessionId}/06-final/` - Final specs
-4. `tmp/{sessionId}/02-screens/wireframes/` - UI definitions
+1. `tmp/00-requirements/` - Requirements docs
+2. `tmp/01-chapters/decisions/` - Design decisions
+3. `tmp/06-final/` - Final specs
+4. `tmp/02-screens/wireframes/` - UI definitions
 
 ### 2. Extract Key Concepts
 
@@ -61,7 +61,7 @@ Score 0-100:
 
 ## Output
 
-Write to: `tmp/{sessionId}/_analysis/doppelganger.json`
+Write to: `.spec-it/{sessionId}/plan/_analysis/doppelganger.json`
 
 ```json
 {
@@ -84,6 +84,6 @@ Write to: `tmp/{sessionId}/_analysis/doppelganger.json`
 ## CRITICAL OUTPUT RULES
 
 1. Save all results to file
-2. Return only: "Done. Files: tmp/{sessionId}/_analysis/doppelganger.json ({lines})"
+2. Return only: "Done. Files: .spec-it/{sessionId}/plan/_analysis/doppelganger.json ({lines})"
 3. Never include file contents in response
 4. Silent mode - no progress logs

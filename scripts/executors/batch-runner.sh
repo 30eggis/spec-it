@@ -11,15 +11,16 @@ TYPE="$2"
 BATCH_INDEX="${3:-0}"
 BASE_DIR="${4:-.}"
 
-SESSION_DIR="$BASE_DIR/tmp/$SESSION_ID"
+# Document artifacts are in tmp/ (without sessionId)
+DOCS_DIR="$BASE_DIR/tmp"
 BATCH_SIZE=4
 
 case "$TYPE" in
   "wireframe")
-    JSON_FILE="$SESSION_DIR/02-screens/screens.json"
+    JSON_FILE="$DOCS_DIR/02-screens/screens.json"
     ;;
   "component")
-    JSON_FILE="$SESSION_DIR/03-components/components.json"
+    JSON_FILE="$DOCS_DIR/03-components/components.json"
     ;;
   *)
     echo "ERROR:UNKNOWN_TYPE:$TYPE"
