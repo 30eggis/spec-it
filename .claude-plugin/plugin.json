@@ -1,7 +1,14 @@
 {
-  "name": "frontend-skills",
+  "name": "spec-it",
   "version": "1.0.0",
-  "description": "A collection of useful skills for frontend development and documentation",
+  "description": "Frontend development skills including PRD/SPEC/PHASE/TASKS document generation",
+  "author": {
+    "name": "Ted Kyung contributors"
+  },
+  "repository": "https://github.com/30eggis/spec-it",
+  "homepage": "https://github.com/30eggis/spec-it",
+  "license": "MIT",
+  "keywords": ["multi-agent", "orchestration","SDD", "PRD", "spec","frontend", "documentation", "productivity"],
   "skills": "./skills/",
   "hooks": {
     "PreToolUse": [

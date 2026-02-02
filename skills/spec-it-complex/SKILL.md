@@ -47,14 +47,20 @@ See [shared/rules/50-question-policy.md](../shared/rules/50-question-policy.md) 
 
 ## Phase 0: Init
 
-### Step 0.0: Design Style Selection
+### Step 0.0: Setup Intake (Design + Dashboard)
 
 ```
-# Design Trends 2026 Integration
-DESIGN_TRENDS_PATH = $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026
+# If already provided in args/user request, do NOT ask again.
 
-AskUserQuestion(
-  questions: [{
+DESIGN_TRENDS_PATH = $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026
+designStyle = args.designStyle or userRequest
+designTrends = args.designTrends or userRequest
+dashboard = args.dashboard or userRequest
+
+questions = []
+
+IF designStyle missing:
+  questions += {
     question: "어떤 디자인 스타일을 적용하시겠습니까? (2026 Design Trends 기반)",
     header: "Design Style",
     options: [
@@ -64,10 +70,22 @@ AskUserQuestion(
       {label: "Custom", description: "직접 트렌드 선택"},
       {label: "Custom File", description: "직접 스타일 파일 경로 지정"}
     ]
-  }]
-)
+  }
 
-IF "Custom":
+IF dashboard missing:
+  questions += {
+    question: "웹 대시보드를 사용할까요?",
+    header: "Dashboard",
+    options: [
+      {label: "Enable", description: "Web dashboard 사용"},
+      {label: "Skip", description: "대시보드 없이 진행"}
+    ]
+  }
+
+IF questions not empty:
+  AskUserQuestion(questions)
+
+IF designStyle == "Custom":
   AskUserQuestion(
     questions: [{
       question: "적용할 디자인 트렌드를 선택하세요",
@@ -84,12 +102,7 @@ IF "Custom":
     }]
   )
 
-IF "Custom File":
-  # User provides custom style file path via "Other" option
-  # Expected: Path to a directory containing:
-  #   - references/trends-summary.md
-  #   - references/component-patterns.md
-  #   - templates/*.md (navigation, card, form, dashboard templates)
+IF designStyle == "Custom File":
   customPath = userInput
   IF NOT exists(customPath + "/references/trends-summary.md"):
     Output: "경고: trends-summary.md를 찾을 수 없습니다. 기본 스타일을 사용합니다."
@@ -99,8 +112,9 @@ IF "Custom File":
     _meta.customDesignPath = customPath
 
 _meta.designStyle = selectedStyle
-_meta.designTrends = selectedTrends
+_meta.designTrends = selectedTrends or designTrends
 _meta.designTrendsPath = DESIGN_TRENDS_PATH
+_meta.dashboardEnabled = dashboard
 ```
 
 ### Step 0.1: Session Init
@@ -113,7 +127,8 @@ result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts
 sessionId = extract SESSION_ID from result
 sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script calls
 
-→ Auto-launches dashboard
+IF _meta.dashboardEnabled == "Enable":
+  Output: "Open web-dashboard/index.html to view the live dashboard."
 ```
 
 ### Step 0.R: Resume

@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Spec-It Web Dashboard</title>
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
+    <main class="page">
+      <header class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow">Spec-It Web Dashboard</p>
+          <h1>Live Sessions, In One Page</h1>
+          <p class="lede">
+            Drag a .spec-it session folder here to render a live dashboard. The
+            page refreshes session files every second.
+          </p>
+        </div>
+        <div class="hero-actions">
+          <button class="btn primary" data-action="pick">Add Session</button>
+          <button class="btn ghost" data-action="clear">Clear All</button>
+        </div>
+      </header>
+
+      <section class="drop-zone" data-drop-zone>
+        <div class="drop-frame">
+          <div class="drop-title">Drop session folders</div>
+          <div class="drop-subtitle">
+            .spec-it/<span class="mono">{sessionId}</span>/plan or execute
+          </div>
+        </div>
+      </section>
+
+      <section class="session-grid" data-session-list></section>
+
+      <section class="support" data-support-message></section>
+    </main>
+
+    <script src="app.js"></script>
+  </body>
+</html>

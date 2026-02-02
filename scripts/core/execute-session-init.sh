@@ -112,17 +112,6 @@ with open(f"{session_dir}/_status.json", "w") as f:
   json.dump(data, f, indent=2)
 '
 
-# Auto-launch dashboard in separate terminal with logging
-DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"
-if [ -x "$DASHBOARD_SCRIPT" ]; then
-  LOG_FILE="/tmp/spec-it-execute-dashboard-$(date +%Y%m%d%H%M%S).log"
-  nohup "$DASHBOARD_SCRIPT" "$SESSION_DIR" >> "$LOG_FILE" 2>&1 &
-  echo "DASHBOARD:launched"
-  echo "DASHBOARD_LOG:$LOG_FILE"
-else
-  echo "DASHBOARD:not_found" >&2
-fi
-
 echo "SESSION_ID:$SESSION_ID"
 echo "SESSION_DIR:$SESSION_DIR"
 echo "SPEC_FOLDER:$SPEC_FOLDER"

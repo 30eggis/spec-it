@@ -61,16 +61,6 @@ with open(f"{session_dir}/_status.json", "w") as f:
   json.dump(data, f, indent=2)
 '
 
-# Launch dashboard with logging
-DASHBOARD_SCRIPT="$PLUGIN_DIR/scripts/open-dashboard.sh"
-if [ -x "$DASHBOARD_SCRIPT" ]; then
-  LOG_FILE="/tmp/spec-it-dashboard-$(date +%Y%m%d%H%M%S).log"
-  nohup "$DASHBOARD_SCRIPT" "$SESSION_DIR" >> "$LOG_FILE" 2>&1 &
-  echo "DASHBOARD_LOG:$LOG_FILE"
-else
-  echo "DASHBOARD:not_found" >&2
-fi
-
 # Output for Claude to use
 echo "SESSION_INITIALIZED"
 echo "SESSION_ID:$SESSION_ID"

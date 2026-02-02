@@ -58,34 +58,20 @@ See [shared/rules/50-question-policy.md](../shared/rules/50-question-policy.md) 
 
 ## Phase 0: Init
 
-### Step 0.1: Session Init
+### Step 0.0: Setup Intake (Design + Dashboard)
 
 ```
-# Generate session and get SESSION_DIR
-result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh "" yaml "$(pwd)"
+# If already provided in args/user request, do NOT ask again.
 
-# Parse output to get SESSION_DIR (full absolute path)
-sessionId = extract SESSION_ID from result
-sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script calls
-
-→ Creates folders, _meta.json, _status.json
-```
-
-### Step 0.R: Resume
-
-```
-IF --resume in args:
-  Read: .spec-it/{sessionId}/plan/_meta.json
-  GOTO: _meta.currentStep
-```
-
-### Step 0.2: Design Style Selection
-
-```
 DESIGN_TRENDS_PATH = $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026
+designStyle = args.designStyle or userRequest
+designTrends = args.designTrends or userRequest
+dashboard = args.dashboard or userRequest
 
-AskUserQuestion(
-  questions: [{
+questions = []
+
+IF designStyle missing:
+  questions += {
     question: "어떤 디자인 스타일을 적용하시겠습니까?",
     header: "Design Style",
     options: [
@@ -95,10 +81,22 @@ AskUserQuestion(
       {label: "Custom", description: "직접 트렌드 선택"},
       {label: "Custom File", description: "직접 스타일 파일 경로 지정"}
     ]
-  }]
-)
+  }
 
-IF "Custom":
+IF dashboard missing:
+  questions += {
+    question: "웹 대시보드를 사용할까요?",
+    header: "Dashboard",
+    options: [
+      {label: "Enable", description: "Web dashboard 사용"},
+      {label: "Skip", description: "대시보드 없이 진행"}
+    ]
+  }
+
+IF questions not empty:
+  AskUserQuestion(questions)
+
+IF designStyle == "Custom":
   AskUserQuestion(
     questions: [{
       question: "적용할 디자인 트렌드를 선택하세요",
@@ -113,12 +111,7 @@ IF "Custom":
     }]
   )
 
-IF "Custom File":
-  # User provides custom style file path via "Other" option
-  # Expected: Path to a directory containing:
-  #   - references/trends-summary.md
-  #   - references/component-patterns.md
-  #   - templates/*.md (navigation, card, form, dashboard templates)
+IF designStyle == "Custom File":
   customPath = userInput
   IF NOT exists(customPath + "/references/trends-summary.md"):
     Output: "경고: trends-summary.md를 찾을 수 없습니다. 기본 스타일을 사용합니다."
@@ -128,10 +121,82 @@ IF "Custom File":
     _meta.customDesignPath = customPath
 
 _meta.designStyle = selectedStyle
-_meta.designTrends = selectedTrends
+_meta.designTrends = selectedTrends or designTrends
 _meta.designTrendsPath = DESIGN_TRENDS_PATH
+_meta.dashboardEnabled = dashboard
+```
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 0.2
+### Step 0.1: Session Init
+
+```
+# Generate session and get SESSION_DIR
+result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh "" yaml "$(pwd)"
+
+# Parse output to get SESSION_DIR (full absolute path)
+sessionId = extract SESSION_ID from result
+sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script calls
+
+→ Creates folders, _meta.json, _status.json
+
+IF _meta.dashboardEnabled == "Enable":
+  Output: "Open web-dashboard/index.html to view the live dashboard."
+```
+
+### Step 0.R: Resume
+
+```
+IF --resume in args:
+  Read: .spec-it/{sessionId}/plan/_meta.json
+  GOTO: _meta.currentStep
+```
+
+### Step 0.2: Design Style Selection (Only if Missing)
+
+```
+IF designStyle missing:
+  AskUserQuestion(
+    questions: [{
+      question: "어떤 디자인 스타일을 적용하시겠습니까?",
+      header: "Design Style",
+      options: [
+        {label: "Minimal (Recommended)", description: "깔끔한 SaaS: 밝은 테마, 미니멀 카드"},
+        {label: "Immersive", description: "다크 테마: 그라데이션 카드, 네온 포인트"},
+        {label: "Organic", description: "유기적: Glassmorphism, 부드러운 곡선"},
+        {label: "Custom", description: "직접 트렌드 선택"},
+        {label: "Custom File", description: "직접 스타일 파일 경로 지정"}
+      ]
+    }]
+  )
+
+  IF "Custom":
+    AskUserQuestion(
+      questions: [{
+        question: "적용할 디자인 트렌드를 선택하세요",
+        header: "Trends",
+        multiSelect: true,
+        options: [
+          {label: "Dark Mode+", description: "어두운 테마"},
+          {label: "Light Skeuomorphism", description: "부드러운 그림자"},
+          {label: "Glassmorphism", description: "반투명 blur"},
+          {label: "Micro-Animations", description: "의미있는 모션"}
+        ]
+      }]
+    )
+
+  IF "Custom File":
+    customPath = userInput
+    IF NOT exists(customPath + "/references/trends-summary.md"):
+      Output: "경고: trends-summary.md를 찾을 수 없습니다. 기본 스타일을 사용합니다."
+      DESIGN_TRENDS_PATH = default
+    ELSE:
+      DESIGN_TRENDS_PATH = customPath
+      _meta.customDesignPath = customPath
+
+  _meta.designStyle = selectedStyle
+  _meta.designTrends = selectedTrends
+  _meta.designTrendsPath = DESIGN_TRENDS_PATH
+
+  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 0.2
 ```
 
 ---
@@ -356,7 +421,7 @@ Output to user: "Spec generation complete. Proceeding to implementation..."
 
 # Auto-proceed to spec-it-execute
 # No user approval needed - this is the Fast mode promise
-Skill(spec-it-execute, "tmp")
+Skill(spec-it-execute, "tmp --design-style {_meta.designStyle} --design-trends {_meta.designTrends} --dashboard {_meta.dashboardEnabled}")
 ```
 
 ---

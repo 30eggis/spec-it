@@ -95,30 +95,6 @@ function calculateProgress(phase, step) {
 
 ---
 
-## 사용 방법
-
-### 1. 대시보드 실행 (별도 터미널)
-
-```bash
-# 자동 감지
-~/.claude/plugins/frontend-skills/skills/shared/dashboard/spec-it-dashboard.sh
-
-# 특정 세션
-~/.claude/plugins/frontend-skills/skills/shared/dashboard/spec-it-dashboard.sh ./tmp/20260130-123456
-```
-
-### 2. 간단한 watch 명령
-
-```bash
-# jq 사용
-watch -n 2 'jq "." tmp/*/_status.json 2>/dev/null || echo "Waiting..."'
-
-# 파일 카운트만
-watch -n 2 'find tmp -name "*.md" | wc -l'
-```
-
----
-
 ## SKILL.md 통합
 
 모든 spec-it 스킬에서 다음 패턴 사용:

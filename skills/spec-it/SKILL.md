@@ -49,42 +49,91 @@ IF args contains "--resume":
   STOP
 ```
 
-### Step 2: Ask User for Mode Selection
+### Step 2: Unified Setup Intake (Ask Once)
 
 ```
-AskUserQuestion: "Which spec-it mode would you like to use?"
+# Gather any pre-specified preferences from args or user request
+# (If already provided, do NOT ask again.)
+mode = parse args/user request if present
+designStyle = parse args/user request if present
+designTrends = parse args/user request if present
+dashboard = parse args/user request if present  # on/off
 
-Options:
-  1. "Step-by-Step (Recommended for learning)"
-     - Chapter-by-chapter approval
-     - Maximum control
-     - Best for: Small projects, first-time users
+questions = []
 
-  2. "Complex/Hybrid"
-     - 4 milestone approvals
-     - Auto-validation between milestones
-     - Best for: Medium projects
+IF mode missing:
+  questions += {
+    question: "Which spec-it mode would you like to use?",
+    header: "Mode",
+    options: [
+      {label: "Step-by-Step (Recommended)", description: "Chapter approvals, maximum control"},
+      {label: "Complex/Hybrid", description: "4 milestones, auto-validation"},
+      {label: "Full Automation → Execute", description: "Minimal approval, auto-exec"},
+      {label: "Fast → Execute", description: "Skip brainstorm/tests, rapid wireframes"}
+    ]
+  }
 
-  3. "Full Automation → Execute"
-     - Minimal approval (only final review)
-     - Auto-proceeds to implementation (spec-it-execute)
-     - Best for: Large projects, experienced users
+IF designStyle missing:
+  questions += {
+    question: "어떤 디자인 스타일을 적용하시겠습니까? (2026 Design Trends 기반)",
+    header: "Design Style",
+    options: [
+      {label: "Minimal (Recommended)", description: "밝은 테마, 미니멀 카드"},
+      {label: "Immersive", description: "다크 테마, 그라데이션, 네온 포인트"},
+      {label: "Organic", description: "Glassmorphism, 부드러운 곡선"},
+      {label: "Custom", description: "직접 트렌드 선택"},
+      {label: "Custom File", description: "직접 스타일 파일 경로 지정"}
+    ]
+  }
 
-  4. "Fast → Execute (Recommended for prototyping)"
-     - Skip brainstorming, components, tests
-     - Quick wireframes with design trends
-     - Auto-proceeds to implementation
-     - Best for: Rapid prototyping, design validation
+IF dashboard missing:
+  questions += {
+    question: "웹 대시보드를 사용할까요?",
+    header: "Dashboard",
+    options: [
+      {label: "Enable", description: "Web dashboard 사용"},
+      {label: "Skip", description: "대시보드 없이 진행"}
+    ]
+  }
+
+IF questions not empty:
+  AskUserQuestion(questions)
+
+IF designStyle == "Custom":
+  AskUserQuestion(
+    questions: [{
+      question: "적용할 디자인 트렌드를 선택하세요",
+      header: "Trends",
+      multiSelect: true,
+      options: [
+        {label: "Dark Mode+", description: "어두운 테마 + 적응형 색상"},
+        {label: "Light Skeuomorphism", description: "부드러운 그림자, Neumorphic"},
+        {label: "Glassmorphism", description: "반투명 배경 + blur"},
+        {label: "Micro-Animations", description: "의미있는 모션"},
+        {label: "3D Visuals", description: "3D 아이콘, WebGL"},
+        {label: "Gamification", description: "Progress rings, 배지"}
+      ]
+    }]
+  )
+
+IF designStyle == "Custom File":
+  AskUserQuestion(
+    questions: [{
+      question: "디자인 트렌드 파일 경로를 입력하세요",
+      header: "Custom File",
+      options: []
+    }]
+  )
 ```
 
 ### Step 3: Route to Selected Mode
 
 ```
 CASE selection:
-  "Step-by-Step" → Skill(spec-it-stepbystep)
-  "Complex/Hybrid" → Skill(spec-it-complex)
-  "Full Automation → Execute" → Skill(spec-it-automation)  # Auto-executes after spec
-  "Fast → Execute" → Skill(spec-it-fast-launch)           # Auto-executes after spec
+  "Step-by-Step" → Skill(spec-it-stepbystep, "--design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
+  "Complex/Hybrid" → Skill(spec-it-complex, "--design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
+  "Full Automation → Execute" → Skill(spec-it-automation, "--design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
+  "Fast → Execute" → Skill(spec-it-fast-launch, "--design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
 ```
 
 ---

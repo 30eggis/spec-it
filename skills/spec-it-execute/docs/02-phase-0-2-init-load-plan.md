@@ -3,7 +3,7 @@
 ## Phase 0: Initialize
 
 - Initialize session with `scripts/core/execute-session-init.sh`
-- Launch dashboard
+- If dashboard enabled, show web dashboard instructions (`web-dashboard/index.html`)
 - If `--resume`, load saved state and resume
 
 ## Phase 1: Load

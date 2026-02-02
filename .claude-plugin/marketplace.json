@@ -1,25 +1,24 @@
 {
-  "name": "claude-frontend-skills",
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "spec-it",
+  "description": "A collection of useful skills for frontend development and documentation",
   "owner": {
-    "name": "30eggis"
-  },
-  "metadata": {
-    "description": "A collection of useful skills for frontend development and documentation",
-    "version": "1.0.0"
+    "name": "Ted Kyung",
+    "email": "30egg.is@gmail.com"
   },
   "plugins": [
     {
-      "name": "frontend-skills",
-      "source": {
-        "source": "url",
-        "url": "https://github.com/30eggis/claude-frontend-skills.git"
-      },
+      "name": "spec-it",
       "description": "Frontend development skills including PRD/SPEC/PHASE/TASKS document generation",
       "version": "1.0.0",
       "author": {
-        "name": "30eggis"
+        "name": "Ted Kyung",
+        "email": "30egg.is@gmail.com"
       },
-      "repository": "https://github.com/30eggis/claude-frontend-skills"
+      "source": "./",
+      "category": "productivity",
+      "homepage": "https://github.com/30eggis/spec-it",
+      "tags": ["multi-agent", "orchestration","SDD", "PRD", "spec","frontend", "documentation", "productivity"]
     }
   ]
 }

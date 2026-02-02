@@ -194,29 +194,12 @@ tmp/                        # Document artifacts (archive)
 
 ---
 
-## Real-time Dashboard
-
-Monitor progress in a separate terminal:
-
-```bash
-# Install
-bash ~/.claude/plugins/frontend-skills/skills/shared/dashboard/install.sh
-
-# Run
-spec-it-dashboard
-```
-
-See [docs/DASHBOARD.md](docs/DASHBOARD.md) for details.
-
----
-
 ## Documentation
 
 | Document | Description |
 |----------|-------------|
 | [ARCHITECTURE.md](docs/ARCHITECTURE.md) | Workflow diagrams, execution patterns |
 | [AGENTS.md](docs/AGENTS.md) | All 23+ agents and their roles |
-| [DASHBOARD.md](docs/DASHBOARD.md) | Real-time dashboard usage |
 
 ---
 
