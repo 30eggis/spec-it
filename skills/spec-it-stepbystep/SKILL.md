@@ -140,7 +140,7 @@ sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script
 → Creates folders, _meta.json, _status.json
 
 IF _meta.dashboardEnabled == "Enable":
-  Output: "Open web-dashboard/index.html to view the live dashboard."
+  Output: "⏺ Dashboard:  file://$HOME/.claude/plugins/marketplaces/claude-frontend-skills/web-dashboard/index.html  을 열어 실시간 진행 상황을 확인할 수 있습니다."
 
 # Set spec format in _meta.json
 _meta.specFormat = "yaml"  # Default to YAML for new projects
