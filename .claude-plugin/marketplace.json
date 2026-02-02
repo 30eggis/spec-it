@@ -1,17 +1,25 @@
 {
   "name": "claude-frontend-skills",
-  "description": "A collection of useful skills for frontend development and documentation",
   "owner": {
     "name": "30eggis"
+  },
+  "metadata": {
+    "description": "A collection of useful skills for frontend development and documentation",
+    "version": "1.0.0"
   },
   "plugins": [
     {
       "name": "frontend-skills",
       "source": {
-        "source": "github",
-        "repo": "30eggis/claude-frontend-skills"
+        "source": "url",
+        "url": "https://github.com/30eggis/claude-frontend-skills.git"
       },
-      "description": "Frontend development skills including PRD/SPEC/PHASE/TASKS document generation"
+      "description": "Frontend development skills including PRD/SPEC/PHASE/TASKS document generation",
+      "version": "1.0.0",
+      "author": {
+        "name": "30eggis"
+      },
+      "repository": "https://github.com/30eggis/claude-frontend-skills"
     }
   ]
 }

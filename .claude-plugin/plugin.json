@@ -1,0 +1,59 @@
+{
+  "name": "frontend-skills",
+  "version": "1.0.0",
+  "description": "A collection of useful skills for frontend development and documentation",
+  "skills": "./skills/",
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Skill(spec-it*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/core/pre-init.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill(spec-it-execute)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/setup-permissions.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Skill(spec-mirror)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/setup-permissions.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/tool-waiting-hook.sh",
+            "timeout": 3
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/tool-resume-hook.sh",
+            "timeout": 3
+          }
+        ]
+      }
+    ]
+  }
+}
