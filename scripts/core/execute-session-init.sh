@@ -10,6 +10,35 @@ PLUGIN_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SESSION_ID="${1:-$(date +%Y%m%d-%H%M%S)}"
 SPEC_FOLDER="${2:-}"
 WORK_DIR="${3:-$(pwd)}"
+PYTHON_CMD=()
+
+resolve_python() {
+  if command -v python3 >/dev/null 2>&1; then
+    if python3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 6) else 1)' >/dev/null 2>&1; then
+      PYTHON_CMD=(python3)
+      return 0
+    fi
+  fi
+
+  if command -v py >/dev/null 2>&1; then
+    if py -3 -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 6) else 1)' >/dev/null 2>&1; then
+      PYTHON_CMD=(py -3)
+      return 0
+    fi
+  fi
+
+  if command -v python >/dev/null 2>&1; then
+    if python -c 'import sys; raise SystemExit(0 if sys.version_info >= (3, 6) else 1)' >/dev/null 2>&1; then
+      PYTHON_CMD=(python)
+      return 0
+    fi
+  fi
+
+  echo "ERROR:Python 3.6+ not found in PATH" >&2
+  exit 1
+}
+
+resolve_python
 
 # Convert to absolute paths
 if [[ "$WORK_DIR" != /* ]]; then
@@ -54,7 +83,7 @@ CURRENT_TIME=$(date -Iseconds)
 # Create _meta.json and _status.json (avoid shell redirection writes)
 export SESSION_ID SESSION_DIR SPEC_FOLDER WORK_DIR PARENT_TERMINAL_INFO CURRENT_TIME
 
-python3 -c 'import json, os
+"${PYTHON_CMD[@]}" -c 'import json, os
 session_dir = os.environ["SESSION_DIR"]
 data = {
   "sessionId": os.environ["SESSION_ID"],
@@ -89,7 +118,7 @@ with open(f"{session_dir}/_meta.json", "w") as f:
   json.dump(data, f, indent=2)
 '
 
-python3 -c 'import json, os
+"${PYTHON_CMD[@]}" -c 'import json, os
 session_dir = os.environ["SESSION_DIR"]
 data = {
   "sessionId": os.environ["SESSION_ID"],
