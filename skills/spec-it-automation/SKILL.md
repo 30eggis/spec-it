@@ -136,7 +136,7 @@ sessionId = extract SESSION_ID from result
 sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all status-update calls
 
 IF _meta.dashboardEnabled == "Enable":
-  Output: "Open web-dashboard/index.html to view the live dashboard."
+  Output: "⏺ Dashboard:  file://$HOME/.claude/plugins/marketplaces/claude-frontend-skills/web-dashboard/index.html  을 열어 실시간 진행 상황을 확인할 수 있습니다."
 ```
 
 ### Step 0.R: Resume
