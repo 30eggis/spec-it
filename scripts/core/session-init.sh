@@ -11,14 +11,6 @@ SESSION_ID="${1:-$(date +%Y%m%d-%H%M%S)}"
 UI_MODE="${2:-yaml}"
 WORK_DIR="${3:-$(pwd)}"
 
-if [ -f "$SCRIPT_DIR/ensure-jq.sh" ]; then
-  # shellcheck source=/dev/null
-  source "$SCRIPT_DIR/ensure-jq.sh"
-  if ! ensure_jq; then
-    exit 1
-  fi
-fi
-
 # Convert to absolute path
 if [[ "$WORK_DIR" != /* ]]; then
     WORK_DIR="$(cd "$WORK_DIR" 2>/dev/null && pwd)" || WORK_DIR="$(pwd)"

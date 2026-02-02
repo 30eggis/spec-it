@@ -11,14 +11,6 @@ SESSION_ID="${1:-$(date +%Y%m%d-%H%M%S)}"
 SPEC_FOLDER="${2:-}"
 WORK_DIR="${3:-$(pwd)}"
 
-if [ -f "$SCRIPT_DIR/ensure-jq.sh" ]; then
-  # shellcheck source=/dev/null
-  source "$SCRIPT_DIR/ensure-jq.sh"
-  if ! ensure_jq; then
-    exit 1
-  fi
-fi
-
 # Convert to absolute paths
 if [[ "$WORK_DIR" != /* ]]; then
     WORK_DIR="$(cd "$WORK_DIR" 2>/dev/null && pwd)" || WORK_DIR="$(pwd)"

@@ -5,16 +5,6 @@
 
 set -e
 
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-PLUGIN_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
-if [ -f "$PLUGIN_DIR/scripts/core/ensure-jq.sh" ]; then
-    # shellcheck source=/dev/null
-    source "$PLUGIN_DIR/scripts/core/ensure-jq.sh"
-    if ! ensure_jq; then
-        exit 1
-    fi
-fi
-
 # Colors
 RED='\033[0;31m'
 GREEN='\033[0;32m'
@@ -36,6 +26,8 @@ if [ -n "$1" ]; then
     fi
 else
     # Auto-detect latest session using absolute paths
+    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    PLUGIN_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
     # Get project directory (parent of plugin's .claude directory)
     PROJECT_DIR="${PLUGIN_DIR%/.claude/*}"
     if [ "$PROJECT_DIR" = "$PLUGIN_DIR" ]; then
