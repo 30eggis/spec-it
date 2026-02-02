@@ -40,6 +40,14 @@ resolve_python() {
 
 resolve_python
 
+if [ -f "$SCRIPT_DIR/ensure-jq.sh" ]; then
+  # shellcheck source=/dev/null
+  source "$SCRIPT_DIR/ensure-jq.sh"
+  if ! ensure_jq; then
+    exit 1
+  fi
+fi
+
 # Convert to absolute paths
 if [[ "$WORK_DIR" != /* ]]; then
     WORK_DIR="$(cd "$WORK_DIR" 2>/dev/null && pwd)" || WORK_DIR="$(pwd)"

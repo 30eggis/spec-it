@@ -36,6 +36,14 @@ resolve_python() {
 
 resolve_python
 
+if [ -f "$SCRIPT_DIR/ensure-jq.sh" ]; then
+  # shellcheck source=/dev/null
+  source "$SCRIPT_DIR/ensure-jq.sh"
+  if ! ensure_jq; then
+    exit 1
+  fi
+fi
+
 # Session state goes to .spec-it/{sessionId}/plan/
 SESSION_DIR="$WORK_DIR/.spec-it/$SESSION_ID/plan"
 # Document artifacts go to tmp/
