@@ -14,33 +14,22 @@ SESSION_PATH="${1:-}"
 # Detect OS and open new terminal
 case "$(uname -s)" in
   Darwin)
-    # macOS - use osascript to open new Terminal window
+    # macOS - prefer safe Terminal open via .command
+    COMMAND_FILE="$(mktemp /tmp/spec-it-dashboard-XXXXXX.command)"
     if [[ -n "$SESSION_PATH" ]]; then
-      if ! osascript <<EOF
-tell application "Terminal"
-  activate
-  do script "python3 '$DASHBOARD_SCRIPT' '$SESSION_PATH'"
-  set custom title of front window to "spec-it Dashboard"
-end tell
-EOF
-      then
-        echo "ERROR: Failed to open dashboard terminal" >&2
-        echo "Try running manually: python3 $DASHBOARD_SCRIPT $SESSION_PATH" >&2
-        exit 1
-      fi
+      printf '#!/bin/bash\nexec /usr/bin/env python3 "%s" "%s"\n' "$DASHBOARD_SCRIPT" "$SESSION_PATH" > "$COMMAND_FILE"
     else
-      if ! osascript <<EOF
-tell application "Terminal"
-  activate
-  do script "python3 '$DASHBOARD_SCRIPT'"
-  set custom title of front window to "spec-it Dashboard"
-end tell
-EOF
-      then
-        echo "ERROR: Failed to open dashboard terminal" >&2
+      printf '#!/bin/bash\nexec /usr/bin/env python3 "%s"\n' "$DASHBOARD_SCRIPT" > "$COMMAND_FILE"
+    fi
+    chmod +x "$COMMAND_FILE"
+    if ! open -a Terminal "$COMMAND_FILE"; then
+      echo "ERROR: Failed to open dashboard terminal" >&2
+      if [[ -n "$SESSION_PATH" ]]; then
+        echo "Try running manually: python3 $DASHBOARD_SCRIPT $SESSION_PATH" >&2
+      else
         echo "Try running manually: python3 $DASHBOARD_SCRIPT" >&2
-        exit 1
       fi
+      exit 1
     fi
     ;;
 
@@ -60,11 +49,40 @@ EOF
     ;;
 
   MINGW*|CYGWIN*|MSYS*)
-    # Windows
-    if [[ -n "$SESSION_PATH" ]]; then
-      start cmd /k "$DASHBOARD_SCRIPT" "$SESSION_PATH"
+    # Windows (Git Bash/MSYS/Cygwin)
+    PY_CMD=""
+    if command -v py &> /dev/null; then
+      PY_CMD="py -3 -u"
+    elif command -v python &> /dev/null; then
+      PY_CMD="python -u"
+    elif command -v python3 &> /dev/null; then
+      PY_CMD="python3 -u"
     else
-      start cmd /k "$DASHBOARD_SCRIPT"
+      echo "ERROR: Python not found in PATH" >&2
+      echo "Install Python or run manually: python3 $DASHBOARD_SCRIPT $SESSION_PATH" >&2
+      exit 1
+    fi
+
+    WIN_DASHBOARD_SCRIPT="$DASHBOARD_SCRIPT"
+    WIN_SESSION_PATH="$SESSION_PATH"
+    if command -v cygpath &> /dev/null; then
+      WIN_DASHBOARD_SCRIPT="$(cygpath -w "$DASHBOARD_SCRIPT")"
+      if [[ -n "$SESSION_PATH" ]]; then
+        WIN_SESSION_PATH="$(cygpath -w "$SESSION_PATH")"
+      fi
+    fi
+
+    CMD_LINE="$PY_CMD \"$WIN_DASHBOARD_SCRIPT\""
+    if [[ -n "$WIN_SESSION_PATH" ]]; then
+      CMD_LINE+=" \"$WIN_SESSION_PATH\""
+    fi
+
+    if command -v wt.exe &> /dev/null; then
+      wt.exe -w 0 new-tab --title "spec-it Dashboard" cmd.exe /k "$CMD_LINE"
+    elif command -v wt &> /dev/null; then
+      wt -w 0 new-tab --title "spec-it Dashboard" cmd.exe /k "$CMD_LINE"
+    else
+      cmd.exe /c start "" cmd.exe /k "$CMD_LINE"
     fi
     ;;
 
