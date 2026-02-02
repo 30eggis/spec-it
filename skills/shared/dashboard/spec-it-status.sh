@@ -2,6 +2,16 @@
 # SPEC-IT 간단한 상태 출력 (watch와 함께 사용)
 # Usage: watch -n 2 ./spec-it-status.sh [session-path]
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_DIR="$(cd "$SCRIPT_DIR/../../.." && pwd)"
+if [ -f "$PLUGIN_DIR/scripts/core/ensure-jq.sh" ]; then
+    # shellcheck source=/dev/null
+    source "$PLUGIN_DIR/scripts/core/ensure-jq.sh"
+    if ! ensure_jq; then
+        exit 1
+    fi
+fi
+
 SESSION_PATH="${1:-.}"
 
 # Find status file (new structure: .spec-it/{id}/(plan|execute))

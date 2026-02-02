@@ -9,6 +9,15 @@
 
 set -e
 
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+if [ -f "$SCRIPT_DIR/ensure-jq.sh" ]; then
+  # shellcheck source=/dev/null
+  source "$SCRIPT_DIR/ensure-jq.sh"
+  if ! ensure_jq; then
+    exit 1
+  fi
+fi
+
 SESSION_ARG="$1"
 NEW_STEP="$2"
 NEW_PHASE="${3:-}"
