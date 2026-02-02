@@ -4,9 +4,9 @@ Frontend specification generation and implementation toolkit for Claude Code.
 
 ## Installation
 ```bash
-/plugin marketplace add 30eggis/claude-frontend-skills
-```
-```bash
+/plugin marketplace remove claude-frontend-skills
+/plugin marketplace add https://github.com/30eggis/claude-frontend-skills.git
+/plugin marketplace update
 /plugin install frontend-skills@claude-frontend-skills
 ```
 
