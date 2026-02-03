@@ -1,0 +1,5 @@
+{
+  "enabledPlugins": {
+    "spec-it@spec-it": true
+  }
+}

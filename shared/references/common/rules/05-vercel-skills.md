@@ -154,7 +154,6 @@ Reference Tailwind color palette for consistent theming:
 | `spec-it` | Wireframe chapter | Correct grid mapping |
 | `spec-it-execute` | Phase 3 (code gen) | Tailwind best practices |
 | `spec-mirror` | Comparison phase | Layout verification |
-| `stitch-convert` | HTML generation | Style consistency |
 
 ---
 

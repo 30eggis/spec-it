@@ -225,15 +225,6 @@ Execution plan for applying changes.
 
 ---
 
-## 6. Stitch Mode (if applicable)
-
-If Stitch mode is active:
-- Regenerate HTML: `02-wireframes/html/product-buyer-login-01.html`
-- Update design tokens if new styles needed
-```
-
----
-
 ## _needs-review.md
 
 Flag file created in affected directories.

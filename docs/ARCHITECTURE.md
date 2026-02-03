@@ -296,7 +296,6 @@ All three spec-it modes (stepbystep, complex, automation) use the same unified P
 | Skill | Description |
 |-------|-------------|
 | `/spec-wireframe-edit` | Wireframe editor with impact analysis |
-| `/stitch-convert` | Convert YAML/JSON wireframes to HTML |
 | `/design-trends-2026` | 2026 design trends reference pack |
 | `/prompt-inspector` | Visual API binding for UI elements |
 

@@ -209,18 +209,7 @@ All other agents same as stepbystep.
 
 ---
 
-## 13. stitch-convert
-
-- 📄 **Direct References**
-  - `shared/references/common/rules/05-vercel-skills.md`
-- 🔧 **MCP Tools (Not Agents)**
-  - `mcp__stitch__create_project`
-  - `mcp__stitch__generate_screen_from_text`
-  - `mcp__stitch__export_design_system`
-
----
-
-## 14. design-trends-2026
+## 13. design-trends-2026
 
 - 📄 **Provides Documents**
   - `references/trends-summary.md`

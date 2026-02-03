@@ -237,7 +237,6 @@ tmp/
 │   ├── shared/<domain>.md
 │   ├── <user-type>/<domain>/screen-list.md
 │   ├── <user-type>/<domain>/wireframes/
-│   └── [html/, assets/]  # If Stitch mode
 ├── 03-components/
 ├── 04-review/
 ├── 05-tests/

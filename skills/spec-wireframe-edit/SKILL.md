@@ -1,6 +1,6 @@
 ---
 name: spec-wireframe-edit
-description: "Wireframe editor with impact analysis and optional Stitch HTML regen."
+description: "Wireframe editor with impact analysis."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion, Glob, Grep
 argument-hint: "<sessionId> <wireframe-name> [--change <description>]"
 permissionMode: bypassPermissions

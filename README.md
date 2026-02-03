@@ -51,7 +51,6 @@ Transforms generated specs into working code with autonomous execution.
 | **spec-it-complex** | Hybrid mode (4 milestones) | `/spec-it-complex` |
 | **spec-it-stepbystep** | Step-by-step mode | `/spec-it-stepbystep` |
 | **spec-it-execute** | Spec to code executor | `/spec-it-execute <folder>` |
-| **stitch-convert** | YAML/JSON → HTML via Stitch MCP | `/stitch-convert <session>` |
 
 ### Spec Modification Skills
 
@@ -132,7 +131,6 @@ A separate set of skills for **modifying existing specifications** with comprehe
 
 **Features**:
 - Structured YAML/JSON wireframe modification with visual diff
-- Auto-regenerates HTML if Stitch mode is active
 - Flags affected components and tests for review
 
 ---
