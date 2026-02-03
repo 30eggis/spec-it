@@ -168,7 +168,7 @@ Task(
 
     === OUTPUT ===
 
-    Output: {spec-folder}/02-wireframes/<domain>/<user-type>/wireframes/{screen-id}.yaml
+    Output: {spec-folder}/02-wireframes/<user-type>/<domain>/wireframes/{screen-id}.yaml
     Output: {spec-folder}/02-wireframes/layouts/layout-{name}.yaml
 
     OUTPUT RULES: (standard)
@@ -339,7 +339,7 @@ Task(
 │       │                                                            │
 │       ▼                                                            │
 │  ┌─────────────────────────────────────────────────────────────┐   │
-│  │ 02-wireframes/<domain>/<user-type>/wireframes/*.yaml         │   │
+│  │ 02-wireframes/<user-type>/<domain>/wireframes/*.yaml         │   │
 │  │                                                             │   │
 │  │ ## Design Direction                                         │   │
 │  │ ### Applied Trends                                          │   │

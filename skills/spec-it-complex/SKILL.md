@@ -265,7 +265,7 @@ FOR each domain in domain-map (parallel, max 4):
       Role: ui-architect
       Domain: {domain}
 
-      Output: 02-wireframes/<domain>/shared.md
+      Output: 02-wireframes/shared/<domain>.md
       Include design direction + shared UI components
     "
 
@@ -276,7 +276,7 @@ FOR each domain/user-type in domain-map (parallel, max 4):
       Domain: {domain}
       User type: {userType}
 
-      Output: 02-wireframes/<domain>/<user-type>/screen-list.md
+      Output: 02-wireframes/<user-type>/<domain>/screen-list.md
       Screen list rules:
         - user_type: buyer | seller | admin | operator
         - id format: <domain>-<user>-<flow>-<seq>
@@ -292,7 +292,7 @@ FOR each batch:
 
       Screen list: {screenListPath}
       Read: {screenListPath}
-      Read: 02-wireframes/<domain>/shared.md (same domain as screen list)
+      Read: 02-wireframes/shared/<domain>.md (same domain as screen list)
       Render all screens in this list (respect depends_on order)
 
       === YAML UI FRAME REFERENCE (MUST READ) ===
@@ -307,7 +307,7 @@ FOR each batch:
 
       === OUTPUT FORMAT (YAML) ===
       Use template: assets/templates/UI_WIREFRAME_TEMPLATE.yaml
-      Output: 02-wireframes/<domain>/<user-type>/wireframes/{screen-id}.yaml
+      Output: 02-wireframes/<user-type>/<domain>/wireframes/{screen-id}.yaml
 
       === CRITICAL RULES ===
       - NEVER use ASCII box characters
@@ -449,9 +449,9 @@ tmp/
 ├── 02-wireframes/
 │   ├── layouts/
 │   ├── domain-map.md
-│   ├── <domain>/shared.md
-│   ├── <domain>/<user-type>/screen-list.md
-│   └── <domain>/<user-type>/wireframes/, [html/]
+│   ├── shared/<domain>.md
+│   ├── <user-type>/<domain>/screen-list.md
+│   └── <user-type>/<domain>/wireframes/, [html/]
 ├── 03-components/new/, migrations/
 ├── 04-review/scenarios/, exceptions/
 ├── 05-tests/personas/, scenarios/

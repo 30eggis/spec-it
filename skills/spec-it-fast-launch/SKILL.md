@@ -320,7 +320,7 @@ FOR each domain in domain-map (parallel, max 4):
       Role: ui-architect
       Domain: {domain}
 
-      Output: 02-wireframes/<domain>/shared.md
+      Output: 02-wireframes/shared/<domain>.md
       Include design direction + shared UI components
     "
 
@@ -331,7 +331,7 @@ FOR each domain/user-type in domain-map (parallel, max 4):
       Domain: {domain}
       User type: {userType}
 
-      Output: 02-wireframes/<domain>/<user-type>/screen-list.md
+      Output: 02-wireframes/<user-type>/<domain>/screen-list.md
       Screen list rules:
         - user_type: buyer | seller | admin | operator
         - id format: <domain>-<user>-<flow>-<seq>
@@ -355,7 +355,7 @@ FOR each screen-list group (parallel, max 4):
 
       Screen list: {screenListPath}
       Read: {screenListPath}
-      Read: 02-wireframes/<domain>/shared.md (same domain as screen list)
+      Read: 02-wireframes/shared/<domain>.md (same domain as screen list)
       Render all screens in this list (respect depends_on order)
 
       === DESIGN REFERENCE (MUST READ) ===
@@ -394,7 +394,7 @@ FOR each screen-list group (parallel, max 4):
       - Use grid.areas for layout (CSS Grid syntax)
       - Include testId for all interactive elements
 
-      Output: 02-wireframes/<domain>/<user-type>/wireframes/{screenId}.yaml
+      Output: 02-wireframes/<user-type>/<domain>/wireframes/{screenId}.yaml
     "
 
 Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect-wireframes "" 2.2
@@ -492,9 +492,9 @@ tmp/
 │   ├── layouts/layout-system.yaml
 │   ├── layouts/components.yaml
 │   ├── domain-map.md
-│   ├── <domain>/shared.md
-│   ├── <domain>/<user-type>/screen-list.md
-│   └── <domain>/<user-type>/wireframes/{screen-id}.yaml
+│   ├── shared/<domain>.md
+│   ├── <user-type>/<domain>/screen-list.md
+│   └── <user-type>/<domain>/wireframes/{screen-id}.yaml
 └── 06-final/
     ├── FAST-SPEC-SUMMARY.md
     └── design-checklist.md

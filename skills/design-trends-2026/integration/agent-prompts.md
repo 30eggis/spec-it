@@ -182,7 +182,7 @@ designDirection:
 Create wireframes for:
 {screenList}
 
-Output to: {spec-folder}/02-wireframes/<domain>/<user-type>/wireframes/
+Output to: {spec-folder}/02-wireframes/<user-type>/<domain>/wireframes/
 
 OUTPUT RULES:
 1. Write each wireframe to separate file: SCR-{ID}-{slug}.yaml

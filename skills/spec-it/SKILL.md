@@ -234,9 +234,9 @@ tmp/
 ├── 02-wireframes/
 │   ├── layouts/
 │   ├── domain-map.md
-│   ├── <domain>/shared.md
-│   ├── <domain>/<user-type>/screen-list.md
-│   ├── <domain>/<user-type>/wireframes/
+│   ├── shared/<domain>.md
+│   ├── <user-type>/<domain>/screen-list.md
+│   ├── <user-type>/<domain>/wireframes/
 │   └── [html/, assets/]  # If Stitch mode
 ├── 03-components/
 ├── 04-review/

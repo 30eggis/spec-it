@@ -21,7 +21,7 @@ Done. Files: {path1} ({lines}), {path2} ({lines})
 
 Good:
 ```
-Done. Files: 02-wireframes/<domain>/<user-type>/screen-list.md (45), 02-wireframes/layouts/layout-system.yaml (120)
+Done. Files: 02-wireframes/<user-type>/<domain>/screen-list.md (45), 02-wireframes/layouts/layout-system.yaml (120)
 ```
 
 Bad:

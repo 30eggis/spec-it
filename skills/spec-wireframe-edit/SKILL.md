@@ -110,7 +110,7 @@ IF flaggedFiles > 0:
 │   └── wireframe-plan.md
 
 tmp/
-├── 02-wireframes/<domain>/<user-type>/wireframes/
+├── 02-wireframes/<user-type>/<domain>/wireframes/
 │   └── {wireframe}.yaml        # Updated YAML wireframe
 └── {various}/
     └── _needs-review.md        # Flagged files

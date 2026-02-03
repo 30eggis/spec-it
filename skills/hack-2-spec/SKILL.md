@@ -121,7 +121,7 @@ Output structure **must match spec-it exactly**.
 │   ├── layouts/layout-system.yaml
 │   ├── domain-map.md            # Template: 02-DOMAIN_MAP_TEMPLATE.md
 │   ├── screen-list.md           # Template: 02-SCREEN_LIST_TEMPLATE.md
-│   └── <domain>/<user-type>/
+│   └── <user-type>/<domain>/
 │       ├── screen-list.md
 │       └── wireframes/{screen-id}.yaml  # Template: 02-WIREFRAME_YAML_TEMPLATE.yaml
 ├── 03-components/

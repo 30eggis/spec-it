@@ -98,7 +98,7 @@ Task(ui-architect, sonnet):
     |-------------|-----------|----------|
 
     === OUTPUT ===
-    Output: {spec-folder}/02-wireframes/<domain>/<user-type>/wireframes/
+    Output: {spec-folder}/02-wireframes/<user-type>/<domain>/wireframes/
     Output: {spec-folder}/02-wireframes/layouts/
 
     OUTPUT RULES: (standard)
