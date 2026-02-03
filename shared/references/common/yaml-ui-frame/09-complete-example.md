@@ -224,7 +224,7 @@ accessibility:
       label: "Show/hide password"
 
 styles:
-  _ref: "../../shared/design-tokens.yaml"
+  _ref: "../design-tokens.yaml"
 
 notes: |
   - First-time users should be redirected to onboarding

@@ -17,13 +17,13 @@ Transform PRD/vibe-coding into frontend specifications with **phase-by-phase app
 
 ## Rules
 
-See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rules.md](../shared/context-rules.md).
-See [shared/rules/50-question-policy.md](../shared/rules/50-question-policy.md) (Question Policy: Confirm).
-See [shared/rules/06-output-quality.md](../shared/rules/06-output-quality.md) (Output Quality Standards - MANDATORY).
+See [shared/references/common/output-rules.md](../../shared/references/common/output-rules.md) and [shared/references/common/context-rules.md](../../shared/references/common/context-rules.md).
+See [shared/references/common/rules/50-question-policy.md](../../shared/references/common/rules/50-question-policy.md) (Question Policy: Confirm).
+See [shared/references/common/rules/06-output-quality.md](../../shared/references/common/rules/06-output-quality.md) (Output Quality Standards - MANDATORY).
 
 ### Output Templates (MANDATORY)
 
-All outputs MUST use templates from `skills/shared/templates/`.
+All outputs MUST use templates from `shared/templates/common/`.
 
 ### File Writing Rules
 

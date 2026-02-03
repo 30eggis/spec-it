@@ -13,8 +13,8 @@ Validates and applies spec changes with comprehensive pre-flight checks.
 ## References
 
 - [Output Formats](references/output-formats.md) - Analysis results, change plan, RTM formats
-- [shared/output-rules.md](../shared/output-rules.md) - Agent output rules
-- [shared/context-rules.md](../shared/context-rules.md) - Context management
+- [shared/references/common/output-rules.md](../../shared/references/common/output-rules.md) - Agent output rules
+- [shared/references/common/context-rules.md](../../shared/references/common/context-rules.md) - Context management
 
 ---
 

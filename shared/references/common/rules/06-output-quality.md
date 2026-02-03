@@ -4,7 +4,7 @@ All spec-it output MUST follow these quality standards to ensure consistent, hig
 
 ## Mandatory Templates
 
-**CRITICAL:** Always use templates from `skills/shared/templates/` for output generation.
+**CRITICAL:** Always use templates from `shared/templates/common/` for output generation.
 
 | Output File | Template |
 |------------|----------|

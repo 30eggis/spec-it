@@ -7,11 +7,11 @@ Complete reference chain for each Skill including all agents called and document
 ## 1. spec-it-stepbystep (P1-P14)
 
 - 📄 **Direct References**
-  - `shared/output-rules.md`
-  - `shared/context-rules.md`
-  - `shared/rules/50-question-policy.md` (Confirm)
-  - `shared/rules/06-output-quality.md`
-  - `shared/templates/_INDEX.md`
+  - `shared/references/common/output-rules.md`
+  - `shared/references/common/context-rules.md`
+  - `shared/references/common/rules/50-question-policy.md` (Confirm)
+  - `shared/references/common/rules/06-output-quality.md`
+  - `shared/templates/common/_INDEX.md`
 
 ### Phase Agents
 
@@ -26,7 +26,7 @@ Complete reference chain for each Skill including all agents called and document
 | P4 | `critic-analytics` | Sonnet | `shared/references/critic-analytics/synthesis-format.md` |
 | P5 | `critique-resolver` (skill) | - | `shared/references/critique-resolver/question-templates.md` |
 | P6 | `chapter-planner` | Opus | *(critique synthesis)* |
-| P7 | `ui-architect` | Sonnet | `yaml-ui-frame/*.md`, `design-trends-2026/*` |
+| P7 | `ui-architect` | Sonnet | `shared/references/common/yaml-ui-frame/*.md`, `design-trends-2026/*` |
 | P8 | `component-auditor` | Haiku | *(codebase scan)* |
 | P9 | `component-builder` | Sonnet | `assets/templates/COMPONENT_SPEC_TEMPLATE.yaml` |
 | P9 | `component-migrator` | Sonnet | *(inventory-based)* |
@@ -42,10 +42,10 @@ Complete reference chain for each Skill including all agents called and document
 ## 2. spec-it-complex (P1-P14, 4 Milestones)
 
 - 📄 **Direct References**
-  - `shared/output-rules.md`
-  - `shared/context-rules.md`
-  - `shared/rules/50-question-policy.md` (Hybrid)
-  - `shared/rules/06-output-quality.md`
+  - `shared/references/common/output-rules.md`
+  - `shared/references/common/context-rules.md`
+  - `shared/references/common/rules/50-question-policy.md` (Hybrid)
+  - `shared/references/common/rules/06-output-quality.md`
 
 ### Same agents as stepbystep with milestone grouping:
 - Milestone 1: P1-P6
@@ -58,9 +58,9 @@ Complete reference chain for each Skill including all agents called and document
 ## 3. spec-it-automation (P1-P14, Auto)
 
 - 📄 **Direct References**
-  - `shared/output-rules.md`
-  - `shared/context-rules.md`
-  - `shared/rules/50-question-policy.md` (Auto)
+  - `shared/references/common/output-rules.md`
+  - `shared/references/common/context-rules.md`
+  - `shared/references/common/rules/50-question-policy.md` (Auto)
 
 ### Mode-Specific Agents
 
@@ -121,7 +121,7 @@ All other agents same as stepbystep.
 
 - 📄 **Direct References**
   - `spec-change/references/output-formats.md`
-  - `shared/output-rules.md`
+  - `shared/references/common/output-rules.md`
 
 ### Analysis Agents (Parallel)
 
@@ -141,12 +141,12 @@ All other agents same as stepbystep.
 ## 8. hack-2-spec
 
 - 📄 **Direct References**
-  - `shared/rules/06-output-quality.md`
-  - `shared/templates/_INDEX.md`
+  - `shared/references/common/rules/06-output-quality.md`
+  - `shared/templates/common/_INDEX.md`
   - `hack-2-spec/docs/01-output-structure.md`
   - `hack-2-spec/docs/00-design-context.md`
-  - `shared/design-token-parser.md`
-  - `shared/rules/05-vercel-skills.md`
+  - `shared/references/common/design-token-parser.md`
+  - `shared/references/common/rules/05-vercel-skills.md`
 
 ### Referenced By
 - `spec-it-mock`
@@ -158,7 +158,7 @@ All other agents same as stepbystep.
 
 - 📄 **Direct References**
   - `spec-mirror/assets/templates/MIRROR_REPORT_TEMPLATE.md`
-  - `shared/rules/05-vercel-skills.md`
+  - `shared/references/common/rules/05-vercel-skills.md`
 - ⚡ **Uses Skill: hack-2-spec**
 
 ---
@@ -182,7 +182,7 @@ All other agents same as stepbystep.
 
 - 📄 **Direct References**
   - `spec-wireframe-edit/references/output-formats.md`
-  - `yaml-ui-frame/*.md`
+  - `shared/references/common/yaml-ui-frame/*.md`
 
 ### Agents
 
@@ -196,7 +196,7 @@ All other agents same as stepbystep.
 ## 12. init-spec-md
 
 - 📄 **Direct References**
-  - `shared/context-rules.md`
+  - `shared/references/common/context-rules.md`
   - `spec-it/assets/templates/SPEC_IT_COMPONENT_TEMPLATE.md`
   - `spec-it/assets/templates/SPEC_IT_PAGE_TEMPLATE.md`
 
@@ -212,7 +212,7 @@ All other agents same as stepbystep.
 ## 13. stitch-convert
 
 - 📄 **Direct References**
-  - `shared/rules/05-vercel-skills.md`
+  - `shared/references/common/rules/05-vercel-skills.md`
 - 🔧 **MCP Tools (Not Agents)**
   - `mcp__stitch__create_project`
   - `mcp__stitch__generate_screen_from_text`

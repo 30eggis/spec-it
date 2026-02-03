@@ -278,7 +278,7 @@ related:
 # DESIGN TOKENS REFERENCE
 # =============================================================================
 styles:
-  _ref: "../../shared/design-tokens.yaml"
+  _ref: "../../../../shared/references/common/design-tokens.yaml"
 
   overrides:
     # Component-specific token overrides

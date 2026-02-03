@@ -2,12 +2,12 @@
 
 Load order is intentional. Each file is under 400 lines.
 
-0) `skills/shared/rules/05-vercel-skills.md` ← **MUST LOAD FIRST** (submodule init)
-1) `skills/shared/rules/10-core-safety.md`
-2) `skills/shared/rules/20-state-role-auth.md`
-3) `skills/shared/rules/30-ui-ssr-time.md`
-4) `skills/shared/rules/40-test-checklists.md`
-5) `skills/shared/rules/50-question-policy.md`
+0) `shared/references/common/rules/05-vercel-skills.md` ← **MUST LOAD FIRST** (submodule init)
+1) `shared/references/common/rules/10-core-safety.md`
+2) `shared/references/common/rules/20-state-role-auth.md`
+3) `shared/references/common/rules/30-ui-ssr-time.md`
+4) `shared/references/common/rules/40-test-checklists.md`
+5) `shared/references/common/rules/50-question-policy.md`
 
 Usage:
 - Include the rule keywords in spec-it or spec-it-execute prompts.

@@ -13,7 +13,7 @@ Modify wireframes with comprehensive impact analysis.
 ## References
 
 - [Output Formats](references/output-formats.md) - Impact JSON, preview, plan formats
-- [YAML UI Frame](../shared/references/yaml-ui-frame/) - YAML wireframe structure
+- [YAML UI Frame](../../shared/references/common/yaml-ui-frame/) - YAML wireframe structure
 
 ---
 

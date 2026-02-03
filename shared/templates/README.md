@@ -6,16 +6,26 @@ Output templates for spec-it agents and skills.
 
 ```
 templates/
-├── common/              # Templates used by multiple agents
-└── {agent-name}/        # Agent-specific templates
+├── common/              # Templates used by multiple agents (6+ skills)
+├── api-predictor/       # api-predictor agent-specific templates
+├── dev-planner/         # dev-planner agent-specific templates
+└── {agent-name}/        # Other agent-specific templates
 ```
 
-## Note
+## Common Templates
 
-Most templates currently reside in `skills/shared/templates/`.
-This directory is for new templates that follow the updated organization pattern.
+Templates in `common/` are used by multiple skills:
+- spec-it-stepbystep
+- spec-it-complex
+- spec-it-automation
+- spec-it-fast-launch
+- hack-2-spec
+- spec-it
 
-## Migration
+## Usage
 
-Templates will be gradually migrated from `skills/shared/templates/` to this location
-as agents are updated to reference the new paths.
+Reference templates using paths like:
+```
+shared/templates/common/00-REQUIREMENTS_TEMPLATE.md
+shared/templates/common/01-CHAPTER_PLAN_TEMPLATE.md
+```

@@ -33,7 +33,7 @@ if [ ! -f "docs/refs/agent-skills/README.md" ]; then
 fi
 ```
 
-**Reference:** `skills/shared/rules/05-vercel-skills.md` for Tailwind layout rules.
+**Reference:** `shared/references/common/rules/05-vercel-skills.md` for Tailwind layout rules.
 
 ---
 
@@ -197,11 +197,11 @@ For experienced users who know which mode they want:
 
 ## Rules
 
-See [shared/rules/06-output-quality.md](../shared/rules/06-output-quality.md) (Output Quality Standards - MANDATORY).
+See [shared/references/common/rules/06-output-quality.md](../../shared/references/common/rules/06-output-quality.md) (Output Quality Standards - MANDATORY).
 
 ### Output Templates (MANDATORY)
 
-All modes MUST use templates from `skills/shared/templates/`:
+All modes MUST use templates from `shared/templates/common/`:
 
 | Output File | Template |
 |------------|----------|

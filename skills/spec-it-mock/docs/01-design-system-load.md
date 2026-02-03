@@ -1,6 +1,6 @@
 # Phase 2: Load Design System
 
-**Reference:** `skills/shared/design-token-parser.md` for full parser spec.
+**Reference:** `shared/references/common/design-token-parser.md` for full parser spec.
 
 ## Supported Token Formats
 

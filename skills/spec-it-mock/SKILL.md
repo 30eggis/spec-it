@@ -22,11 +22,11 @@ Analyze existing services and generate spec-it specifications that reproduce the
 
 | When you need to... | Read this |
 |---------------------|-----------|
-| Parse design tokens (Figma/Style Dictionary/DTCG) | `skills/shared/design-token-parser.md` |
+| Parse design tokens (Figma/Style Dictionary/DTCG) | `shared/references/common/design-token-parser.md` |
 | Understand design system loading details | `docs/01-design-system-load.md` |
 | Configure hack-2-spec integration | `docs/02-hack-2-spec-integration.md` |
 | Handle spec-it mode execution | `docs/03-spec-it-execution.md` |
-| Apply Tailwind layout rules | `skills/shared/rules/05-vercel-skills.md` |
+| Apply Tailwind layout rules | `shared/references/common/rules/05-vercel-skills.md` |
 
 ## Workflow
 
@@ -109,7 +109,7 @@ Dashboard: file://${PWD}/.spec-it/dashboard/index.html?session=${SESSION_ID}
 4. Build reverse lookup (CSS value → token path)
 5. Write `design-context.yaml`
 
-> **If token parsing fails or format is unknown:** Read `skills/shared/design-token-parser.md`
+> **If token parsing fails or format is unknown:** Read `shared/references/common/design-token-parser.md`
 
 ---
 

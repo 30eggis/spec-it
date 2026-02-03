@@ -270,7 +270,7 @@ This component/test is affected by the wireframe change above.
 ## Legacy ASCII Wireframe Conventions (Deprecated)
 
 ASCII wireframe editing is deprecated. Use YAML/JSON wireframes only.
-For legacy conversions, see `skills/shared/references/yaml-ui-frame/10-migration.md`.
+For legacy conversions, see `shared/references/common/yaml-ui-frame/10-migration.md`.
 
 ### Interactive Elements
 

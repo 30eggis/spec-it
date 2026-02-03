@@ -13,7 +13,7 @@ Modifies YAML wireframes based on change descriptions while maintaining structur
 
 ## Reference
 
-Read: `skills/shared/references/yaml-ui-frame/` for YAML structure guidelines.
+Read: `shared/references/common/yaml-ui-frame/` for YAML structure guidelines.
 
 ## Input
 

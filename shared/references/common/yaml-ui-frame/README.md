@@ -42,7 +42,7 @@ YAML 구조적 와이어프레임 작성 가이드. ui-architect 에이전트 �
 
 ```
 # ui-architect 에이전트에서 점진적 로딩
-Read: skills/shared/references/yaml-ui-frame/01-basic-structure.md
-Read: skills/shared/references/yaml-ui-frame/02-grid-definition.md
+Read: shared/references/common/yaml-ui-frame/01-basic-structure.md
+Read: shared/references/common/yaml-ui-frame/02-grid-definition.md
 # ... 필요한 섹션만 추가 로딩
 ```

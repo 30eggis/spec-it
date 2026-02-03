@@ -222,7 +222,7 @@ const [{{state}}, set{{State}}] = useState<{{Type}}>({{initial}});
 
 ## Design Tokens
 
-**Reference:** `shared/design-tokens.yaml`
+**Reference:** `shared/references/common/design-tokens.yaml`
 
 ```yaml
 # Key tokens for this task

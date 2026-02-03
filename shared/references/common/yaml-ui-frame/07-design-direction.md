@@ -111,7 +111,7 @@ designDirection:
 
 ```yaml
 styles:
-  _ref: "../../shared/design-tokens.yaml"
+  _ref: "../design-tokens.yaml"
 
   overrides:
     card: "shadow-lg rounded-xl"

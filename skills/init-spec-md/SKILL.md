@@ -14,7 +14,7 @@ Generate `SPEC-IT-{HASH}.md` metadata files for existing UI code to enable **pro
 
 ## CRITICAL: Context Management Rules
 
-**반드시 [shared/context-rules.md](../shared/context-rules.md) 규칙을 준수하세요.**
+**반드시 [shared/references/common/context-rules.md](../../shared/references/common/context-rules.md) 규칙을 준수하세요.**
 
 ### 핵심 규칙
 

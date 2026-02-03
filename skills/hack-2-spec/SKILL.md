@@ -17,29 +17,29 @@ Analyze services/projects and generate spec-it compatible documentation.
 
 | When you need to... | Read this |
 |---------------------|-----------|
-| **Output quality standards** | `skills/shared/rules/06-output-quality.md` |
-| **Template index** | `skills/shared/templates/_INDEX.md` |
+| **Output quality standards** | `shared/references/common/rules/06-output-quality.md` |
+| **Template index** | `shared/templates/common/_INDEX.md` |
 | Understand output folder structure | `docs/01-output-structure.md` |
 | Use `--designContext` parameter | `docs/00-design-context.md` |
-| Parse token formats (Figma/Style Dictionary) | `skills/shared/design-token-parser.md` |
-| Apply Tailwind layout analysis rules | `skills/shared/rules/05-vercel-skills.md` |
+| Parse token formats (Figma/Style Dictionary) | `shared/references/common/design-token-parser.md` |
+| Apply Tailwind layout analysis rules | `shared/references/common/rules/05-vercel-skills.md` |
 
 ### Output Templates (MANDATORY)
 
 | Output File | Template |
 |------------|----------|
-| requirements.md | `skills/shared/templates/00-REQUIREMENTS_TEMPLATE.md` |
-| chapter-plan-final.md | `skills/shared/templates/01-CHAPTER_PLAN_TEMPLATE.md` |
-| screen-list.md | `skills/shared/templates/02-SCREEN_LIST_TEMPLATE.md` |
-| domain-map.md | `skills/shared/templates/02-DOMAIN_MAP_TEMPLATE.md` |
-| {screen-id}.yaml | `skills/shared/templates/02-WIREFRAME_YAML_TEMPLATE.yaml` |
-| component-inventory.md | `skills/shared/templates/03-COMPONENT_INVENTORY_TEMPLATE.md` |
-| review-summary.md | `skills/shared/templates/04-REVIEW_SUMMARY_TEMPLATE.md` |
-| test-specifications.md | `skills/shared/templates/05-TEST_SPECIFICATIONS_TEMPLATE.md` |
-| final-spec.md | `skills/shared/templates/06-FINAL_SPEC_TEMPLATE.md` |
-| dev-tasks.md | `skills/shared/templates/06-DEV_TASKS_TEMPLATE.md` |
-| SPEC-SUMMARY.md | `skills/shared/templates/06-SPEC_SUMMARY_TEMPLATE.md` |
-| PHASE-*.md | `skills/shared/templates/PHASE_TEMPLATE.md` |
+| requirements.md | `shared/templates/common/00-REQUIREMENTS_TEMPLATE.md` |
+| chapter-plan-final.md | `shared/templates/common/01-CHAPTER_PLAN_TEMPLATE.md` |
+| screen-list.md | `shared/templates/common/02-SCREEN_LIST_TEMPLATE.md` |
+| domain-map.md | `shared/templates/common/02-DOMAIN_MAP_TEMPLATE.md` |
+| {screen-id}.yaml | `shared/templates/common/02-WIREFRAME_YAML_TEMPLATE.yaml` |
+| component-inventory.md | `shared/templates/common/03-COMPONENT_INVENTORY_TEMPLATE.md` |
+| review-summary.md | `shared/templates/common/04-REVIEW_SUMMARY_TEMPLATE.md` |
+| test-specifications.md | `shared/templates/common/05-TEST_SPECIFICATIONS_TEMPLATE.md` |
+| final-spec.md | `shared/templates/common/06-FINAL_SPEC_TEMPLATE.md` |
+| dev-tasks.md | `shared/templates/common/06-DEV_TASKS_TEMPLATE.md` |
+| SPEC-SUMMARY.md | `shared/templates/common/06-SPEC_SUMMARY_TEMPLATE.md` |
+| PHASE-*.md | `shared/templates/common/PHASE_TEMPLATE.md` |
 
 ## Workflow
 
@@ -63,7 +63,7 @@ fi
 - Same-row elements stay in same grid area row
 - Map responsive prefixes (`lg:`, `md:`, `sm:`) separately
 
-> **If layout analysis produces incorrect grid structure:** Read `skills/shared/rules/05-vercel-skills.md`
+> **If layout analysis produces incorrect grid structure:** Read `shared/references/common/rules/05-vercel-skills.md`
 
 ---
 
@@ -103,7 +103,7 @@ Which language for output documents?
 
 ## Step 3: Generate spec-it Output
 
-**CRITICAL:** Use templates from `skills/shared/templates/` to ensure consistent output quality.
+**CRITICAL:** Use templates from `shared/templates/common/` to ensure consistent output quality.
 
 Output structure **must match spec-it exactly**.
 

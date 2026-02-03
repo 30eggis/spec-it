@@ -36,7 +36,7 @@ if [ ! -f "docs/refs/agent-skills/README.md" ]; then
 fi
 ```
 
-**Reference:** `skills/shared/rules/05-vercel-skills.md` for Tailwind layout mapping.
+**Reference:** `shared/references/common/rules/05-vercel-skills.md` for Tailwind layout mapping.
 
 ---
 

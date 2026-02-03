@@ -66,7 +66,7 @@ When outputting YAML specs:
 2. **Reference Design Tokens**: Use `_ref` for shared tokens
    ```yaml
    styles:
-     _ref: "../../shared/design-tokens.yaml"
+     _ref: "./design-tokens.yaml"
      overrides:
        card: "custom-class"
    ```
@@ -100,7 +100,7 @@ All YAML specs should reference the shared design tokens:
 ```yaml
 # Reference in spec files
 styles:
-  _ref: "../../shared/design-tokens.yaml"
+  _ref: "./design-tokens.yaml"
 
 # Available tokens:
 # - colors.light.*, colors.dark.*

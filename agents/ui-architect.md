@@ -11,10 +11,10 @@ templates:
   - skills/spec-it-stepbystep/assets/templates/SCREEN_LIST_TEMPLATE.md
   - skills/spec-it-stepbystep/assets/templates/SCREEN_SPEC_TEMPLATE.yaml
 references:
-  - skills/shared/references/yaml-ui-frame/README.md
-  - skills/shared/references/yaml-ui-frame/01-basic-structure.md
-  - skills/shared/references/yaml-ui-frame/02-grid-definition.md
-  - skills/shared/references/yaml-ui-frame/03-components.md
+  - shared/references/common/yaml-ui-frame/README.md
+  - shared/references/common/yaml-ui-frame/01-basic-structure.md
+  - shared/references/common/yaml-ui-frame/02-grid-definition.md
+  - shared/references/common/yaml-ui-frame/03-components.md
   - docs/refs/agent-skills/skills/composition-patterns/README.md
   - docs/refs/agent-skills/skills/react-best-practices/rules/rendering-hydration-no-flicker.md
 ---
@@ -96,8 +96,8 @@ Auto-detect and apply framework idioms:
 
 **⚠️ 와이어프레임 생성 전 반드시 Layout 먼저 정의**
 
-**Reference:** `skills/shared/references/yaml-ui-frame/01-basic-structure.md`
-**Reference:** `skills/shared/references/yaml-ui-frame/02-grid-definition.md`
+**Reference:** `shared/references/common/yaml-ui-frame/01-basic-structure.md`
+**Reference:** `shared/references/common/yaml-ui-frame/02-grid-definition.md`
 
 #### 4.1 Layout Types 정의 (layout-system.yaml)
 
@@ -115,8 +115,8 @@ Auto-detect and apply framework idioms:
 
 **⚠️ YAML 구조적 형식으로 생성 - ASCII art 사용 금지**
 
-**Reference:** `skills/shared/references/yaml-ui-frame/03-components.md`
-**Reference:** `skills/shared/references/yaml-ui-frame/09-complete-example.md`
+**Reference:** `shared/references/common/yaml-ui-frame/03-components.md`
+**Reference:** `shared/references/common/yaml-ui-frame/09-complete-example.md`
 
 ```
 입력: layout-system.yaml + 02-wireframes/<domain>/<user-type>/screen-list.md + 02-wireframes/<domain>/shared.md
@@ -181,7 +181,7 @@ user_type: buyer
 
 ## Wireframe Output (YAML)
 
-**Reference:** `skills/shared/references/yaml-ui-frame/09-complete-example.md`
+**Reference:** `shared/references/common/yaml-ui-frame/09-complete-example.md`
 
 출력 형식: YAML (구조적, 파싱 가능)
 
@@ -242,8 +242,8 @@ responsive:
 
 점진적 로딩으로 필요한 레퍼런스만 읽기:
 ```
-Read: skills/shared/references/yaml-ui-frame/01-basic-structure.md  # 항상
-Read: skills/shared/references/yaml-ui-frame/02-grid-definition.md  # 레이아웃 시
-Read: skills/shared/references/yaml-ui-frame/03-components.md       # 컴포넌트 시
-Read: skills/shared/references/yaml-ui-frame/07-design-direction.md # 디자인 적용 시
+Read: shared/references/common/yaml-ui-frame/01-basic-structure.md  # 항상
+Read: shared/references/common/yaml-ui-frame/02-grid-definition.md  # 레이아웃 시
+Read: shared/references/common/yaml-ui-frame/03-components.md       # 컴포넌트 시
+Read: shared/references/common/yaml-ui-frame/07-design-direction.md # 디자인 적용 시
 ```
