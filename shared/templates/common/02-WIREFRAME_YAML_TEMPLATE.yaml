@@ -17,30 +17,38 @@ layout:
   references: "Uses {{layout_reference}} from layout-system.yaml"
 
 # Grid Definition (CSS Grid syntax)
+# IMPORTANT: Preserve original grid structure. Do NOT convert to 12-column.
 grid:
   desktop:
     display: "grid"
     areas: |
       {{desktop_grid_areas}}
-    columns: "{{desktop_columns}}"
+    columns: {{desktop_columns}}          # Number (e.g., 3) or string (e.g., "240px 1fr")
+    ratio: "{{desktop_ratio}}"            # e.g., "1:1", "1:1:1", "1:2" - MUST match columns
     rows: "{{desktop_rows}}"
     gap: {{desktop_gap}}
     max_width: {{max_width}}
     margin: "0 auto"
+    source: "{{desktop_tailwind_class}}"  # e.g., "lg:grid-cols-3"
 
   tablet:
     areas: |
       {{tablet_grid_areas}}
-    columns: "{{tablet_columns}}"
+    columns: {{tablet_columns}}
+    ratio: "{{tablet_ratio}}"
     gap: {{tablet_gap}}
+    source: "{{tablet_tailwind_class}}"
 
   mobile:
     areas: |
       {{mobile_grid_areas}}
-    columns: "{{mobile_columns}}"
+    columns: {{mobile_columns}}
+    ratio: "{{mobile_ratio}}"
     gap: {{mobile_gap}}
+    source: "{{mobile_tailwind_class}}"
 
 # Components by Zone
+# IMPORTANT: Extract layout properties accurately from original CSS
 sections:
   # Page Header
   - id: "page_header"
@@ -52,26 +60,33 @@ sections:
       subtitle: "{{subtitle}}"
     layout:
       display: "flex"
-      justify_content: "space-between"
-      align_items: "center"
+      direction: "row"              # flex-row (default) or flex-col
+      justify: "between"            # justify-between → "between", justify-end → "end"
+      align: "center"               # items-center → "center"
+      gap: 0
       padding_bottom: 24
       border_bottom: "1px solid"
       border_color: "_ref:colors.border"
+      source: "{{header_tailwind_classes}}"  # Original Tailwind classes
     testId: "{{test_id_prefix}}-header"
 
   # Filter Bar (if applicable)
+  # NOTE: If original uses display:block, use direction:"column" for vertical stacking
   - id: "filters"
     zone: "filters"
     component: "FilterBar"
     layout:
-      display: "flex"
+      display: "{{filter_display}}"   # "block" or "flex" - extract from original
+      direction: "{{filter_direction}}" # "column" if block/flex-col, "row" if flex-row
+      justify: "{{filter_justify}}"   # "start", "end", "between", etc.
+      align: "{{filter_align}}"       # "start", "center", "end"
       gap: 12
       flex_wrap: "wrap"
-      align_items: "center"
       padding: 16
       background: "_ref:colors.surface"
       border_radius: "_ref:radius.lg"
       box_shadow: "_ref:shadows.sm"
+      source: "{{filter_tailwind_classes}}"
     children:
       # Period Filter
       - id: "{{filter_id_1}}"

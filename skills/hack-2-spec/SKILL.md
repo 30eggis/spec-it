@@ -45,6 +45,7 @@ Analyze services/projects and generate spec-it compatible documentation.
 | When you need to... | Read this |
 |---------------------|-----------|
 | **Output quality standards** | `shared/references/common/rules/06-output-quality.md` |
+| **Layout extraction rules** | `shared/references/common/rules/07-layout-extraction-rules.md` |
 | **Template index** | `shared/templates/common/_INDEX.md` |
 | Parse token formats | `shared/references/common/design-token-parser.md` |
 | Tailwind layout rules | `shared/references/common/rules/05-vercel-skills.md` |
@@ -164,10 +165,28 @@ IF design context provided:
   4. Store token references for wireframe generation
 ```
 
-**Layout Rules:**
-- `grid-cols-3` → 3 columns, NOT 2
-- Same-row elements stay in same grid area row
-- Map responsive prefixes (`lg:`, `md:`, `sm:`) separately
+**Layout Rules (CRITICAL - Read `shared/references/common/rules/07-layout-extraction-rules.md`):**
+
+1. **Grid Columns 보존** - 12-column으로 변환 금지
+   - `grid-cols-2` → `columns: 2, ratio: "1:1"` (균등)
+   - `grid-cols-3` → `columns: 3, ratio: "1:1:1"` (균등)
+   - `lg:grid-cols-2` → `desktop: { columns: 2 }`
+
+2. **Flex 정렬 필수 추출**
+   - `justify-end` → `justify: "end"` (요소들이 오른쪽)
+   - `justify-between` → `justify: "between"` (양쪽 분산)
+   - `items-center` → `align: "center"`
+
+3. **Flex 방향 명시**
+   - `flex-col` → `direction: "column"`
+   - `display: block` → `direction: "column"` (암시적 수직 배치)
+
+4. **반응형 Breakpoint 분리**
+   - `lg:grid-cols-3 md:grid-cols-2` → 각각 desktop/tablet 분리 저장
+
+5. **Col-span 비율 계산**
+   - `col-span-4` + `col-span-8` in `grid-cols-12` → `ratio: "1:2"`
+   - `col-span-6` + `col-span-6` → `ratio: "1:1"`
 
 ---
 
