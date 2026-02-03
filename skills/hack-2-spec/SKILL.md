@@ -1,7 +1,7 @@
 ---
 name: hack-2-spec
 description: |
-  Analyze services/projects and generate Spec, PHASE, and TASKS documents.
+  Analyze services/projects and generate Spec documents.
   Supports website URLs, local codebases, and mobile apps.
   Output format compatible with spec-it.
 argument-hint: "[--source <path|url>] [--output <dir>] [--designContext <path>]"
@@ -13,70 +13,49 @@ permissionMode: bypassPermissions
 
 Analyze services/projects and generate spec-it compatible documentation.
 
-## Reference Documents (load only when needed)
+## Output Structure (MANDATORY)
+
+**Output folder:** `{output}/hack-2-spec/`
+
+```
+{output}/hack-2-spec/
+├── requirements/
+│   └── requirements.md              # 요구사항 정의서
+├── chapters/
+│   └── chapter-plan.md              # 챕터 계획
+├── wireframes/
+│   ├── layouts/layout-system.yaml   # 레이아웃 시스템
+│   ├── domain-map.md                # 도메인 → 사용자 유형 매핑
+│   ├── screen-list.md               # 전체 화면 목록 (점진적 로딩용)
+│   └── <user-type>/<domain>/
+│       └── wireframes/
+│           └── {screen-id}.yaml     # 개별 화면 와이어프레임
+├── persona/
+│   └── personas.md                  # 사용자 페르소나 정의
+└── components/
+    ├── inventory.md                 # 컴포넌트 인벤토리
+    └── specs/
+        └── {ComponentName}.yaml     # 개별 컴포넌트 스펙
+```
+
+---
+
+## Reference Documents
 
 | When you need to... | Read this |
 |---------------------|-----------|
 | **Output quality standards** | `shared/references/common/rules/06-output-quality.md` |
 | **Template index** | `shared/templates/common/_INDEX.md` |
-| Understand output folder structure | `docs/01-output-structure.md` |
-| Use `--designContext` parameter | `docs/00-design-context.md` |
-| Parse token formats (Figma/Style Dictionary) | `shared/references/common/design-token-parser.md` |
-| Apply Tailwind layout analysis rules | `shared/references/common/rules/05-vercel-skills.md` |
+| Parse token formats | `shared/references/common/design-token-parser.md` |
+| Tailwind layout rules | `shared/references/common/rules/05-vercel-skills.md` |
 
-### Output Templates (MANDATORY)
-
-| Output File | Template |
-|------------|----------|
-| requirements.md | `shared/templates/common/00-REQUIREMENTS_TEMPLATE.md` |
-| chapter-plan-final.md | `shared/templates/common/01-CHAPTER_PLAN_TEMPLATE.md` |
-| screen-list.md | `shared/templates/common/02-SCREEN_LIST_TEMPLATE.md` |
-| domain-map.md | `shared/templates/common/02-DOMAIN_MAP_TEMPLATE.md` |
-| {screen-id}.yaml | `shared/templates/common/02-WIREFRAME_YAML_TEMPLATE.yaml` |
-| component-inventory.md | `shared/templates/common/03-COMPONENT_INVENTORY_TEMPLATE.md` |
-| review-summary.md | `shared/templates/common/04-REVIEW_SUMMARY_TEMPLATE.md` |
-| test-specifications.md | `shared/templates/common/05-TEST_SPECIFICATIONS_TEMPLATE.md` |
-| final-spec.md | `shared/templates/common/06-FINAL_SPEC_TEMPLATE.md` |
-| dev-tasks.md | `shared/templates/common/06-DEV_TASKS_TEMPLATE.md` |
-| SPEC-SUMMARY.md | `shared/templates/common/06-SPEC_SUMMARY_TEMPLATE.md` |
-| PHASE-*.md | `shared/templates/common/PHASE_TEMPLATE.md` |
+---
 
 ## Workflow
 
 ```
-[Step 0: Init] → [Step 1: Identify Source] → [Step 2: Language] → [Step 3: Write Spec] → [Step 4: PHASE] → [Step 5: TASKS]
+[Step 1: Source] → [Step 2: Language] → [Step 3: Analyze] → [Step 4-8: Generate] → [Step 9: Verify]
 ```
-
----
-
-## Step 0: Initialize Dependencies
-
-```bash
-# Vercel skills submodule
-if [ ! -f "docs/refs/agent-skills/README.md" ]; then
-  git submodule update --init --recursive docs/refs/agent-skills
-fi
-```
-
-**Layout Rules (MUST FOLLOW):**
-- `grid-cols-3` → 3 columns, NOT 2
-- Same-row elements stay in same grid area row
-- Map responsive prefixes (`lg:`, `md:`, `sm:`) separately
-
-> **If layout analysis produces incorrect grid structure:** Read `shared/references/common/rules/05-vercel-skills.md`
-
----
-
-## Step 0.5: Load Design Context (Optional)
-
-If `--designContext` provided, load design tokens for wireframe generation.
-
-**Key Points:**
-- Supports any token format (Tokens Studio, Style Dictionary, DTCG)
-- Token refs use full paths: `_ref:color.semantic.bg.brand.primary`
-- Auto-matches CSS values to nearest token
-
-> **If token format is unrecognized or matching fails:** Read `docs/00-design-context.md`
 
 ---
 
@@ -84,9 +63,9 @@ If `--designContext` provided, load design tokens for wireframe generation.
 
 | Source Type | Requirements | Proceed When |
 |-------------|--------------|--------------|
-| **Website** | URL, Chrome Extension data | Data collected |
-| **Code** | Project path | Build succeeds |
-| **Mobile App** | Screenshots, description | Info gathered |
+| **Website** | URL, Chrome MCP | a11y tree collected |
+| **Code** | Project path | Files readable |
+| **Mobile App** | Screenshots | Images analyzed |
 
 ---
 
@@ -101,101 +80,289 @@ Which language for output documents?
 
 ---
 
-## Step 3: Generate spec-it Output
+## Step 3: Analyze Source
 
-**CRITICAL:** Use templates from `shared/templates/common/` to ensure consistent output quality.
-
-Output structure **must match spec-it exactly**.
-
-### Output Structure
+### 3.1 For Website/HTML Mockups (Chrome MCP)
 
 ```
-{output-folder}/
-├── 00-requirements/
-│   └── requirements.md          # Template: 00-REQUIREMENTS_TEMPLATE.md
-├── 01-chapters/
-│   ├── chapter-plan-final.md    # Template: 01-CHAPTER_PLAN_TEMPLATE.md
-│   ├── critique-round1-*.md
-│   └── critique-synthesis.md
-├── 02-wireframes/
-│   ├── layouts/layout-system.yaml
-│   ├── domain-map.md            # Template: 02-DOMAIN_MAP_TEMPLATE.md
-│   ├── screen-list.md           # Template: 02-SCREEN_LIST_TEMPLATE.md
-│   └── <user-type>/<domain>/
-│       ├── screen-list.md
-│       └── wireframes/{screen-id}.yaml  # Template: 02-WIREFRAME_YAML_TEMPLATE.yaml
-├── 03-components/
-│   ├── inventory.md
-│   ├── component-inventory.md   # Template: 03-COMPONENT_INVENTORY_TEMPLATE.md
-│   └── specs/{ComponentName}.yaml
-├── 04-review/
-│   ├── review-summary.md        # Template: 04-REVIEW_SUMMARY_TEMPLATE.md
-│   ├── scenarios/critical-path.md
-│   └── exceptions/
-├── 05-tests/
-│   ├── test-specifications.md   # Template: 05-TEST_SPECIFICATIONS_TEMPLATE.md
-│   └── coverage-map.md
-├── 06-final/
-│   ├── final-spec.md            # Template: 06-FINAL_SPEC_TEMPLATE.md
-│   ├── dev-tasks.md             # Template: 06-DEV_TASKS_TEMPLATE.md
-│   └── SPEC-SUMMARY.md          # Template: 06-SPEC_SUMMARY_TEMPLATE.md
-├── phases/
-│   └── PHASE-*.md               # Template: PHASE_TEMPLATE.md
-└── tasks/
-    └── TASKS-PHASE-*.md         # Template: 06-DEV_TASKS_TEMPLATE.md
+FOR each HTML file:
+  1. navigate_page(url)
+  2. take_snapshot() → collect a11y tree
+  3. Extract:
+     - Screen title, route
+     - Layout structure (sidebar, header, main)
+     - All components (buttons, inputs, tables, cards, charts)
+     - Interactions (clicks, filters, forms)
+     - Status indicators (badges, tags, progress)
+  4. Save analysis to JSON
 ```
 
-### Wireframe Token Usage (if designContext enabled)
+### 3.2 For Codebase
+
+```
+1. Glob for pages/routes
+2. Read component files
+3. Extract props, states, events
+4. Map dependencies
+```
+
+**Layout Rules:**
+- `grid-cols-3` → 3 columns, NOT 2
+- Same-row elements stay in same grid area row
+- Map responsive prefixes (`lg:`, `md:`, `sm:`) separately
+
+---
+
+## Step 4: Generate requirements/
+
+**File:** `requirements/requirements.md`
+**Template:** `shared/templates/common/00-REQUIREMENTS_TEMPLATE.md`
+
+**Must Include:**
+- [ ] Project overview, vision, objectives
+- [ ] User types and roles
+- [ ] User stories by role (ID format: US-{ROLE}-###)
+- [ ] Functional requirements by domain (ID format: REQ-{DOMAIN}-###)
+- [ ] Non-functional requirements
+- [ ] MVP scope (P0/P1/P2)
+
+---
+
+## Step 5: Generate persona/
+
+**File:** `persona/personas.md`
+**Template:** `shared/templates/common/01-PERSONA_TEMPLATE.md`
+
+**Must Include:**
+- [ ] User type definitions (Role, Local Term, Description)
+- [ ] Access levels per user type
+- [ ] Key tasks per user type
+- [ ] User type comparison matrix
+
+---
+
+## Step 6: Generate chapters/
+
+**File:** `chapters/chapter-plan.md`
+**Template:** `shared/templates/common/01-CHAPTER_PLAN_TEMPLATE.md`
+
+**Must Include:**
+- [ ] Chapter overview table
+- [ ] Each chapter: scope, deliverables, dependencies
+- [ ] Implementation order diagram
+- [ ] Risk assessment
+
+---
+
+## Step 7: Generate wireframes/
+
+### 7.1 Layout System
+
+**File:** `wireframes/layouts/layout-system.yaml`
+**Template:** `shared/templates/common/02-LAYOUT_SYSTEM_TEMPLATE.yaml`
+
+### 7.2 Domain Map
+
+**File:** `wireframes/domain-map.md`
+**Template:** `shared/templates/common/02-DOMAIN_MAP_TEMPLATE.md`
+
+**Must Include:**
+- [ ] Domain list with screen counts
+- [ ] User type definitions
+- [ ] Domain details with screens
+- [ ] User type → screen mapping
+- [ ] Navigation flows
+- [ ] URL routing structure
+
+### 7.3 Screen List (전체 화면 목록)
+
+**File:** `wireframes/screen-list.md`
+**Template:** `shared/templates/common/02-SCREEN_LIST_TEMPLATE.md`
+
+**Must Include:**
+- [ ] All screens by user type
+- [ ] Screen ID, name, route, description
+- [ ] Key components per screen
+- [ ] Common components section
+- [ ] Screen flow diagram
+
+### 7.4 Individual Screen Wireframes (CRITICAL)
+
+**Location:** `wireframes/<user-type>/<domain>/wireframes/{screen-id}.yaml`
+**Template:** `shared/templates/common/02-WIREFRAME_YAML_TEMPLATE.yaml`
+
+**MUST generate one YAML file for EACH screen.**
 
 ```yaml
+# Example: wireframes/hr-admin/dashboard/wireframes/SCR-HR-001.yaml
+id: "SCR-HR-001"
+name: "HR Dashboard"
+route: "/dashboard"
+type: "page"
+priority: "P0"
+accessLevel: "hr-admin"
+
 layout:
-  background: "_ref:color.semantic.bg.brand.primary"
-  padding: "_ref:spacing.24"
-  border_radius: "_ref:radius.m"
+  type: "dashboard-with-sidebar"
+  # ... layout details
+
+grid:
+  desktop:
+    columns: "..."
+    areas: |
+      "..."
+
+components:
+  - id: "stat-cards"
+    type: "StatCardGrid"
+    # ... component details
+
+interactions:
+  # ... interaction details
+
+states:
+  # ... state definitions
 ```
 
-> **For output structure details:** Read `docs/01-output-structure.md`
+**Use Task agents for parallel generation:**
+```
+Task(subagent_type="general-purpose", prompt="Generate wireframe YAML for SCR-HR-001...")
+Task(subagent_type="general-purpose", prompt="Generate wireframe YAML for SCR-HR-002...")
+# ... parallel execution
+```
 
 ---
 
-## Step 4: Generate final-spec.md
+## Step 8: Generate components/
 
-Consolidate all requirements into `06-final/final-spec.md`:
+### 8.1 Component Inventory
 
-- Requirements in REQ-### format
-- Screen specifications
-- Component specifications
-- Critical user paths
+**File:** `components/inventory.md`
+**Template:** `shared/templates/common/03-COMPONENT_INVENTORY_TEMPLATE.md`
+
+**Must Include:**
+- [ ] Components by category (Layout, Data Display, Input, Action, Feedback, Widget)
+- [ ] Component ID, name, description, used-in
+- [ ] Shared component library structure
+
+### 8.2 Individual Component Specs (CRITICAL)
+
+**Location:** `components/specs/{ComponentName}.yaml`
+**Template:** `shared/templates/common/02-COMPONENTS_YAML_TEMPLATE.yaml`
+
+**MUST generate one YAML file for EACH significant component.**
+
+Significant components (generate specs for these):
+- Layout: AppShell, Sidebar, Header
+- Data Display: StatCard, DataTable, StatusBadge, ProgressBar, Charts
+- Input: FilterBar, DateRangePicker, Select, Toggle
+- Feedback: Toast, Modal, Alert
+- Widget: TimeClock, WeeklySummary, LeaveBalance, etc.
+
+```yaml
+# Example: components/specs/DataTable.yaml
+id: "CMP-DATA-002"
+name: "DataTable"
+category: "data-display"
+description: "데이터 테이블 (정렬, 선택, 페이지네이션)"
+
+props:
+  - name: "columns"
+    type: "Column[]"
+    required: true
+    description: "테이블 컬럼 정의"
+  - name: "data"
+    type: "any[]"
+    required: true
+  # ...
+
+variants:
+  - name: "default"
+    description: "기본 테이블"
+  - name: "selectable"
+    description: "행 선택 가능"
+
+states:
+  - name: "loading"
+    description: "데이터 로딩 중"
+  - name: "empty"
+    description: "데이터 없음"
+  - name: "error"
+    description: "에러 상태"
+
+styles:
+  container: "overflow-x-auto"
+  header: "bg-slate-50 sticky top-0"
+  # ...
+```
 
 ---
 
-## Step 5: Generate dev-tasks.md
+## Step 9: Verify Output (MANDATORY)
 
-Create `06-final/dev-tasks.md` with development tasks:
+Before completing, verify ALL required files exist:
 
-- Task identifier: TASK-{Domain}.{Seq}
-- Reference to screen/component spec
-- Dependencies and priorities
-- Acceptance criteria
+```
+CHECK: {output}/hack-2-spec/
+├── requirements/
+│   └── requirements.md              ✓ (must exist, 200+ lines)
+├── chapters/
+│   └── chapter-plan.md              ✓ (must exist)
+├── wireframes/
+│   ├── layouts/layout-system.yaml   ✓ (must exist)
+│   ├── domain-map.md                ✓ (must exist)
+│   ├── screen-list.md               ✓ (must exist)
+│   └── <user-type>/<domain>/wireframes/
+│       └── {screen-id}.yaml         ✓ (one per screen!)
+├── persona/
+│   └── personas.md                  ✓ (must exist)
+└── components/
+    ├── inventory.md                 ✓ (must exist)
+    └── specs/
+        └── {ComponentName}.yaml     ✓ (one per significant component!)
+```
+
+**Verification Command:**
+```bash
+find {output}/hack-2-spec -type f \( -name "*.md" -o -name "*.yaml" \) | wc -l
+# Expected: At least (1 + 1 + 3 + N_screens + 1 + 1 + M_components) files
+```
 
 ---
 
-## Integration with spec-it-mock
+## Output Checklist
 
-```
-Skill(hack-2-spec, {
-  --source: "/path/to/target",
-  --output: ".spec-it/{sessionId}/plan/tmp",
-  --designContext: ".spec-it/{sessionId}/plan/design-context.yaml"
-})
-```
-
-**Result:** Wireframes with design token references for identical visual output.
+| Category | File | Required |
+|----------|------|----------|
+| Requirements | `requirements/requirements.md` | ✓ MUST |
+| Chapters | `chapters/chapter-plan.md` | ✓ MUST |
+| Wireframes | `wireframes/layouts/layout-system.yaml` | ✓ MUST |
+| Wireframes | `wireframes/domain-map.md` | ✓ MUST |
+| Wireframes | `wireframes/screen-list.md` | ✓ MUST |
+| Wireframes | `wireframes/<user-type>/<domain>/wireframes/*.yaml` | ✓ MUST (1 per screen) |
+| Persona | `persona/personas.md` | ✓ MUST |
+| Components | `components/inventory.md` | ✓ MUST |
+| Components | `components/specs/*.yaml` | ✓ MUST (1 per component) |
 
 ---
 
-## Integration with spec-mirror
+## Final Response Format
 
 ```
-Skill(hack-2-spec --source codebase --output docs/_mirror/)
+Done. Generated hack-2-spec output:
+
+📁 {output}/hack-2-spec/
+├── requirements/requirements.md (XXX lines)
+├── chapters/chapter-plan.md (XXX lines)
+├── wireframes/
+│   ├── layouts/layout-system.yaml (XXX lines)
+│   ├── domain-map.md (XXX lines)
+│   ├── screen-list.md (XXX lines)
+│   └── [N] screen wireframes generated
+├── persona/personas.md (XXX lines)
+└── components/
+    ├── inventory.md (XXX lines)
+    └── [M] component specs generated
+
+Total: XX files, XXXX lines
 ```
