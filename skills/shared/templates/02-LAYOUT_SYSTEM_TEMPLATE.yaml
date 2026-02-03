@@ -1,0 +1,179 @@
+# {{system_name}} Layout System
+# Version: {{version}}
+# Date: {{date}}
+
+meta:
+  name: "{{system_name}} Layout System"
+  version: "{{version}}"
+  description: "{{description}}"
+  design_direction:
+    purpose: "{{design_purpose}}"
+    aesthetic: "{{design_aesthetic}}"
+    tone: "{{design_tone}}"
+    differentiator: "{{design_differentiator}}"
+
+# Design Tokens
+design_tokens:
+  colors:
+    primary: "{{color_primary}}"
+    primary_hover: "{{color_primary_hover}}"
+    primary_light: "{{color_primary_light}}"
+
+    success: "{{color_success}}"
+    warning: "{{color_warning}}"
+    danger: "{{color_danger}}"
+    info: "{{color_info}}"
+
+    neutral_50: "{{color_neutral_50}}"
+    neutral_100: "{{color_neutral_100}}"
+    neutral_200: "{{color_neutral_200}}"
+    neutral_300: "{{color_neutral_300}}"
+    neutral_500: "{{color_neutral_500}}"
+    neutral_700: "{{color_neutral_700}}"
+    neutral_900: "{{color_neutral_900}}"
+
+    surface: "{{color_surface}}"
+    surface_hover: "{{color_surface_hover}}"
+    border: "{{color_border}}"
+
+  spacing:
+    xs: {{spacing_xs}}
+    sm: {{spacing_sm}}
+    md: {{spacing_md}}
+    lg: {{spacing_lg}}
+    xl: {{spacing_xl}}
+    xxl: {{spacing_xxl}}
+
+  typography:
+    font_family_base: "{{font_family_base}}"
+    font_family_mono: "{{font_family_mono}}"
+
+    font_size_xs: {{font_size_xs}}
+    font_size_sm: {{font_size_sm}}
+    font_size_base: {{font_size_base}}
+    font_size_lg: {{font_size_lg}}
+    font_size_xl: {{font_size_xl}}
+    font_size_2xl: {{font_size_2xl}}
+    font_size_3xl: {{font_size_3xl}}
+
+    font_weight_normal: {{font_weight_normal}}
+    font_weight_medium: {{font_weight_medium}}
+    font_weight_semibold: {{font_weight_semibold}}
+    font_weight_bold: {{font_weight_bold}}
+
+  shadows:
+    sm: "{{shadow_sm}}"
+    md: "{{shadow_md}}"
+    lg: "{{shadow_lg}}"
+
+  radius:
+    sm: {{radius_sm}}
+    md: {{radius_md}}
+    lg: {{radius_lg}}
+    full: {{radius_full}}
+
+  transitions:
+    fast: "{{transition_fast}}"
+    normal: "{{transition_normal}}"
+    slow: "{{transition_slow}}"
+
+# Breakpoints (mobile-first)
+breakpoints:
+  mobile: {{breakpoint_mobile}}
+  tablet: {{breakpoint_tablet}}
+  desktop: {{breakpoint_desktop}}
+  wide: {{breakpoint_wide}}
+
+# Layout Definitions
+layouts:
+  main:
+    id: "main-layout"
+    name: "{{main_layout_name}}"
+    description: "{{main_layout_description}}"
+
+    grid:
+      desktop:
+        display: "grid"
+        areas: |
+          "{{grid_areas_desktop}}"
+        columns: "{{grid_columns_desktop}}"
+        rows: "{{grid_rows_desktop}}"
+        gap: {{grid_gap}}
+        min_height: "100vh"
+
+      tablet:
+        display: "grid"
+        areas: |
+          "{{grid_areas_tablet}}"
+        columns: "{{grid_columns_tablet}}"
+        rows: "{{grid_rows_tablet}}"
+
+      mobile:
+        display: "flex"
+        flex_direction: "column"
+
+    zones:
+      sidebar:
+        desktop:
+          width: {{sidebar_width}}
+          position: "fixed"
+          top: 0
+          left: 0
+          height: "100vh"
+          background: "_ref:colors.surface"
+          border_right: "1px solid"
+          border_color: "_ref:colors.border"
+
+      header:
+        desktop:
+          height: {{header_height}}
+          position: "sticky"
+          top: 0
+          background: "_ref:colors.surface"
+          border_bottom: "1px solid"
+          border_color: "_ref:colors.border"
+
+      content:
+        desktop:
+          padding: {{content_padding}}
+          background: "_ref:colors.neutral_50"
+          overflow_y: "auto"
+
+# Component Layout Constraints
+component_constraints:
+  stat_card:
+    min_width: {{stat_card_min_width}}
+    padding: {{stat_card_padding}}
+    border_radius: "_ref:radius.md"
+
+  data_table:
+    border_radius: "_ref:radius.lg"
+    min_width: {{data_table_min_width}}
+
+  modal:
+    sizes:
+      sm: {{modal_size_sm}}
+      md: {{modal_size_md}}
+      lg: {{modal_size_lg}}
+
+# Accessibility
+accessibility:
+  focus_visible:
+    outline: "2px solid"
+    outline_color: "_ref:colors.primary"
+    outline_offset: 2
+
+  skip_links:
+    enabled: true
+    targets:
+      - "#main-content"
+      - "#sidebar-nav"
+
+# Z-Index Scale
+z_index:
+  dropdown: 100
+  sticky: 200
+  modal_backdrop: 500
+  modal: 600
+  toast: 700
+  tooltip: 800

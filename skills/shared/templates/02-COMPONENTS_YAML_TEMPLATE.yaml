@@ -1,0 +1,197 @@
+# {{system_name}} Component Layouts
+# Version: {{version}}
+# Date: {{date}}
+# Reference: {{component_reference}}
+
+# Layout Components ({{layout_id_range}})
+components:
+{{#each layout_components}}
+  # {{id}}: {{name}}
+  {{key}}:
+    id: "{{id}}"
+    name: "{{name}}"
+    category: "{{category}}"
+    phase: "{{phase}}"
+{{#if references}}
+    references: "{{references}}"
+{{/if}}
+
+    layout:
+{{#each layout_props}}
+      {{key}}: {{value}}
+{{/each}}
+
+{{#if sections}}
+    sections:
+{{#each sections}}
+      {{key}}:
+{{#each props}}
+        {{key}}: {{value}}
+{{/each}}
+{{/each}}
+{{/if}}
+
+{{#if variants}}
+    variants:
+{{#each variants}}
+      {{key}}:
+{{#each props}}
+        {{key}}: {{value}}
+{{/each}}
+{{/each}}
+{{/if}}
+
+{{#if sizes}}
+    sizes:
+{{#each sizes}}
+      {{key}}:
+{{#each props}}
+        {{key}}: {{value}}
+{{/each}}
+{{/each}}
+{{/if}}
+
+{{#if responsive}}
+    responsive:
+{{#each responsive}}
+      {{breakpoint}}:
+{{#each props}}
+        {{key}}: {{value}}
+{{/each}}
+{{/each}}
+{{/if}}
+
+{{/each}}
+# Data Display Components ({{data_display_id_range}})
+
+{{#each data_display_components}}
+  # {{id}}: {{name}}
+  {{key}}:
+    id: "{{id}}"
+    name: "{{name}}"
+    category: "Data Display"
+    phase: "{{phase}}"
+
+    layout:
+{{#each layout_props}}
+      {{key}}: {{value}}
+{{/each}}
+
+{{#if variants}}
+    variants:
+{{#each variants}}
+      {{key}}:
+{{#each props}}
+        {{key}}: {{value}}
+{{/each}}
+{{/each}}
+{{/if}}
+
+{{/each}}
+# Input Components ({{input_id_range}})
+
+{{#each input_components}}
+  # {{id}}: {{name}}
+  {{key}}:
+    id: "{{id}}"
+    name: "{{name}}"
+    category: "Input"
+    phase: "{{phase}}"
+
+    layout:
+{{#each layout_props}}
+      {{key}}: {{value}}
+{{/each}}
+
+{{/each}}
+# Action Components ({{action_id_range}})
+
+{{#each action_components}}
+  # {{id}}: {{name}}
+  {{key}}:
+    id: "{{id}}"
+    name: "{{name}}"
+    category: "Action"
+    phase: "{{phase}}"
+
+    base:
+{{#each base_props}}
+      {{key}}: {{value}}
+{{/each}}
+
+{{#if sizes}}
+    sizes:
+{{#each sizes}}
+      {{key}}:
+{{#each props}}
+        {{key}}: {{value}}
+{{/each}}
+{{/each}}
+{{/if}}
+
+{{#if variants}}
+    variants:
+{{#each variants}}
+      {{key}}:
+{{#each props}}
+        {{key}}: {{value}}
+{{/each}}
+{{/each}}
+{{/if}}
+
+{{/each}}
+# Feedback Components ({{feedback_id_range}})
+
+{{#each feedback_components}}
+  # {{id}}: {{name}}
+  {{key}}:
+    id: "{{id}}"
+    name: "{{name}}"
+    category: "Feedback"
+    phase: "{{phase}}"
+{{#if references}}
+    references: "{{references}}"
+{{/if}}
+
+{{#each component_sections}}
+    {{key}}:
+{{#each props}}
+      {{key}}: {{value}}
+{{/each}}
+{{/each}}
+
+{{/each}}
+# Navigation Components ({{navigation_id_range}})
+
+{{#each navigation_components}}
+  # {{id}}: {{name}}
+  {{key}}:
+    id: "{{id}}"
+    name: "{{name}}"
+    category: "Navigation"
+    phase: "{{phase}}"
+
+    layout:
+{{#each layout_props}}
+      {{key}}: {{value}}
+{{/each}}
+
+{{/each}}
+# Notification Components ({{notification_id_range}})
+
+{{#each notification_components}}
+  # {{id}}: {{name}}
+  {{key}}:
+    id: "{{id}}"
+    name: "{{name}}"
+    category: "Notification"
+    phase: "{{phase}}"
+
+{{#each component_sections}}
+    {{key}}:
+{{#each props}}
+      {{key}}: {{value}}
+{{/each}}
+{{/each}}
+
+{{/each}}

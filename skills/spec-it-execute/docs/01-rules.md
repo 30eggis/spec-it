@@ -1,5 +1,23 @@
 # Rules
 
+## Vercel Skills Initialization (CRITICAL - MUST RUN FIRST)
+
+Before Phase 0, ensure Vercel agent-skills submodule is available for Tailwind reference:
+
+```bash
+# Auto-initialize submodule
+if [ ! -f "docs/refs/agent-skills/README.md" ]; then
+  git submodule update --init --recursive docs/refs/agent-skills 2>/dev/null || echo "Warning: Could not init submodule"
+fi
+```
+
+**Reference:** `skills/shared/rules/05-vercel-skills.md` for:
+- Tailwind class → CSS mapping
+- Grid layout best practices
+- Component style guidelines
+
+---
+
 ## Main Orchestrator File Writing (CRITICAL)
 
 Do not write files via Bash redirection in the main orchestrator.

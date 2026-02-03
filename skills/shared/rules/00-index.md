@@ -2,6 +2,7 @@
 
 Load order is intentional. Each file is under 400 lines.
 
+0) `skills/shared/rules/05-vercel-skills.md` ← **MUST LOAD FIRST** (submodule init)
 1) `skills/shared/rules/10-core-safety.md`
 2) `skills/shared/rules/20-state-role-auth.md`
 3) `skills/shared/rules/30-ui-ssr-time.md`
