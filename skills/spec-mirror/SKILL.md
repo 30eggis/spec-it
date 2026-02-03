@@ -25,6 +25,21 @@ Compare original Spec against implementation to identify over-spec/missing items
 [Generate report]
 ```
 
+## Step 0: Initialize Vercel Skills (Auto)
+
+**CRITICAL:** Before comparison, ensure Vercel agent-skills submodule is available for accurate layout analysis.
+
+```bash
+# Auto-initialize submodule
+if [ ! -f "docs/refs/agent-skills/README.md" ]; then
+  git submodule update --init --recursive docs/refs/agent-skills 2>/dev/null || echo "Warning: Could not init submodule"
+fi
+```
+
+**Reference:** `skills/shared/rules/05-vercel-skills.md` for Tailwind layout mapping.
+
+---
+
 ## Step 1: Confirm Inputs
 
 Gather from user:

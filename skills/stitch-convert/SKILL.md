@@ -47,6 +47,21 @@ $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/setup-stitch-m
 
 ## Workflow
 
+### Step 0: Initialize Vercel Skills (Auto)
+
+**CRITICAL:** Before HTML generation, ensure Vercel agent-skills submodule is available for Tailwind reference.
+
+```bash
+# Auto-initialize submodule
+if [ ! -f "docs/refs/agent-skills/README.md" ]; then
+  git submodule update --init --recursive docs/refs/agent-skills 2>/dev/null || echo "Warning: Could not init submodule"
+fi
+```
+
+**Reference:** `skills/shared/rules/05-vercel-skills.md` for Tailwind style guidelines.
+
+---
+
 ### Step 1: Verify Setup
 
 ```bash

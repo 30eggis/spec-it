@@ -14,6 +14,26 @@ Transform PRD/vibe-coding into frontend specifications with **auto-validation** 
 
 See [shared/output-rules.md](../shared/output-rules.md) and [shared/context-rules.md](../shared/context-rules.md).
 See [shared/rules/50-question-policy.md](../shared/rules/50-question-policy.md) (Question Policy: Hybrid).
+See [shared/rules/06-output-quality.md](../shared/rules/06-output-quality.md) (Output Quality Standards - MANDATORY).
+
+### Output Templates (MANDATORY)
+
+All outputs MUST use templates from `skills/shared/templates/`:
+
+| Output File | Template |
+|------------|----------|
+| requirements.md | `00-REQUIREMENTS_TEMPLATE.md` |
+| chapter-plan-final.md | `01-CHAPTER_PLAN_TEMPLATE.md` |
+| screen-list.md | `02-SCREEN_LIST_TEMPLATE.md` |
+| domain-map.md | `02-DOMAIN_MAP_TEMPLATE.md` |
+| {screen-id}.yaml | `02-WIREFRAME_YAML_TEMPLATE.yaml` |
+| component-inventory.md | `03-COMPONENT_INVENTORY_TEMPLATE.md` |
+| review-summary.md | `04-REVIEW_SUMMARY_TEMPLATE.md` |
+| test-specifications.md | `05-TEST_SPECIFICATIONS_TEMPLATE.md` |
+| final-spec.md | `06-FINAL_SPEC_TEMPLATE.md` |
+| dev-tasks.md | `06-DEV_TASKS_TEMPLATE.md` |
+| SPEC-SUMMARY.md | `06-SPEC_SUMMARY_TEMPLATE.md` |
+| PHASE-*.md | `PHASE_TEMPLATE.md` |
 
 ### ⚠️ Main Orchestrator File Writing (CRITICAL)
 
@@ -46,6 +66,21 @@ See [shared/rules/50-question-policy.md](../shared/rules/50-question-policy.md) 
 ---
 
 ## Phase 0: Init
+
+### Step 0.PREREQ: Initialize Vercel Skills (Auto)
+
+**CRITICAL:** Before any spec generation, ensure Vercel agent-skills submodule is available.
+
+```bash
+# Auto-initialize submodule for Tailwind/design reference
+if [ ! -f "docs/refs/agent-skills/README.md" ]; then
+  git submodule update --init --recursive docs/refs/agent-skills 2>/dev/null || echo "Warning: Could not init submodule"
+fi
+```
+
+**Reference:** `skills/shared/rules/05-vercel-skills.md` for Tailwind layout mapping.
+
+---
 
 ### Step 0.0: Setup Intake (Design + Dashboard)
 

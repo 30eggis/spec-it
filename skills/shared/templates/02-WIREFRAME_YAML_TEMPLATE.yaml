@@ -1,0 +1,237 @@
+# {{system_name}} - {{screen_title}} Wireframe
+# Screen ID: {{screen_id}}
+# Version: {{version}}
+# Date: {{created_date}}
+# Reference: {{requirement_reference}} from final-spec.md
+
+meta:
+  screen_id: "{{screen_id}}"
+  title: "{{screen_title}}"
+  route: "{{route}}"
+  priority: "{{priority}}"  # P0 | P1 | P2
+  user_type: "{{user_type}}"
+  description: "{{screen_description}}"
+
+layout:
+  type: "{{layout_type}}"  # main | modal | drawer
+  references: "Uses {{layout_reference}} from layout-system.yaml"
+
+# Grid Definition (CSS Grid syntax)
+grid:
+  desktop:
+    display: "grid"
+    areas: |
+      {{desktop_grid_areas}}
+    columns: "{{desktop_columns}}"
+    rows: "{{desktop_rows}}"
+    gap: {{desktop_gap}}
+    max_width: {{max_width}}
+    margin: "0 auto"
+
+  tablet:
+    areas: |
+      {{tablet_grid_areas}}
+    columns: "{{tablet_columns}}"
+    gap: {{tablet_gap}}
+
+  mobile:
+    areas: |
+      {{mobile_grid_areas}}
+    columns: "{{mobile_columns}}"
+    gap: {{mobile_gap}}
+
+# Components by Zone
+sections:
+  # Page Header
+  - id: "page_header"
+    zone: "page_header"
+    component: "PageHeader"
+    props:
+      title: "{{page_title}}"
+      date: "{{date_display}}"
+      subtitle: "{{subtitle}}"
+    layout:
+      display: "flex"
+      justify_content: "space-between"
+      align_items: "center"
+      padding_bottom: 24
+      border_bottom: "1px solid"
+      border_color: "_ref:colors.border"
+    testId: "{{test_id_prefix}}-header"
+
+  # Filter Bar (if applicable)
+  - id: "filters"
+    zone: "filters"
+    component: "FilterBar"
+    layout:
+      display: "flex"
+      gap: 12
+      flex_wrap: "wrap"
+      align_items: "center"
+      padding: 16
+      background: "_ref:colors.surface"
+      border_radius: "_ref:radius.lg"
+      box_shadow: "_ref:shadows.sm"
+    children:
+      # Period Filter
+      - id: "{{filter_id_1}}"
+        type: "{{filter_type_1}}"
+        props:
+          options:
+            {{#each filter_1_options}}
+            - { value: "{{value}}", label: "{{label}}" }
+            {{/each}}
+          defaultValue: "{{filter_1_default}}"
+        testId: "{{filter_1_testid}}"
+
+  # Stats Section (if applicable)
+  - id: "stats"
+    zone: "stats"
+    component: "StatsGrid"
+    layout:
+      display: "grid"
+      columns_desktop: "repeat({{stats_columns}}, 1fr)"
+      columns_tablet: "repeat(3, 1fr)"
+      columns_mobile: "repeat(2, 1fr)"
+      gap: 16
+    children:
+      {{#each stat_cards}}
+      - id: "stat_{{id}}"
+        type: "StatCard"
+        props:
+          icon: "{{icon}}"
+          icon_color: "_ref:colors.{{icon_color}}"
+          title: "{{title}}"
+          value: {{value}}
+          unit: "{{unit}}"
+          trend: {{trend}}
+        testId: "stat-{{id}}"
+      {{/each}}
+
+  # Main Content Sections
+  {{#each content_sections}}
+  - id: "{{section_id}}"
+    zone: "{{zone}}"
+    component: "{{component}}"
+    props:
+      title: "{{title}}"
+      subtitle: "{{subtitle}}"
+      icon: "{{icon}}"
+      {{#if header_action}}
+      headerAction:
+        type: "{{header_action.type}}"
+        label: "{{header_action.label}}"
+        href: "{{header_action.href}}"
+      {{/if}}
+    layout:
+      background: "_ref:colors.surface"
+      border_radius: "_ref:radius.lg"
+      box_shadow: "_ref:shadows.sm"
+      padding: 24
+      display: "flex"
+      flex_direction: "column"
+      gap: 16
+    children:
+      {{#each children}}
+      - id: "{{id}}"
+        type: "{{type}}"
+        props:
+          {{#each props}}
+          {{key}}: {{value}}
+          {{/each}}
+        testId: "{{testId}}"
+      {{/each}}
+  {{/each}}
+
+# Interactions
+interactions:
+  # Filter Changes
+  {{#each filter_interactions}}
+  - trigger: "{{trigger}}"
+    action: "{{action}}"
+    params:
+      {{param_key}}: "{{param_value}}"
+  {{/each}}
+
+  # Click Events
+  {{#each click_interactions}}
+  - trigger: "{{trigger}}"
+    action: "{{action}}"
+    target: "{{target}}"
+  {{/each}}
+
+  # Dialog/Modal Events
+  {{#each dialog_interactions}}
+  - trigger: "{{trigger}}"
+    action: "confirm_dialog"
+    title: "{{title}}"
+    message: "{{message}}"
+    onConfirm:
+      action: "{{confirm_action}}"
+      successMessage: "{{success_message}}"
+  {{/each}}
+
+# Responsive Behavior
+responsive:
+  desktop:
+    sidebar_visible: true
+    stats_columns: {{desktop_stats_columns}}
+    {{layout_mode}}: true
+
+  tablet:
+    sidebar_collapsed: true
+    stats_columns: {{tablet_stats_columns}}
+    single_column_layout: true
+
+  mobile:
+    sidebar_bottom_nav: true
+    stats_columns: {{mobile_stats_columns}}
+    single_column_layout: true
+    reduced_card_padding: true
+
+# Accessibility
+accessibility:
+  landmarks:
+    {{#each landmarks}}
+    - role: "{{role}}"
+      label: "{{label}}"
+      id: "{{id}}"
+    {{/each}}
+
+  skip_links:
+    {{#each skip_links}}
+    - label: "{{label}}"
+      target: "{{target}}"
+    {{/each}}
+
+  keyboard_shortcuts:
+    {{#each keyboard_shortcuts}}
+    - key: "{{key}}"
+      action: "{{action}}"
+      description: "{{description}}"
+    {{/each}}
+
+# Data Requirements
+data_api:
+  endpoints:
+    {{#each endpoints}}
+    - id: "{{id}}"
+      method: "{{method}}"
+      path: "{{path}}"
+      {{#if params}}
+      params:
+        {{#each params}}
+        {{key}}: "{{type}}"
+        {{/each}}
+      {{/if}}
+      response:
+        {{#each response}}
+        {{key}}: "{{type}}"
+        {{/each}}
+    {{/each}}
+
+# Notes
+notes:
+  {{#each notes}}
+  - "{{note}}"
+  {{/each}}

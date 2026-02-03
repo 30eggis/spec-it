@@ -1,10 +1,11 @@
 ---
 name: hack-2-spec
 description: |
-  Analyze services/projects and systematically generate Spec (Specification Document), PHASE, and TASKS documents.
-  Supports website URLs (via Chrome Extension), local codebases, and mobile apps (screenshot-based).
-  Use when documenting existing products or reverse-engineering requirements from implementations.
-  Output format compatible with spec-it for seamless integration.
+  Analyze services/projects and generate Spec, PHASE, and TASKS documents.
+  Supports website URLs, local codebases, and mobile apps.
+  Output format compatible with spec-it.
+argument-hint: "[--source <path|url>] [--output <dir>] [--designContext <path>]"
+allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, AskUserQuestion
 permissionMode: bypassPermissions
 ---
 
@@ -12,166 +13,189 @@ permissionMode: bypassPermissions
 
 Analyze services/projects and generate spec-it compatible documentation.
 
+## Reference Documents (load only when needed)
+
+| When you need to... | Read this |
+|---------------------|-----------|
+| **Output quality standards** | `skills/shared/rules/06-output-quality.md` |
+| **Template index** | `skills/shared/templates/_INDEX.md` |
+| Understand output folder structure | `docs/01-output-structure.md` |
+| Use `--designContext` parameter | `docs/00-design-context.md` |
+| Parse token formats (Figma/Style Dictionary) | `skills/shared/design-token-parser.md` |
+| Apply Tailwind layout analysis rules | `skills/shared/rules/05-vercel-skills.md` |
+
+### Output Templates (MANDATORY)
+
+| Output File | Template |
+|------------|----------|
+| requirements.md | `skills/shared/templates/00-REQUIREMENTS_TEMPLATE.md` |
+| chapter-plan-final.md | `skills/shared/templates/01-CHAPTER_PLAN_TEMPLATE.md` |
+| screen-list.md | `skills/shared/templates/02-SCREEN_LIST_TEMPLATE.md` |
+| domain-map.md | `skills/shared/templates/02-DOMAIN_MAP_TEMPLATE.md` |
+| {screen-id}.yaml | `skills/shared/templates/02-WIREFRAME_YAML_TEMPLATE.yaml` |
+| component-inventory.md | `skills/shared/templates/03-COMPONENT_INVENTORY_TEMPLATE.md` |
+| review-summary.md | `skills/shared/templates/04-REVIEW_SUMMARY_TEMPLATE.md` |
+| test-specifications.md | `skills/shared/templates/05-TEST_SPECIFICATIONS_TEMPLATE.md` |
+| final-spec.md | `skills/shared/templates/06-FINAL_SPEC_TEMPLATE.md` |
+| dev-tasks.md | `skills/shared/templates/06-DEV_TASKS_TEMPLATE.md` |
+| SPEC-SUMMARY.md | `skills/shared/templates/06-SPEC_SUMMARY_TEMPLATE.md` |
+| PHASE-*.md | `skills/shared/templates/PHASE_TEMPLATE.md` |
+
 ## Workflow
 
 ```
-[Identify Input Source] → [Analyze Source] → [Ask Language Preference] → [Write Spec] → [Write PHASE] → [Write TASKS]
+[Step 0: Init] → [Step 1: Identify Source] → [Step 2: Language] → [Step 3: Write Spec] → [Step 4: PHASE] → [Step 5: TASKS]
 ```
+
+---
+
+## Step 0: Initialize Dependencies
+
+```bash
+# Vercel skills submodule
+if [ ! -f "docs/refs/agent-skills/README.md" ]; then
+  git submodule update --init --recursive docs/refs/agent-skills
+fi
+```
+
+**Layout Rules (MUST FOLLOW):**
+- `grid-cols-3` → 3 columns, NOT 2
+- Same-row elements stay in same grid area row
+- Map responsive prefixes (`lg:`, `md:`, `sm:`) separately
+
+> **If layout analysis produces incorrect grid structure:** Read `skills/shared/rules/05-vercel-skills.md`
+
+---
+
+## Step 0.5: Load Design Context (Optional)
+
+If `--designContext` provided, load design tokens for wireframe generation.
+
+**Key Points:**
+- Supports any token format (Tokens Studio, Style Dictionary, DTCG)
+- Token refs use full paths: `_ref:color.semantic.bg.brand.primary`
+- Auto-matches CSS values to nearest token
+
+> **If token format is unrecognized or matching fails:** Read `docs/00-design-context.md`
+
+---
 
 ## Step 1: Identify Input Source
 
-Confirm the documentation target with the user:
-
 | Source Type | Requirements | Proceed When |
 |-------------|--------------|--------------|
-| **Website** | URL, Chrome Extension data availability | Data collection complete |
-| **Code** | Project path, build capability | Build succeeds |
-| **Mobile App** | Screenshots, app description, feature list | Sufficient info gathered |
+| **Website** | URL, Chrome Extension data | Data collected |
+| **Code** | Project path | Build succeeds |
+| **Mobile App** | Screenshots, description | Info gathered |
 
-### Analysis Methods by Source
-
-**Website Analysis:**
-- Review page structure, feature list, UI flow collected via Chrome Extension
-- Ask user about core features and business logic
-
-**Code Analysis:**
-1. Understand project structure (package.json, README, etc.)
-2. Run build test
-3. On build failure: Resolve issues or report to user
-4. On build success: Proceed with code analysis
-
-**Mobile App Analysis:**
-- Extract features based on provided screenshots and descriptions
-- Reference app store descriptions, user reviews (if available)
+---
 
 ## Step 2: Ask Language Preference
 
-Before generating documents, ask the user which language to use for the output documents.
-
-**Prompt to user:**
 ```
-Which language would you like the documents to be written in?
+Which language for output documents?
 - English
 - Korean (한국어)
-- Other (please specify)
+- Other
 ```
 
-Store the user's language preference and apply it to all generated documents.
+---
 
-## Step 3: Write Spec (spec-it Format)
+## Step 3: Generate spec-it Output
 
-Generate specification in spec-it compatible format.
+**CRITICAL:** Use templates from `skills/shared/templates/` to ensure consistent output quality.
 
-### Output Structure (spec-it Compatible)
+Output structure **must match spec-it exactly**.
+
+### Output Structure
 
 ```
 {output-folder}/
-├── 01-persona/
-│   └── personas.md
+├── 00-requirements/
+│   └── requirements.md          # Template: 00-REQUIREMENTS_TEMPLATE.md
+├── 01-chapters/
+│   ├── chapter-plan-final.md    # Template: 01-CHAPTER_PLAN_TEMPLATE.md
+│   ├── critique-round1-*.md
+│   └── critique-synthesis.md
 ├── 02-wireframes/
-│   ├── screen-list.md
-│   └── wireframes/
-│       ├── screen-{name}.md
-│       └── ...
+│   ├── layouts/layout-system.yaml
+│   ├── domain-map.md            # Template: 02-DOMAIN_MAP_TEMPLATE.md
+│   ├── screen-list.md           # Template: 02-SCREEN_LIST_TEMPLATE.md
+│   └── <domain>/<user-type>/
+│       ├── screen-list.md
+│       └── wireframes/{screen-id}.yaml  # Template: 02-WIREFRAME_YAML_TEMPLATE.yaml
 ├── 03-components/
-│   ├── component-inventory.md
-│   └── specs/
-│       ├── {ComponentName}.md
-│       └── ...
+│   ├── inventory.md
+│   ├── component-inventory.md   # Template: 03-COMPONENT_INVENTORY_TEMPLATE.md
+│   └── specs/{ComponentName}.yaml
 ├── 04-review/
-│   └── scenarios/
-│       ├── critical-path.md
-│       └── screen-{name}.md
+│   ├── review-summary.md        # Template: 04-REVIEW_SUMMARY_TEMPLATE.md
+│   ├── scenarios/critical-path.md
+│   └── exceptions/
 ├── 05-tests/
-│   ├── coverage-map.md
-│   └── components/
-│       └── {ComponentName}.test.md
-└── 06-final/
-    ├── final-spec.md
-    └── dev-tasks.md
+│   ├── test-specifications.md   # Template: 05-TEST_SPECIFICATIONS_TEMPLATE.md
+│   └── coverage-map.md
+├── 06-final/
+│   ├── final-spec.md            # Template: 06-FINAL_SPEC_TEMPLATE.md
+│   ├── dev-tasks.md             # Template: 06-DEV_TASKS_TEMPLATE.md
+│   └── SPEC-SUMMARY.md          # Template: 06-SPEC_SUMMARY_TEMPLATE.md
+├── phases/
+│   └── PHASE-*.md               # Template: PHASE_TEMPLATE.md
+└── tasks/
+    └── TASKS-PHASE-*.md         # Template: 06-DEV_TASKS_TEMPLATE.md
 ```
 
-### Required Information for Spec
+### Wireframe Token Usage (if designContext enabled)
 
-**01-persona/**
-- User personas with goals, pain points, behaviors
-- Device preferences, usage patterns
+```yaml
+layout:
+  background: "_ref:color.semantic.bg.brand.primary"
+  padding: "_ref:spacing.24"
+  border_radius: "_ref:radius.m"
+```
 
-**02-wireframes/**
-- Screen list with routes and purposes
-- YAML/JSON wireframes for each screen
-- Component mapping per screen
+> **For output structure details:** Read `docs/01-output-structure.md`
 
-**03-components/**
-- Component inventory with categories
-- Individual component specs (props, states, interactions)
+---
 
-**04-review/**
-- Critical path scenarios
-- Screen-specific user scenarios
+## Step 4: Generate final-spec.md
 
-**05-tests/**
-- Coverage map linking components to tests
-- Test specifications per component
+Consolidate all requirements into `06-final/final-spec.md`:
 
-**06-final/**
-- Consolidated final spec
-- Development task breakdown
+- Requirements in REQ-### format
+- Screen specifications
+- Component specifications
+- Critical user paths
 
-## Step 4: Write PHASE
+---
 
-Use `assets/templates/PHASE_TEMPLATE.md` template.
+## Step 5: Generate dev-tasks.md
 
-Divide implementation into logical stages:
+Create `06-final/dev-tasks.md` with development tasks:
 
-**Phase Structure Principles:**
-- PHASE-01: MVP / Core features
-- PHASE-02: Extended features
-- PHASE-03: Enhancement / Optimization
+- Task identifier: TASK-{Domain}.{Seq}
+- Reference to screen/component spec
+- Dependencies and priorities
+- Acceptance criteria
 
-**Output:** `docs/phases/PHASE-01.md`, `docs/phases/PHASE-02.md`...
+---
 
-## Step 5: Write TASKS
+## Integration with spec-it-mock
 
-Use `assets/templates/TASKS_TEMPLATE.md` template.
+```
+Skill(hack-2-spec, {
+  --source: "/path/to/target",
+  --output: ".spec-it/{sessionId}/plan/tmp",
+  --designContext: ".spec-it/{sessionId}/plan/design-context.yaml"
+})
+```
 
-Generate specific task lists for each Phase:
+**Result:** Wireframes with design token references for identical visual output.
 
-**Task Writing Rules:**
-- Identifier: TASK-{Phase}.{Seq} (e.g., TASK-1.01)
-- Each Task must reference a component or screen spec
-- No implementation technology/code mentions (write at behavior level)
-- Specify dependencies and priorities
-
-**Output:** `docs/tasks/TASKS-PHASE-01.md`, `docs/tasks/TASKS-PHASE-02.md`...
-
-## User Confirmation Points
-
-After completing each document, confirm with user:
-1. Spec complete → "Please review the Spec. Any modifications needed?"
-2. PHASE complete → "Is the Phase structure appropriate?"
-3. TASKS complete → "Please review the task list."
+---
 
 ## Integration with spec-mirror
 
-When called from spec-mirror for reverse-engineering:
-
 ```
-# spec-mirror가 호출하는 패턴
 Skill(hack-2-spec --source codebase --output docs/_mirror/)
-
-# 결과물
-docs/_mirror/
-├── 03-components/specs/  → 구현된 컴포넌트 스펙
-├── 02-wireframes/        → 구현된 화면 스펙
-└── 06-final/final-spec.md → 통합 스펙 (REQ-### 형식)
 ```
-
-## Templates
-
-This skill uses templates from `assets/templates/` directory:
-- `SPEC_TEMPLATE.md` - Feature Specification
-- `PHASE_TEMPLATE.md` - Phase Document
-- `TASKS_TEMPLATE.md` - Task Document
-
-Replace `{{placeholder}}` in templates with actual content when generating documents.
