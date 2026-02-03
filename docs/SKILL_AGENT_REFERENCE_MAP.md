@@ -1,265 +1,228 @@
-# Skill/Agent 문서 참조 맵
+# Skill/Agent Reference Map
 
-각 Skill이 참조하는 문서와, 호출하는 Agent/Skill이 참조하는 문서까지 전체 체인을 포함합니다.
+Complete reference chain for each Skill including all agents called and documents referenced.
 
 ---
 
-## 1. spec-it-stepbystep
+## 1. spec-it-stepbystep (P1-P14)
 
-- 📄 **직접 참조**
+- 📄 **Direct References**
   - `shared/output-rules.md`
   - `shared/context-rules.md`
-  - `shared/rules/50-question-policy.md`
+  - `shared/rules/50-question-policy.md` (Confirm)
   - `shared/rules/06-output-quality.md`
   - `shared/templates/_INDEX.md`
-- 🤖 **design-interviewer**
-  - *(프롬프트 기반 Q&A, 별도 문서 참조 없음)*
-- 🤖 **ui-architect**
-  - 📄 `yaml-ui-frame/01-basic-structure.md`
-  - 📄 `yaml-ui-frame/02-grid-definition.md`
-  - 📄 `yaml-ui-frame/03-components.md`
-  - 📄 `yaml-ui-frame/07-design-direction.md`
-  - 📄 `design-trends-2026/references/trends-summary.md`
-  - 📄 `design-trends-2026/references/component-patterns.md`
-  - 📄 `design-trends-2026/templates/navigation-templates.md`
-  - 📄 `assets/templates/LAYOUT_TEMPLATE.yaml`
-  - 📄 `shared/design-tokens.yaml`
-- 🤖 **component-auditor**
-  - *(코드베이스 스캔, 별도 문서 참조 없음)*
-- 🤖 **component-builder**
-  - 📄 `assets/templates/COMPONENT_SPEC_TEMPLATE.yaml`
-  - 📄 `shared/design-tokens.yaml`
-- 🤖 **component-migrator**
-  - *(inventory 기반 분석, 별도 문서 참조 없음)*
-- 🤖 **critical-reviewer**
-  - *(생성된 spec 검토, 별도 문서 참조 없음)*
-- 🤖 **ambiguity-detector**
-  - *(생성된 spec 분석, 별도 문서 참조 없음)*
-- 🤖 **persona-architect**
-  - *(사용자 정의 기반, 별도 문서 참조 없음)*
-- 🤖 **test-spec-writer**
-  - *(spec 기반 테스트 생성, 별도 문서 참조 없음)*
-- 🤖 **spec-assembler**
-  - *(모든 산출물 취합, 별도 문서 참조 없음)*
+
+### Phase Agents
+
+| Phase | Agent | Model | References |
+|-------|-------|-------|------------|
+| P1 | `design-interviewer` | Opus | *(Q&A-based)* |
+| P2 | `persona-architect` | Sonnet | *(requirements-based)* |
+| P3 | `divergent-thinker` | Sonnet | *(creative exploration)* |
+| P4 | `critic-logic` | Sonnet | *(chapter analysis)* |
+| P4 | `critic-feasibility` | Sonnet | *(chapter analysis)* |
+| P4 | `critic-frontend` | Sonnet | *(chapter analysis)* |
+| P4 | `critic-analytics` | Sonnet | `shared/references/critic-analytics/synthesis-format.md` |
+| P5 | `critique-resolver` (skill) | - | `shared/references/critique-resolver/question-templates.md` |
+| P6 | `chapter-planner` | Opus | *(critique synthesis)* |
+| P7 | `ui-architect` | Sonnet | `yaml-ui-frame/*.md`, `design-trends-2026/*` |
+| P8 | `component-auditor` | Haiku | *(codebase scan)* |
+| P9 | `component-builder` | Sonnet | `assets/templates/COMPONENT_SPEC_TEMPLATE.yaml` |
+| P9 | `component-migrator` | Sonnet | *(inventory-based)* |
+| P10 | `context-synthesizer` | Sonnet | `shared/references/context-synthesizer/spec-map-guide.md` |
+| P11 | `critical-review` (skill) | - | See below |
+| P12 | `test-spec-writer` | Sonnet | `shared/references/common/test-scenario-format.md` |
+| P13 | `spec-assembler` | Haiku | *(artifact aggregation)* |
+| P14 | `api-predictor` (skill) | - | See below |
+| P14 | `dev-planner` | Sonnet | `shared/references/dev-planner/task-template.md` |
 
 ---
 
-## 2. spec-it-complex
+## 2. spec-it-complex (P1-P14, 4 Milestones)
 
-- 📄 **직접 참조**
+- 📄 **Direct References**
   - `shared/output-rules.md`
   - `shared/context-rules.md`
-  - `shared/rules/50-question-policy.md`
-  - `shared/templates/_INDEX.md`
-- 🤖 **design-interviewer**
-  - *(프롬프트 기반 Q&A)*
-- 🤖 **divergent-thinker**
-  - *(대안 탐색, 별도 문서 참조 없음)*
-- 🤖 **chapter-planner**
-  - *(챕터 구조 설계, 별도 문서 참조 없음)*
-- 🤖 **ui-architect**
-  - 📄 `yaml-ui-frame/01-basic-structure.md`
-  - 📄 `yaml-ui-frame/02-grid-definition.md`
-  - 📄 `yaml-ui-frame/03-components.md`
-  - 📄 `yaml-ui-frame/07-design-direction.md`
-  - 📄 `design-trends-2026/references/trends-summary.md`
-  - 📄 `design-trends-2026/references/component-patterns.md`
-- 🤖 **component-auditor**
-- 🤖 **component-builder**
-  - 📄 `assets/templates/COMPONENT_SPEC_TEMPLATE.yaml`
-  - 📄 `shared/design-tokens.yaml`
-- 🤖 **component-migrator**
-- 🤖 **critical-reviewer**
-- 🤖 **ambiguity-detector**
-- 🤖 **persona-architect**
-- 🤖 **test-spec-writer**
-- 🤖 **spec-assembler**
-
----
-
-## 3. spec-it-automation
-
-- 📄 **직접 참조**
-  - `shared/output-rules.md`
-  - `shared/context-rules.md`
-  - `shared/templates/_INDEX.md`
-- 🤖 **Critic Agents (Parallel)**
-  - 🤖 **critic-logic** - 논리 일관성 검증
-  - 🤖 **critic-feasibility** - 구현 가능성 검증
-  - 🤖 **critic-frontend** - 프론트엔드 관점 검증
-  - 🤖 **critic-moderator** - 비평 종합 및 조율
-- 🤖 **design-interviewer**
-- 🤖 **divergent-thinker**
-- 🤖 **chapter-planner**
-- 🤖 **ui-architect**
-  - 📄 `yaml-ui-frame/*.md`
-  - 📄 `design-trends-2026/references/*.md`
-- 🤖 **component-auditor**
-- 🤖 **component-builder**
-  - 📄 `assets/templates/COMPONENT_SPEC_TEMPLATE.yaml`
-  - 📄 `shared/design-tokens.yaml`
-- 🤖 **critical-reviewer**
-- 🤖 **ambiguity-detector**
-- 🤖 **persona-architect**
-- 🤖 **test-spec-writer**
-- 🤖 **spec-assembler**
-
----
-
-## 4. spec-it-fast-launch
-
-- 📄 **직접 참조**
-  - `shared/output-rules.md`
-  - `shared/rules/50-question-policy.md`
+  - `shared/rules/50-question-policy.md` (Hybrid)
   - `shared/rules/06-output-quality.md`
-- 🤖 **ui-architect**
-  - 📄 `yaml-ui-frame/*.md`
-  - 📄 `design-trends-2026/references/trends-summary.md`
-  - 📄 `design-trends-2026/references/component-patterns.md`
-- 🤖 **spec-assembler**
-- ⚡ **Auto Invokes: spec-it-execute**
-  - 📄 `spec-it-execute/docs/00-overview.md`
-  - 📄 `spec-it-execute/docs/01-rules.md`
-  - 📄 `spec-it-execute/docs/02-phase-0-2-init-load-plan.md`
-  - 📄 `spec-it-execute/docs/03-phase-3-execute.md`
-  - 📄 `spec-it-execute/docs/04-phase-4-qa.md`
-  - 📄 `spec-it-execute/docs/05-phase-5-mirror.md`
-  - 📄 `spec-it-execute/docs/06-phase-6-unit-tests.md`
-  - 📄 `spec-it-execute/docs/07-phase-7-e2e.md`
-  - 📄 `spec-it-execute/docs/08-phase-8-validate.md`
-  - 📄 `spec-it-execute/docs/09-phase-9-complete.md`
-  - 📄 `spec-it-execute/docs/14-agents.md`
-  - 🤖 **Phase 2 Agents**
-    - **spec-dev-plan-critic** - execution plan 검증
-  - 🤖 **Phase 4 Agents**
-    - **code-reviewer** - spec compliance + code quality 검증
+
+### Same agents as stepbystep with milestone grouping:
+- Milestone 1: P1-P6
+- Milestone 2: P7-P9
+- Milestone 3: P10-P11
+- Milestone 4: P12-P14
 
 ---
 
-## 5. spec-change
+## 3. spec-it-automation (P1-P14, Auto)
 
-- 📄 **직접 참조**
+- 📄 **Direct References**
+  - `shared/output-rules.md`
+  - `shared/context-rules.md`
+  - `shared/rules/50-question-policy.md` (Auto)
+
+### Mode-Specific Agents
+
+| Phase | Agent (Auto Mode) | Model |
+|-------|-------------------|-------|
+| P5 | `critic-moderator` | Opus |
+| P11 | `review-moderator` | Opus |
+
+All other agents same as stepbystep.
+
+---
+
+## 4. critique-resolver (NEW Skill)
+
+- 📄 **Direct References**
+  - `shared/references/critique-resolver/question-templates.md`
+  - `shared/references/common/critique-solve-format.md`
+
+### Internal Process (No Agents)
+- Reads `critique-synthesis.md`
+- Presents AskUserQuestion batches
+- Outputs `critique-solve/*.md`
+
+---
+
+## 5. critical-review (NEW Skill)
+
+- 📄 **Direct References**
+  - `shared/references/critical-review/review-criteria.md`
+  - `shared/references/critical-review/ambiguity-format.md`
+
+### Internal Agents
+
+| Agent | Model | Output |
+|-------|-------|--------|
+| `scenario-reviewer` | Opus | `04-review/scenario-review.md` |
+| `ia-reviewer` | Opus | `04-review/ia-review.md` |
+| `exception-reviewer` | Opus | `04-review/exception-review.md` |
+| `review-analytics` | Sonnet | `04-review/ambiguities.md` |
+| `review-resolver` | Sonnet | `04-review/review-decisions.md` (step/comp) |
+| `review-moderator` | Opus | `04-review/review-decisions.md` (auto) |
+
+---
+
+## 6. api-predictor (NEW Skill)
+
+- 📄 **Direct References**
+  - `shared/references/api-predictor/design-principles.md`
+  - `shared/references/api-predictor/api-format.md`
+
+### Internal Process (No Agents)
+- Reads `spec-map.md`, wireframes, components
+- Outputs `dev-plan/api-map.md`
+
+---
+
+## 7. spec-change
+
+- 📄 **Direct References**
   - `spec-change/references/output-formats.md`
   - `shared/output-rules.md`
-  - `shared/context-rules.md`
-- 🤖 **Batch 1 Agents (Parallel)**
-  - 🤖 **spec-doppelganger** → `_analysis/doppelganger.json`
-  - 🤖 **spec-conflict** → `_analysis/conflict.json`
-  - 🤖 **spec-clarity** → `_analysis/clarity.json`
-  - 🤖 **spec-consistency** → `_analysis/consistency.json`
-- 🤖 **Batch 2 Agents (Parallel)**
-  - 🤖 **spec-coverage** → `_analysis/coverage.json`
-  - 🤖 **spec-butterfly** → `_analysis/butterfly.json`
-- 🤖 **Final Agents**
-  - 🤖 **change-planner** → `_analysis/change-plan.md`
-  - 🤖 **rtm-updater** → `_traceability/rtm.json`
+
+### Analysis Agents (Parallel)
+
+| Agent | Model | Output |
+|-------|-------|--------|
+| `spec-doppelganger` | Sonnet | `_analysis/doppelganger.json` |
+| `spec-conflict` | Sonnet | `_analysis/conflict.json` |
+| `spec-clarity` | Sonnet | `_analysis/clarity.json` |
+| `spec-consistency` | Haiku | `_analysis/consistency.json` |
+| `spec-coverage` | Sonnet | `_analysis/coverage.json` |
+| `spec-butterfly` | Opus | `_analysis/butterfly.json` |
+| `change-planner` | Opus | `_analysis/change-plan.md` |
+| `rtm-updater` | Haiku | `_traceability/rtm.json` |
 
 ---
 
-## 6. hack-2-spec
+## 8. hack-2-spec
 
-- 📄 **직접 참조**
+- 📄 **Direct References**
   - `shared/rules/06-output-quality.md`
   - `shared/templates/_INDEX.md`
   - `hack-2-spec/docs/01-output-structure.md`
   - `hack-2-spec/docs/00-design-context.md`
   - `shared/design-token-parser.md`
   - `shared/rules/05-vercel-skills.md`
-- 📄 **Output Templates (via _INDEX.md)**
-  - `templates/00-REQUIREMENTS_TEMPLATE.md`
-  - `templates/01-CHAPTER_PLAN_TEMPLATE.md`
-  - `templates/02-SCREEN_LIST_TEMPLATE.md`
-  - `templates/02-DOMAIN_MAP_TEMPLATE.md`
-  - `templates/02-WIREFRAME_YAML_TEMPLATE.yaml`
-  - `templates/03-COMPONENT_INVENTORY_TEMPLATE.md`
-  - `templates/04-REVIEW_SUMMARY_TEMPLATE.md`
-  - `templates/05-TEST_SPECIFICATIONS_TEMPLATE.md`
-  - `templates/06-FINAL_SPEC_TEMPLATE.md`
-  - `templates/06-DEV_TASKS_TEMPLATE.md`
-  - `templates/PHASE_TEMPLATE.md`
-- ⬅️ **Referenced By**
-  - `spec-it-mock`
-  - `spec-mirror`
+
+### Referenced By
+- `spec-it-mock`
+- `spec-mirror`
 
 ---
 
-## 7. spec-mirror
+## 9. spec-mirror
 
-- 📄 **직접 참조**
+- 📄 **Direct References**
   - `spec-mirror/assets/templates/MIRROR_REPORT_TEMPLATE.md`
   - `shared/rules/05-vercel-skills.md`
 - ⚡ **Uses Skill: hack-2-spec**
-  - 📄 `shared/rules/06-output-quality.md`
-  - 📄 `shared/templates/_INDEX.md`
-  - 📄 `hack-2-spec/docs/01-output-structure.md`
-  - 📄 `shared/design-token-parser.md`
 
 ---
 
-## 8. spec-it-api-mcp
+## 10. spec-it-api-mcp
 
-- 📄 **직접 참조**
+- 📄 **Direct References**
   - `spec-it-api-mcp/references/output-schemas.md`
   - `spec-it-api-mcp/references/integration-examples.md`
-- 🤖 **api-parser**
-  - 📤 `endpoints.json`
-  - 📤 `schemas.json`
-  - 📤 `metadata.json`
-- 🤖 **mcp-generator**
-  - 📤 `server.ts`
-  - 📤 `handlers/*.ts`
-  - 📤 `handlers/_meta.ts`
-  - 📤 `mocks/*.ts`
+
+### Agents
+
+| Agent | Model | Output |
+|-------|-------|--------|
+| `api-parser` | Sonnet | `endpoints.json`, `schemas.json`, `metadata.json` |
+| `mcp-generator` | Sonnet | `server.ts`, `handlers/*.ts`, `mocks/*.ts` |
 
 ---
 
-## 9. spec-wireframe-edit
+## 11. spec-wireframe-edit
 
-- 📄 **직접 참조**
+- 📄 **Direct References**
   - `spec-wireframe-edit/references/output-formats.md`
-- 📄 **YAML UI Frame Reference**
-  - `yaml-ui-frame/01-basic-structure.md`
-  - `yaml-ui-frame/02-grid-definition.md`
-  - `yaml-ui-frame/03-components.md`
-  - `yaml-ui-frame/07-design-direction.md`
-- 🤖 **spec-butterfly**
-  - *(변경 영향 분석)*
-- 🤖 **wireframe-editor**
-  - 📄 `yaml-ui-frame/*.md` *(동일 참조)*
+  - `yaml-ui-frame/*.md`
+
+### Agents
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `spec-butterfly` | Opus | Change impact analysis |
+| `wireframe-editor` | Sonnet | YAML modification |
 
 ---
 
-## 10. init-spec-md
+## 12. init-spec-md
 
-- 📄 **직접 참조**
+- 📄 **Direct References**
   - `shared/context-rules.md`
   - `spec-it/assets/templates/SPEC_IT_COMPONENT_TEMPLATE.md`
   - `spec-it/assets/templates/SPEC_IT_PAGE_TEMPLATE.md`
-- 🤖 **spec-md-generator**
-  - 📄 `SPEC_IT_COMPONENT_TEMPLATE.md`
-  - 📄 `SPEC_IT_PAGE_TEMPLATE.md`
-- 🤖 **spec-md-maintainer**
-  - 📄 `SPEC_IT_COMPONENT_TEMPLATE.md`
-  - 📄 `SPEC_IT_PAGE_TEMPLATE.md`
+
+### Agents
+
+| Agent | Model |
+|-------|-------|
+| `spec-md-generator` | Haiku |
+| `spec-md-maintainer` | Haiku |
 
 ---
 
-## 11. stitch-convert
+## 13. stitch-convert
 
-- 📄 **직접 참조**
+- 📄 **Direct References**
   - `shared/rules/05-vercel-skills.md`
 - 🔧 **MCP Tools (Not Agents)**
   - `mcp__stitch__create_project`
-  - `mcp__stitch__set_workspace_project`
   - `mcp__stitch__generate_screen_from_text`
-  - `mcp__stitch__design_qa`
   - `mcp__stitch__export_design_system`
 
 ---
 
-## 12. design-trends-2026
+## 14. design-trends-2026
 
-- 📄 **제공 문서**
+- 📄 **Provides Documents**
   - `references/trends-summary.md`
   - `references/component-patterns.md`
   - `references/motion-presets.md`
@@ -268,67 +231,45 @@
   - `templates/dashboard-templates.md`
   - `templates/form-templates.md`
   - `templates/navigation-templates.md`
-  - `integration/agent-prompts.md`
-- ⬅️ **Referenced By**
-  - `spec-it-stepbystep`
-  - `spec-it-complex`
-  - `spec-it-automation`
-  - `spec-it-fast-launch`
+
+### Referenced By
+- `spec-it-stepbystep`
+- `spec-it-complex`
+- `spec-it-automation`
+- `spec-it-fast-launch`
 
 ---
 
-## 13. spec-it-mock
-
-- 📄 **직접 참조**
-  - `shared/design-token-parser.md`
-  - `spec-it-mock/docs/01-design-system-load.md`
-  - `spec-it-mock/docs/02-hack-2-spec-integration.md`
-  - `spec-it-mock/docs/03-spec-it-execution.md`
-  - `shared/rules/05-vercel-skills.md`
-- ⚡ **Step 1: hack-2-spec**
-  - 📄 `shared/rules/06-output-quality.md`
-  - 📄 `shared/templates/_INDEX.md`
-  - 📄 `hack-2-spec/docs/*.md`
-- ⚡ **Step 2: spec-it-* (선택)**
-  - `spec-it-stepbystep`
-    - 📄 `shared/output-rules.md`
-    - 📄 `shared/templates/*`
-    - 📄 `yaml-ui-frame/*.md`
-    - 📄 `design-trends-2026/*`
-  - `spec-it-complex`
-  - `spec-it-automation`
-  - `spec-it-fast-launch`
-
----
-
-## 14. Loader Skills
+## 15. Loader Skills
 
 ### spec-scenario-loader
-- 📄 **로드 대상**: `05-tests/scenarios/*`
-- 🎯 **목적**: 점진적 시나리오 로딩
+- 📂 **Loads**: `05-tests/test-scenarios/*`
 
 ### spec-component-loader
-- 📄 **로드 대상**: `03-components/*`
-- 🎯 **목적**: 컴포넌트 스펙 선택적 로딩
+- 📂 **Loads**: `03-components/*`
 
 ### spec-test-loader
-- 📄 **로드 대상**: `05-tests/*`
-- 🎯 **목적**: 테스트 계획서 점진적 로딩
+- 📂 **Loads**: `05-tests/*`
 
 ---
 
-# 전체 Skill 호출 그래프
+## Complete Call Graph
 
 ```
 spec-it (Router)
-├── spec-it-stepbystep ─┬─→ design-trends-2026
-├── spec-it-complex ────┤
-├── spec-it-automation ─┤
-└── spec-it-fast-launch ┴─→ spec-it-execute
+├── spec-it-stepbystep ──┬─→ design-trends-2026
+├── spec-it-complex ─────┤    └─→ critique-resolver (P5)
+├── spec-it-automation ──┤    └─→ critical-review (P11)
+└── spec-it-fast-launch ─┴─→ spec-it-execute
+                              └─→ api-predictor (P14)
+
+spec-it-automation (differs)
+├── P5 → critic-moderator (instead of critique-resolver)
+└── P11 → review-moderator (instead of review-resolver)
 
 spec-it-mock
 ├──→ hack-2-spec
-└──→ spec-it-* (stepbystep/complex/automation/fast-launch)
+└──→ spec-it-* (any mode)
 
 spec-mirror
 └──→ hack-2-spec
@@ -336,57 +277,74 @@ spec-mirror
 spec-change
 └──→ (8 analysis agents)
 
-spec-wireframe-edit
-└──→ spec-butterfly, wireframe-editor
+critical-review (NEW)
+├──→ scenario-reviewer (parallel)
+├──→ ia-reviewer (parallel)
+├──→ exception-reviewer (parallel)
+├──→ review-analytics
+└──→ review-resolver OR review-moderator
 
-spec-it-api-mcp
-└──→ api-parser, mcp-generator
+critique-resolver (NEW)
+└──→ (no agents, AskUserQuestion-based)
 
-init-spec-md
-└──→ spec-md-generator, spec-md-maintainer
-
-stitch-convert
-└──→ Stitch MCP Tools
+api-predictor (NEW)
+└──→ (no agents, spec analysis-based)
 ```
 
 ---
 
-# 미호출 Agent 리스트
+## New Agent Summary
 
-다음 에이전트들은 **어떤 Skill에서도 직접 호출되지 않습니다**:
-
-| Agent | 설명 | 비고 |
-|-------|------|------|
-| `security-reviewer` | 보안 감사 (OWASP) | 외부에서 직접 호출 전용 |
-| `screen-vision` | 스크린샷 시각 분석 | 향후 hack-2-spec 통합 예정 |
-
-## 최근 정리된 Agent
-
-| Agent | 변경 사항 |
-|-------|----------|
-| `spec-executor` | **삭제됨** - spec-it-execute와 역할 중복 |
-| `spec-critic` → `spec-dev-plan-critic` | **이름 변경** - Phase 2에 통합 |
-| `code-reviewer` | **Phase 4에 통합** - QA 단계에서 호출 |
+| Agent | Model | Phase | Role |
+|-------|-------|-------|------|
+| `critic-analytics` | Sonnet | P4 | Aggregate 3 critics → metrics |
+| `context-synthesizer` | Sonnet | P10 | Aggregate artifacts → spec-map.md |
+| `scenario-reviewer` | Opus | P11 | Scenario completeness review |
+| `ia-reviewer` | Opus | P11 | Information architecture review |
+| `exception-reviewer` | Opus | P11 | Exception handling review |
+| `review-analytics` | Sonnet | P11 | Aggregate reviews → ambiguities.md |
+| `review-resolver` | Sonnet | P11 | User resolution (step/comp) |
+| `review-moderator` | Opus | P11 | Auto consensus (auto) |
+| `dev-planner` | Sonnet | P14 | Development planning |
 
 ---
 
-# 공유 문서 참조 빈도
+## New Skill Summary
 
-| 문서 | 참조하는 Skill 수 |
-|------|-----------------|
-| `shared/rules/06-output-quality.md` | 5+ |
-| `shared/templates/_INDEX.md` | 4+ |
-| `shared/output-rules.md` | 4+ |
-| `shared/rules/05-vercel-skills.md` | 4+ |
-| `yaml-ui-frame/*.md` | 3+ |
-| `design-trends-2026/*` | 4 |
+| Skill | Phase | Role |
+|-------|-------|------|
+| `critique-resolver` | P5 | User resolution for critiques (step/comp only) |
+| `critical-review` | P11 | Review orchestration with parallel reviewers |
+| `api-predictor` | P14 | Predict API endpoints from specs |
 
 ---
 
-## 변경 이력
+## Shared Reference Summary
 
-| 버전 | 날짜 | 작성자 | 변경 내용 |
-|------|------|--------|----------|
-| 1.0 | 2026-02-03 | Claude | 초안 작성 (Mermaid) |
-| 2.0 | 2026-02-03 | Claude | Agent/Skill 참조 문서 전체 체인 포함 |
-| 3.0 | 2026-02-03 | Claude | 들여쓰기 목록 형식으로 변경 (가독성 개선) |
+### Root Level: `shared/`
+
+| Path | Referenced By |
+|------|---------------|
+| `references/common/critique-solve-format.md` | critique-resolver, critic-analytics |
+| `references/common/spec-map-format.md` | context-synthesizer, spec-assembler |
+| `references/common/test-scenario-format.md` | test-spec-writer |
+| `references/common/dev-plan-format.md` | dev-planner |
+| `references/critic-analytics/synthesis-format.md` | critic-analytics |
+| `references/critique-resolver/question-templates.md` | critique-resolver |
+| `references/critical-review/review-criteria.md` | scenario-reviewer, ia-reviewer, exception-reviewer |
+| `references/critical-review/ambiguity-format.md` | review-analytics |
+| `references/dev-planner/task-template.md` | dev-planner |
+| `references/api-predictor/design-principles.md` | api-predictor |
+| `references/api-predictor/api-format.md` | api-predictor |
+| `references/context-synthesizer/spec-map-guide.md` | context-synthesizer |
+
+---
+
+## Version History
+
+| Version | Date | Author | Changes |
+|---------|------|--------|---------|
+| 1.0 | 2026-02-03 | Claude | Initial (Mermaid) |
+| 2.0 | 2026-02-03 | Claude | Full reference chains |
+| 3.0 | 2026-02-03 | Claude | Indented list format |
+| 4.0 | 2026-02-03 | Claude | P1-P14 unified flow, new agents/skills |

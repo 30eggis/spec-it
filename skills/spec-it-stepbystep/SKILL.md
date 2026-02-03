@@ -1,6 +1,6 @@
 ---
 name: spec-it-stepbystep
-description: "Step-by-step spec generator with chapter approvals for small projects."
+description: "Step-by-step spec generator with phase approvals for small projects and learning."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
 argument-hint: "[--resume <sessionId>]"
 permissionMode: bypassPermissions
@@ -8,7 +8,12 @@ permissionMode: bypassPermissions
 
 # spec-it-stepbystep: Step-by-Step Mode
 
-Transform PRD/vibe-coding into frontend specifications with **chapter-by-chapter approval**.
+Transform PRD/vibe-coding into frontend specifications with **phase-by-phase approval**.
+
+**Approval Timing:** Every major phase
+**P5 Resolution:** critique-resolver (user input)
+**P11 Resolution:** review-resolver (user input)
+**Auto-Execute:** No
 
 ## Rules
 
@@ -18,167 +23,92 @@ See [shared/rules/06-output-quality.md](../shared/rules/06-output-quality.md) (O
 
 ### Output Templates (MANDATORY)
 
-All outputs MUST use templates from `skills/shared/templates/`:
+All outputs MUST use templates from `skills/shared/templates/`.
 
-| Output File | Template |
-|------------|----------|
-| requirements.md | `00-REQUIREMENTS_TEMPLATE.md` |
-| chapter-plan-final.md | `01-CHAPTER_PLAN_TEMPLATE.md` |
-| screen-list.md | `02-SCREEN_LIST_TEMPLATE.md` |
-| domain-map.md | `02-DOMAIN_MAP_TEMPLATE.md` |
-| {screen-id}.yaml | `02-WIREFRAME_YAML_TEMPLATE.yaml` |
-| component-inventory.md | `03-COMPONENT_INVENTORY_TEMPLATE.md` |
-| review-summary.md | `04-REVIEW_SUMMARY_TEMPLATE.md` |
-| test-specifications.md | `05-TEST_SPECIFICATIONS_TEMPLATE.md` |
-| final-spec.md | `06-FINAL_SPEC_TEMPLATE.md` |
-| dev-tasks.md | `06-DEV_TASKS_TEMPLATE.md` |
-| SPEC-SUMMARY.md | `06-SPEC_SUMMARY_TEMPLATE.md` |
-| PHASE-*.md | `PHASE_TEMPLATE.md` |
+### File Writing Rules
 
-### ⚠️ Main Orchestrator File Writing (CRITICAL)
-
-**메인 오케스트레이터에서 Bash로 파일 쓰기 절대 금지:**
+**Main orchestrator - NO Bash file writes:**
 - ❌ `cat > file <<` (heredoc)
 - ❌ `echo ... > file`
-- ❌ 모든 Bash 리다이렉션
 
-**대신 사용:**
-- ✅ 상태 파일 → status-update.sh 스크립트
-- ✅ 일반 파일 → Write 도구
-- ✅ 대용량 파일 → Task(서브에이전트)에 위임
+**Use instead:**
+- ✅ status-update.sh for status files
+- ✅ Write tool for general files
+- ✅ Task(subagent) for large files
 
-## Output Format
-
-Default output format is **YAML** (structured) for improved parsing and reduced tokens:
-
-| Spec Type | Template | Format |
-|-----------|----------|--------|
-| UI Wireframe | `UI_WIREFRAME_TEMPLATE.yaml` | YAML |
-| Component Spec | `COMPONENT_SPEC_TEMPLATE.yaml` | YAML |
-| Screen Spec | `SCREEN_SPEC_TEMPLATE.yaml` | YAML |
-| Layout System | `LAYOUT_TEMPLATE.yaml` | YAML |
-| Scenarios | Markdown | MD |
-| Dev Tasks | Markdown | MD |
-
-### YAML Benefits
-- **-64%** file size
-- **10x** faster parsing
-- **-80%** token duplication
-- Shared design tokens via `_ref`
-
-## Workflow
+## Workflow Overview (P1-P14)
 
 ```
-[CH-00] → Approval → [CH-01] → Approval → ... → [CH-07] → Final
+P1: design-interviewer → requirements.md
+      ↓ ★ Approval
+P2: persona-architect → personas/
+      ↓ ★ Approval
+P3: divergent-thinker → alternatives/
+      ↓ ★ Approval
+P4: critic-logic + critic-feasibility + critic-frontend (parallel)
+    → critic-analytics → critique-synthesis.md
+      ↓
+P5: critique-resolver (user input) → critique-solve/
+      ↓ ★ Approval
+P6: chapter-planner → chapter-plan-final.md
+      ↓ ★ Approval (RE-EXECUTION POINT)
+P7: ui-architect → wireframes/
+      ↓ ★ Approval
+P8: component-auditor → inventory.md
+      ↓
+P9: component-builder + component-migrator (parallel)
+      ↓ ★ Approval
+P10: context-synthesizer → spec-map.md
+      ↓
+P11: critical-review skill → review-decisions.md
+      ↓ [IF re-execution needed → P6]
+      ↓ ★ Approval
+P12: test-spec-writer → test-scenarios/
+      ↓ ★ Approval
+P13: spec-assembler → final links
+      ↓
+P14: api-predictor + dev-planner → dev-plan/
+      ↓
+★ Final Approval
 ```
 
 ---
 
 ## Phase 0: Init
 
-### Step 0.PREREQ: Initialize Vercel Skills (Auto)
-
-**CRITICAL:** Before any spec generation, ensure Vercel agent-skills submodule is available.
+### Step 0.PREREQ: Initialize Submodules
 
 ```bash
-# Auto-initialize submodule for Tailwind/design reference
 if [ ! -f "docs/refs/agent-skills/README.md" ]; then
   git submodule update --init --recursive docs/refs/agent-skills 2>/dev/null || echo "Warning: Could not init submodule"
 fi
 ```
 
-**Reference:** `skills/shared/rules/05-vercel-skills.md` for Tailwind layout mapping.
-
----
-
-### Step 0.0: Setup Intake (Design + Dashboard)
+### Step 0.0: Setup Intake
 
 ```
-# If already provided in args/user request, do NOT ask again.
-# Missing items are asked in a single AskUserQuestion.
-
 DESIGN_TRENDS_PATH = $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026
-designStyle = args.designStyle or userRequest
-designTrends = args.designTrends or userRequest
-dashboard = args.dashboard or userRequest
 
 questions = []
-
-IF designStyle missing:
-  questions += {
-    question: "어떤 디자인 스타일을 적용하시겠습니까? (2026 Design Trends 기반)",
-    header: "Design Style",
-    options: [
-      {label: "Minimal (Recommended)", description: "깔끔한 SaaS: 밝은 테마, 미니멀 카드, 깔끔한 테이블"},
-      {label: "Immersive", description: "다크 테마: 그라데이션 카드, 네온 포인트, 풍부한 시각 효과"},
-      {label: "Organic", description: "유기적: Glassmorphism, 부드러운 곡선, 3D 요소"},
-      {label: "Custom", description: "직접 트렌드 선택"},
-      {label: "Custom File", description: "직접 스타일 파일 경로 지정"}
-    ]
-  }
-
-IF dashboard missing:
-  questions += {
-    question: "웹 대시보드를 사용할까요?",
-    header: "Dashboard",
-    options: [
-      {label: "Enable", description: "Web dashboard 사용"},
-      {label: "Skip", description: "대시보드 없이 진행"}
-    ]
-  }
-
-IF questions not empty:
-  AskUserQuestion(questions)
-
-IF designStyle == "Custom":
-  AskUserQuestion(
-    questions: [{
-      question: "적용할 디자인 트렌드를 선택하세요",
-      header: "Trends",
-      multiSelect: true,
-      options: [
-        {label: "Dark Mode+", description: "어두운 테마 + 적응형 색상"},
-        {label: "Light Skeuomorphism", description: "부드러운 그림자, Neumorphic"},
-        {label: "Glassmorphism", description: "반투명 배경 + blur"},
-        {label: "Micro-Animations", description: "의미있는 모션"},
-        {label: "3D Visuals", description: "3D 아이콘, WebGL"},
-        {label: "Gamification", description: "Progress rings, 배지"}
-      ]
-    }]
-  )
-
-IF designStyle == "Custom File":
-  customPath = userInput
-  IF NOT exists(customPath + "/references/trends-summary.md"):
-    Output: "경고: trends-summary.md를 찾을 수 없습니다. 기본 스타일을 사용합니다."
-    DESIGN_TRENDS_PATH = default
-  ELSE:
-    DESIGN_TRENDS_PATH = customPath
-    _meta.customDesignPath = customPath
+IF designStyle missing: questions += design style question
+IF dashboard missing: questions += dashboard question
+IF questions not empty: AskUserQuestion(questions)
 
 _meta.designStyle = selectedStyle
-_meta.designTrends = selectedTrends or designTrends
 _meta.designTrendsPath = DESIGN_TRENDS_PATH
 _meta.dashboardEnabled = dashboard
+_meta.mode = "stepbystep"
 ```
 
 ### Step 0.1: Session Init
 
 ```
-# Generate session and get SESSION_DIR
-result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh "" {uiMode} "$(pwd)"
+result = Bash: session-init.sh "" stepbystep "$(pwd)"
+sessionId = extract SESSION_ID
+sessionDir = extract SESSION_DIR
 
-# Parse output to get SESSION_DIR (full absolute path)
-sessionId = extract SESSION_ID from result
-sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script calls
-
-→ Creates folders, _meta.json, _status.json
-
-IF _meta.dashboardEnabled == "Enable":
-  Output: "⏺ Dashboard:  file://$HOME/.claude/plugins/marketplaces/claude-frontend-skills/web-dashboard/index.html  을 열어 실시간 진행 상황을 확인할 수 있습니다."
-
-# Set spec format in _meta.json
-_meta.specFormat = "yaml"  # Default to YAML for new projects
+IF dashboard enabled:
+  Output: "⏺ Dashboard: file://.../web-dashboard/index.html"
 ```
 
 ### Step 0.R: Resume
@@ -186,291 +116,382 @@ _meta.specFormat = "yaml"  # Default to YAML for new projects
 ```
 IF --resume in args:
   Read: .spec-it/{sessionId}/plan/_meta.json
-  GOTO: _meta.currentStep
+  IF reexecuteFromP6: GOTO P6
+  ELSE: GOTO _meta.currentStep
 ```
 
 ---
 
-## Phase 1: Design Brainstorming
-
-### Chapters (CH-00 to CH-07)
+## P1: Requirements Gathering
 
 ```
-CH-00: Project Scope & Constraints
-CH-01: User & Persona Definition
-CH-02: Information Architecture
-CH-03: Screen Inventory
-CH-04: Feature Definition
-CH-05: Component Requirements
-CH-06: State & Data Flow
-CH-07: Non-Functional Requirements
-```
+Bash: status-update.sh {sessionDir} agent-start design-interviewer
 
-### For Each Chapter
+Task(design-interviewer, opus):
+  Output: 00-requirements/requirements.md
 
-```
-1. Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start design-interviewer
+Bash: status-update.sh {sessionDir} agent-complete design-interviewer "" 1.1
+Bash: meta-checkpoint.sh {sessionDir} 1.1
 
-2. Task(design-interviewer, opus):
-   - Conduct Q&A for chapter
-   - Output: 01-chapters/decisions/decision-{chapter}.md
-
-3. Show chapter summary to user
-
-4. AskUserQuestion: "Is this correct?"
-   Options: [Yes, No, Questions]
-
-5. Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete design-interviewer "" {stepNum}
-   # stepNum: 1.1 (CH-00), 1.2 (CH-01~CH-03), 1.3 (CH-04~CH-05), 1.4 (CH-06~CH-07)
-
-6. IF No/Questions: Revise and re-ask
-
-# After CH-07 (step 1.4) completes:
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
+AskUserQuestion: "Requirements captured. Review and approve?"
+Options: [Approve, Revise, Questions]
+IF Revise/Questions: Loop
 ```
 
 ---
 
-## Phase 2: UI Architecture
-
-### Step 2.1: Layout System + Domain Map
+## P2: Persona Definition
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect
+Bash: status-update.sh {sessionDir} agent-start persona-architect
+
+Task(persona-architect, sonnet):
+  Input: 00-requirements/requirements.md
+  Output: 01-chapters/personas/*.md
+
+Bash: status-update.sh {sessionDir} agent-complete persona-architect "" 2.1
+Bash: meta-checkpoint.sh {sessionDir} 2.1
+
+AskUserQuestion: "Personas defined. Review and approve?"
+Options: [Approve, Revise]
+```
+
+---
+
+## P3: Divergent Thinking
+
+```
+Bash: status-update.sh {sessionDir} agent-start divergent-thinker
+
+Task(divergent-thinker, sonnet):
+  Input: requirements.md, personas/
+  Output: 01-chapters/alternatives/*.md, _index.md
+
+Bash: status-update.sh {sessionDir} agent-complete divergent-thinker "" 3.1
+Bash: meta-checkpoint.sh {sessionDir} 3.1
+
+AskUserQuestion: "Alternatives explored. Review and approve?"
+Options: [Approve, Explore More]
+```
+
+---
+
+## P4: Multi-Critic Review (Parallel)
+
+```
+Bash: status-update.sh {sessionDir} agent-start "critic-logic,critic-feasibility,critic-frontend"
+
+Task(critic-logic, sonnet, parallel):
+  Output: 01-chapters/critique-logic.md
+
+Task(critic-feasibility, sonnet, parallel):
+  Output: 01-chapters/critique-feasibility.md
+
+Task(critic-frontend, sonnet, parallel):
+  Output: 01-chapters/critique-frontend.md
+
+WAIT for all 3
+
+Bash: status-update.sh {sessionDir} agent-complete "critic-logic,critic-feasibility,critic-frontend"
+Bash: status-update.sh {sessionDir} agent-start critic-analytics
+
+Task(critic-analytics, sonnet):
+  Input: critique-logic.md, critique-feasibility.md, critique-frontend.md
+  Output: 01-chapters/critique-synthesis.md
+
+Bash: status-update.sh {sessionDir} agent-complete critic-analytics "" 4.1
+Bash: meta-checkpoint.sh {sessionDir} 4.1
+```
+
+---
+
+## P5: Critique Resolution (User Input)
+
+```
+Read: 01-chapters/critique-synthesis.md
+Extract: must_resolve_count
+
+IF must_resolve_count > 0:
+  Bash: status-update.sh {sessionDir} agent-start critique-resolver
+
+  # Use critique-resolver skill for user input
+  Skill(critique-resolver):
+    Input: critique-synthesis.md
+    Output: critique-solve/*.md
+
+  Bash: status-update.sh {sessionDir} agent-complete critique-resolver "" 5.1
+
+ELSE:
+  Write: critique-solve/merged-decisions.md (empty - no issues)
+
+Bash: meta-checkpoint.sh {sessionDir} 5.1
+
+AskUserQuestion: "Critique resolved. Proceed to chapter planning?"
+Options: [Proceed, Review Decisions]
+```
+
+---
+
+## P6: Chapter Plan (RE-EXECUTION POINT)
+
+```
+Bash: status-update.sh {sessionDir} agent-start chapter-planner
+
+Task(chapter-planner, opus):
+  Input: requirements.md, personas/, alternatives/, critique-solve/
+  Output: 01-chapters/chapter-plan-final.md
+
+Bash: status-update.sh {sessionDir} agent-complete chapter-planner "" 6.1
+Bash: meta-checkpoint.sh {sessionDir} 6.1
+
+# Clear re-execution flag if set
+_meta.reexecuteFromP6 = false
+
+AskUserQuestion: "{N} chapters planned. Approve structure?"
+Options: [Approve, Modify]
+```
+
+---
+
+## P7: UI Architecture
+
+### Step 7.1: Layout System + Domain Map
+
+```
+Bash: status-update.sh {sessionDir} agent-start ui-architect
 
 Task(ui-architect, sonnet):
-  prompt: "
-    Role: ui-architect
-
-    === YAML UI FRAME REFERENCE (MUST READ) ===
-    Read: skills/shared/references/yaml-ui-frame/01-basic-structure.md
-    Read: skills/shared/references/yaml-ui-frame/02-grid-definition.md
-
-    === DESIGN REFERENCE ===
-    Read: {_meta.designTrendsPath}/references/trends-summary.md
-    Read: {_meta.designTrendsPath}/references/component-patterns.md
-    Read: {_meta.designTrendsPath}/templates/navigation-templates.md
-
-    Design Style: {_meta.designStyle}
-    Applied Trends: {_meta.designTrends}
-
-    === OUTPUT FORMAT (YAML) ===
-    Use template: assets/templates/LAYOUT_TEMPLATE.yaml
-    Reference design tokens: shared/design-tokens.yaml
-
-    Generate:
-      - 02-wireframes/layouts/layout-system.yaml
-      - 02-wireframes/layouts/components.yaml
-      - 02-wireframes/domain-map.md (domains + user types)
-    Do not generate screen lists in this step
-  "
+  Read: yaml-ui-frame references, design trends
+  Output:
+    - 02-wireframes/layouts/layout-system.yaml
+    - 02-wireframes/layouts/components.yaml
+    - 02-wireframes/domain-map.md
 ```
 
-### Step 2.1b: Shared + Screen Lists (Parallel)
+### Step 7.2: Screen Lists + Shared Docs
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect-screenlists
+FOR each domain (parallel):
+  Task(ui-architect, sonnet): Output shared/{domain}.md
 
-FOR each domain in domain-map (parallel, max 4):
-  Task(ui-architect, sonnet, parallel):
-    prompt: "
-      Role: ui-architect
-      Domain: {domain}
+FOR each domain/user-type (parallel):
+  Task(ui-architect, sonnet): Output screen-list.md
 
-      Output: 02-wireframes/shared/<domain>.md
-      Include design direction + shared UI components
-    "
-
-FOR each domain/user-type in domain-map (parallel, max 4):
-  Task(ui-architect, sonnet, parallel):
-    prompt: "
-      Role: ui-architect
-      Domain: {domain}
-      User type: {userType}
-
-      Output: 02-wireframes/<user-type>/<domain>/screen-list.md
-      Screen list rules:
-        - user_type: buyer | seller | admin | operator
-        - id format: <domain>-<user>-<flow>-<seq>
-        - fields: id, title, flow, priority, notes, depends_on(optional)
-    "
-
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/screen-planner.sh {sessionId}
-→ Creates screen-groups.json
+Bash: screen-planner.sh {sessionId}
 ```
 
-### Step 2.1c: Generate Wireframes (Parallel Batch)
+### Step 7.3: Wireframes
 
 ```
-FOR each batch (4 groups):
-  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/executors/batch-runner.sh {sessionId} wireframe {batchIndex}
+FOR each batch (parallel):
+  Task(ui-architect, sonnet):
+    Output: wireframes/{screen-id}.yaml
 
-    Task(ui-architect, sonnet, parallel):
-      prompt: "
-        Role: ui-architect
+Bash: status-update.sh {sessionDir} agent-complete ui-architect "" 7.1
+Bash: meta-checkpoint.sh {sessionDir} 7.1
 
-        Screen list: {screenListPath}
-        Read: {screenListPath}
-        Read: 02-wireframes/shared/<domain>.md (same domain as screen list)
-        Render all screens in this list (respect depends_on order)
-
-      === YAML UI FRAME REFERENCE (MUST READ) ===
-      Read: skills/shared/references/yaml-ui-frame/03-components.md
-      Read: skills/shared/references/yaml-ui-frame/07-design-direction.md
-
-      === DESIGN REFERENCE ===
-      Read: {_meta.designTrendsPath}/references/trends-summary.md
-      Read: {_meta.designTrendsPath}/references/component-patterns.md
-
-      Design Style: {_meta.designStyle}
-
-      === OUTPUT FORMAT (YAML) ===
-      Use template: assets/templates/UI_WIREFRAME_TEMPLATE.yaml
-      Reference: shared/design-tokens.yaml via _ref
-
-      Input: 02-wireframes/<user-type>/<domain>/screen-list.md + 02-wireframes/shared/<domain>.md
-      Output file: 02-wireframes/<user-type>/<domain>/wireframes/{screen-id}.yaml
-
-      === YAML STRUCTURE ===
-      Each wireframe must include:
-      - id, name, route, type, priority
-      - layout: type, sidebar, header, main
-      - grid: areas, columns, rows (CSS Grid)
-      - responsive: desktop, tablet, mobile
-      - components: list with props, styles, testId
-      - interactions: clicks, forms, stateChanges
-      - designDirection: appliedTrends, componentPatterns, colorTokens, motionGuidelines
-
-      === CRITICAL RULES ===
-      - NEVER use ASCII box characters (┌─┐│└┘)
-      - Use grid.areas for layout (CSS Grid syntax)
-      - Use components array with typed elements
-      - Include testId for all interactive elements
-    "
-
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect "" 2.1
+AskUserQuestion: "Wireframes complete. Review and approve?"
+Options: [Approve, Revise]
 ```
 
-### Step 2.2: Component Discovery
+---
+
+## P8: Component Audit
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start component-auditor
+Bash: status-update.sh {sessionDir} agent-start component-auditor
 
 Task(component-auditor, haiku):
   Output: 03-components/inventory.md, gap-analysis.md
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete component-auditor "" 2.2
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 2 3 "3.1"
-
-AskUserQuestion: "UI Architecture complete. Continue?"
+Bash: status-update.sh {sessionDir} agent-complete component-auditor "" 8.1
+Bash: meta-checkpoint.sh {sessionDir} 8.1
 ```
 
 ---
 
-## Phase 3: Component Specification
+## P9: Component Specs (Parallel)
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/planners/component-planner.sh {sessionId}
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "component-builder,component-migrator"
+Bash: component-planner.sh {sessionId}
+Bash: status-update.sh {sessionDir} agent-start "component-builder,component-migrator"
 
 Task(component-builder, sonnet, parallel):
-  prompt: "
-    Role: component-builder
-
-    === OUTPUT FORMAT (YAML) ===
-    Use template: assets/templates/COMPONENT_SPEC_TEMPLATE.yaml
-    Reference: shared/design-tokens.yaml via _ref
-
-    Output file: 03-components/new/{component}.yaml
-
-    Include all sections:
-    - id, name, category, priority
-    - props: with types, required, defaults
-    - variants, states
-    - visual: sizes, baseStyles, animation
-    - accessibility: role, keyboardNav, ariaAttributes
-    - dependencies, tests
-  "
   Output: 03-components/new/{component}.yaml
 
-Task(component-migrator, sonnet):
+Task(component-migrator, sonnet, parallel):
   Output: 03-components/migrations/migration-plan.md
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "component-builder,component-migrator" "" 3.1
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 3 4 "4.1"
+Bash: status-update.sh {sessionDir} agent-complete "component-builder,component-migrator" "" 9.1
+Bash: meta-checkpoint.sh {sessionDir} 9.1
 
-AskUserQuestion: "Components complete. Continue?"
+AskUserQuestion: "Components specified. Approve?"
+Options: [Approve, Revise]
 ```
 
 ---
 
-## Phase 4: Critical Review
+## P10: Context Synthesis
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "critical-reviewer,ambiguity-detector"
+Bash: status-update.sh {sessionDir} agent-start context-synthesizer
 
-Task(critical-reviewer, opus):
-  Output: 04-review/scenarios/, ia-review.md, exceptions/
+Task(context-synthesizer, sonnet):
+  Input: All artifacts from P1-P9
+  Output: spec-map.md
 
-Task(ambiguity-detector, opus):
-  Output: 04-review/ambiguities.md
-
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "critical-reviewer,ambiguity-detector" "" 4.1
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 4 5 "5.1"
-
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/phase-dispatcher.sh {sessionId} ambiguity
-→ IF must-resolve: AskUserQuestion for resolution
+Bash: status-update.sh {sessionDir} agent-complete context-synthesizer "" 10.1
+Bash: meta-checkpoint.sh {sessionDir} 10.1
 ```
 
 ---
 
-## Phase 5: Test Specification
+## P11: Critical Review
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start "persona-architect,test-spec-writer"
+# Use critical-review skill (orchestrates internal agents)
+Skill(critical-review, --mode stepbystep):
+  Internal flow:
+    1. scenario-reviewer (opus, parallel)
+    2. ia-reviewer (opus, parallel)
+    3. exception-reviewer (opus, parallel)
+    4. WAIT
+    5. review-analytics (sonnet) → ambiguities.md
+    6. IF must_resolve > 0: review-resolver (user input)
+    7. Output: review-decisions.md
 
-Task(persona-architect, sonnet):
-  Output: 05-tests/personas/
+Read: 04-review/review-decisions.md
+Check: Re-execution Trigger
+
+IF reexecution_required:
+  Output: "⚠️ Returning to P6 for re-planning."
+  _meta.reexecuteFromP6 = true
+  GOTO P6
+
+Bash: meta-checkpoint.sh {sessionDir} 11.1
+
+AskUserQuestion: "Critical review complete. Proceed to test specs?"
+Options: [Proceed, Review]
+```
+
+---
+
+## P12: Test Specification
+
+```
+Bash: status-update.sh {sessionDir} agent-start test-spec-writer
 
 Task(test-spec-writer, sonnet):
-  Output: 05-tests/scenarios/, components/, coverage-map.md
+  Input: personas/, spec-map.md, review-decisions.md
+  Output:
+    - test-scenarios/_index.md
+    - test-scenarios/{persona-id}/**
+    - test-scenarios/cross-persona/**
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete "persona-architect,test-spec-writer" "" 5.1
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 5 6 "6.1"
+Bash: status-update.sh {sessionDir} agent-complete test-spec-writer "" 12.1
+Bash: meta-checkpoint.sh {sessionDir} 12.1
 
-AskUserQuestion: "Tests complete. Continue?"
+AskUserQuestion: "Test scenarios complete. Approve?"
+Options: [Approve, Revise]
 ```
 
 ---
 
-## Phase 6: Final Assembly
+## P13: Final Assembly
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start spec-assembler
+Bash: status-update.sh {sessionDir} agent-start spec-assembler
 
 Task(spec-assembler, haiku):
-  Output: 06-final/final-spec.md, dev-tasks.md, SPEC-SUMMARY.md
+  Input: spec-map.md, test-scenarios/
+  Output:
+    - 06-final/final-spec.md
+    - 06-final/SPEC-SUMMARY.md
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete spec-assembler "" 6.1
+Bash: status-update.sh {sessionDir} agent-complete spec-assembler "" 13.1
+Bash: meta-checkpoint.sh {sessionDir} 13.1
+```
 
-AskUserQuestion: "Spec complete. Handle tmp folder?"
-Options: [Archive, Keep, Delete]
+---
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
+## P14: Development Planning
+
+### Step 14.1: API Prediction
+
+```
+Skill(api-predictor):
+  Input: spec-map.md, wireframes, components
+  Output: dev-plan/api-map.md
+```
+
+### Step 14.2: Dev Plan
+
+```
+Bash: status-update.sh {sessionDir} agent-start dev-planner
+
+Task(dev-planner, sonnet):
+  Input: spec-map.md, api-map.md, test-scenarios/
+  Output:
+    - dev-plan/development-map.md
+    - dev-plan/{persona-id}/Phase-{n}/Task-{n}.md
+    - dev-plan/shared/Phase-0/Task-{n}.md
+
+Bash: status-update.sh {sessionDir} agent-complete dev-planner "" 14.1
+Bash: meta-checkpoint.sh {sessionDir} 14.1
+```
+
+---
+
+## Final Approval
+
+```
+Read: 06-final/SPEC-SUMMARY.md
+
+AskUserQuestion: "Spec complete. What next?"
+Options: [
+  {label: "Run /spec-it-execute", description: "Start implementation"},
+  {label: "Archive", description: "Move to archive/"},
+  {label: "Keep", description: "Keep in tmp/"}
+]
+
+Bash: status-update.sh {sessionDir} complete
 ```
 
 ---
 
 ## Output Structure
 
-See `README.md` for the full output tree and examples.
+```
+tmp/
+├── 00-requirements/requirements.md
+├── 01-chapters/
+│   ├── personas/
+│   ├── alternatives/
+│   ├── critique-*.md
+│   ├── critique-synthesis.md
+│   └── chapter-plan-final.md
+├── critique-solve/
+│   ├── merged-decisions.md
+│   ├── ambiguity-resolved.md
+│   └── undefined-specs.md
+├── 02-wireframes/
+├── 03-components/
+├── 04-review/
+├── 05-tests/test-scenarios/
+│   ├── {persona-id}/
+│   └── cross-persona/
+├── 06-final/
+├── spec-map.md
+└── dev-plan/
+    ├── development-map.md
+    ├── api-map.md
+    └── {persona-id}/Phase-{n}/
+```
 
 ---
 
 ## Resume
 
 ```
-/frontend-skills:spec-it-stepbystep --resume {sessionId}
+/spec-it-stepbystep --resume {sessionId}
 ```
-
-State saved in `_meta.json` after each step.
