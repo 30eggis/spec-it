@@ -132,14 +132,81 @@ styles:
 ```
 FOR each HTML file:
   1. navigate_page(url)
-  2. take_snapshot() → collect a11y tree
-  3. Extract:
+  2. take_snapshot() → collect a11y tree (component structure)
+  3. evaluate_script() → extract CSS layout info (CRITICAL!)
+  4. Extract:
      - Screen title, route
      - Layout structure (sidebar, header, main)
      - All components (buttons, inputs, tables, cards, charts)
      - Interactions (clicks, filters, forms)
      - Status indicators (badges, tags, progress)
-  4. Save analysis to JSON
+  5. Merge a11y tree + CSS layout → Save analysis to JSON
+```
+
+#### 3.1.1 CSS Layout Extraction Script (MANDATORY)
+
+**CRITICAL**: a11y tree does NOT contain CSS layout info. You MUST run this script:
+
+```javascript
+// evaluate_script() - Extract Grid/Flex Layout
+() => {
+  const layouts = [];
+  document.querySelectorAll('*').forEach(el => {
+    const style = window.getComputedStyle(el);
+    const display = style.display;
+
+    if (display === 'grid' || display === 'flex') {
+      const classes = el.className;
+      layouts.push({
+        // Element identification
+        tag: el.tagName,
+        id: el.id,
+        classes: typeof classes === 'string' ? classes : '',
+        textPreview: el.textContent?.slice(0, 30)?.trim(),
+        childCount: el.children.length,
+
+        // Grid properties
+        display: display,
+        gridTemplateColumns: style.gridTemplateColumns,
+        gridTemplateRows: style.gridTemplateRows,
+
+        // Flex properties
+        flexDirection: style.flexDirection,
+        justifyContent: style.justifyContent,
+        alignItems: style.alignItems,
+
+        // Spacing
+        gap: style.gap,
+        padding: style.padding,
+        margin: style.margin
+      });
+    }
+  });
+  return layouts;
+}
+```
+
+#### 3.1.2 Interpreting Layout Results
+
+From the script output, extract:
+
+| CSS Property | Tailwind Source | YAML Output |
+|--------------|-----------------|-------------|
+| `gridTemplateColumns: "Xpx Xpx"` (equal) | `grid-cols-2` | `columns: 2, ratio: "1:1"` |
+| `gridTemplateColumns: "Xpx Xpx Xpx"` (equal) | `grid-cols-3` | `columns: 3, ratio: "1:1:1"` |
+| `justifyContent: "flex-end"` | `justify-end` | `justify: "end"` |
+| `justifyContent: "space-between"` | `justify-between` | `justify: "between"` |
+| `flexDirection: "column"` | `flex-col` | `direction: "column"` |
+| `display: "block"` | (default) | `direction: "column"` (implicit) |
+
+**Example interpretation:**
+```
+# Script output:
+{ gridTemplateColumns: "594px 594px", childCount: 2, textPreview: "휴가 현황..." }
+
+# Interpretation:
+- 2 equal columns (594px each) → grid-cols-2
+- YAML: columns: 2, ratio: "1:1"
 ```
 
 ### 3.2 For Codebase
@@ -167,26 +234,84 @@ IF design context provided:
 
 **Layout Rules (CRITICAL - Read `shared/references/common/rules/07-layout-extraction-rules.md`):**
 
-1. **Grid Columns 보존** - 12-column으로 변환 금지
-   - `grid-cols-2` → `columns: 2, ratio: "1:1"` (균등)
-   - `grid-cols-3` → `columns: 3, ratio: "1:1:1"` (균등)
-   - `lg:grid-cols-2` → `desktop: { columns: 2 }`
+> **핵심**: CSS Layout Script 결과를 기반으로 YAML을 생성해야 합니다.
 
-2. **Flex 정렬 필수 추출**
-   - `justify-end` → `justify: "end"` (요소들이 오른쪽)
-   - `justify-between` → `justify: "between"` (양쪽 분산)
-   - `items-center` → `align: "center"`
+### Rule 1: Grid Columns - 균등 비율 감지
 
-3. **Flex 방향 명시**
-   - `flex-col` → `direction: "column"`
-   - `display: block` → `direction: "column"` (암시적 수직 배치)
+CSS Script 결과에서 `gridTemplateColumns` 확인:
 
-4. **반응형 Breakpoint 분리**
-   - `lg:grid-cols-3 md:grid-cols-2` → 각각 desktop/tablet 분리 저장
+```
+# Script output (2개 동일 너비)
+gridTemplateColumns: "594px 594px"    → columns: 2, ratio: "1:1"
 
-5. **Col-span 비율 계산**
-   - `col-span-4` + `col-span-8` in `grid-cols-12` → `ratio: "1:2"`
-   - `col-span-6` + `col-span-6` → `ratio: "1:1"`
+# Script output (3개 동일 너비)
+gridTemplateColumns: "380px 380px 380px"  → columns: 3, ratio: "1:1:1"
+
+# Script output (5개 동일 너비)
+gridTemplateColumns: "220px 220px 220px 220px 220px"  → columns: 5
+```
+
+**❌ 금지**: 동일 너비를 12-column으로 변환하지 말 것
+```yaml
+# 잘못된 예 (grid-cols-2를 12-column으로 변환)
+areas: "left left left left left left right right right right right right"
+
+# 올바른 예
+columns: 2
+ratio: "1:1"
+```
+
+### Rule 2: Flex 정렬 - justify/align 필수 추출
+
+```
+# Script output
+justifyContent: "flex-end"     → justify: "end"    (오른쪽 정렬!)
+justifyContent: "space-between" → justify: "between"
+justifyContent: "center"       → justify: "center"
+alignItems: "center"           → align: "center"
+```
+
+### Rule 3: Flex 방향 - direction 필수 명시
+
+```
+# Script output
+flexDirection: "column"  → direction: "column"
+flexDirection: "row"     → direction: "row" (기본값, 생략 가능)
+
+# display: block인 경우 (script에 안 나옴)
+→ direction: "column" (자식들이 수직 배치되므로)
+```
+
+### Rule 4: 행별 Grid 분리 (IMPORTANT)
+
+같은 페이지에서 다른 grid 구조가 있으면 **rows로 분리**:
+
+```yaml
+grid:
+  rows:
+    - id: "stats"
+      columns: 5           # grid-cols-5
+      ratio: "1:1:1:1:1"
+    - id: "cards-row-1"
+      columns: 3           # lg:grid-cols-3
+      ratio: "1:1:1"
+    - id: "cards-row-2"
+      columns: 2           # lg:grid-cols-2
+      ratio: "1:1"         # ← 휴가현황:공지사항 = 1:1
+```
+
+### Rule 5: Header 내부 정렬
+
+Header의 내부 div의 justifyContent 확인:
+```
+# Script output for header inner div
+justifyContent: "flex-end"  → 토글/알림이 오른쪽에 배치
+
+# YAML
+- id: "header"
+  layout:
+    justify: "end"   # ← 필수!
+```
 
 ---
 

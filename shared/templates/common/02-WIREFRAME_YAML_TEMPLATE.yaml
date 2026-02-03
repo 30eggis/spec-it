@@ -18,30 +18,44 @@ layout:
 
 # Grid Definition (CSS Grid syntax)
 # IMPORTANT: Preserve original grid structure. Do NOT convert to 12-column.
+# Use evaluate_script() to extract actual CSS layout properties!
 grid:
+  # Option 1: Single grid for entire content
   desktop:
     display: "grid"
-    areas: |
-      {{desktop_grid_areas}}
-    columns: {{desktop_columns}}          # Number (e.g., 3) or string (e.g., "240px 1fr")
-    ratio: "{{desktop_ratio}}"            # e.g., "1:1", "1:1:1", "1:2" - MUST match columns
-    rows: "{{desktop_rows}}"
+    columns: {{desktop_columns}}          # Number from CSS (e.g., 2, 3, 5)
+    ratio: "{{desktop_ratio}}"            # e.g., "1:1", "1:1:1" - MUST be equal if columns are equal width
     gap: {{desktop_gap}}
-    max_width: {{max_width}}
-    margin: "0 auto"
-    source: "{{desktop_tailwind_class}}"  # e.g., "lg:grid-cols-3"
+    source: "{{desktop_tailwind_class}}"  # Original class (e.g., "lg:grid-cols-3 gap-6")
+
+  # Option 2: Multiple grids with different structures (RECOMMENDED for dashboards)
+  # Use this when page has different grid layouts per section
+  rows:
+    - id: "{{row_1_id}}"                  # e.g., "stats"
+      columns: {{row_1_columns}}          # From CSS: gridTemplateColumns column count
+      ratio: "{{row_1_ratio}}"            # "1:1:1:1:1" if 5 equal columns
+      gap: {{row_1_gap}}
+      source: "{{row_1_source}}"          # e.g., "grid-cols-5 gap-4"
+
+    - id: "{{row_2_id}}"                  # e.g., "cards-row-1"
+      columns: {{row_2_columns}}
+      ratio: "{{row_2_ratio}}"
+      gap: {{row_2_gap}}
+      source: "{{row_2_source}}"
+
+    - id: "{{row_3_id}}"                  # e.g., "cards-row-2"
+      columns: {{row_3_columns}}          # From CSS: 2 equal width columns
+      ratio: "{{row_3_ratio}}"            # "1:1" for equal distribution
+      gap: {{row_3_gap}}
+      source: "{{row_3_source}}"          # e.g., "lg:grid-cols-2 gap-6"
 
   tablet:
-    areas: |
-      {{tablet_grid_areas}}
     columns: {{tablet_columns}}
     ratio: "{{tablet_ratio}}"
     gap: {{tablet_gap}}
     source: "{{tablet_tailwind_class}}"
 
   mobile:
-    areas: |
-      {{mobile_grid_areas}}
     columns: {{mobile_columns}}
     ratio: "{{mobile_ratio}}"
     gap: {{mobile_gap}}
