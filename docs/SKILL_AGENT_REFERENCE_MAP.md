@@ -6,628 +6,343 @@
 
 ## 1. spec-it-stepbystep
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 spec-it-stepbystep"]
-        S1[Step-by-Step Mode]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[shared/output-rules.md]
-        SD2[shared/context-rules.md]
-        SD3[shared/rules/50-question-policy.md]
-        SD4[shared/rules/06-output-quality.md]
-        SD5[shared/templates/_INDEX.md]
-    end
-
-    subgraph AGENT_DI["🤖 design-interviewer"]
-        A1[Agent: Q&A Conductor]
-    end
-
-    subgraph AGENT_UI["🤖 ui-architect"]
-        A2[Agent: Wireframe Generator]
-    end
-    subgraph UI_DOCS["📄 ui-architect 참조"]
-        UD1[yaml-ui-frame/01-basic-structure.md]
-        UD2[yaml-ui-frame/02-grid-definition.md]
-        UD3[yaml-ui-frame/03-components.md]
-        UD4[yaml-ui-frame/07-design-direction.md]
-        UD5[design-trends-2026/references/trends-summary.md]
-        UD6[design-trends-2026/references/component-patterns.md]
-        UD7[design-trends-2026/templates/navigation-templates.md]
-        UD8[assets/templates/LAYOUT_TEMPLATE.yaml]
-        UD9[shared/design-tokens.yaml]
-    end
-
-    subgraph AGENT_CA["🤖 component-auditor"]
-        A3[Agent: Component Scanner]
-    end
-
-    subgraph AGENT_CB["🤖 component-builder"]
-        A4[Agent: Component Spec Writer]
-    end
-    subgraph CB_DOCS["📄 component-builder 참조"]
-        CBD1[assets/templates/COMPONENT_SPEC_TEMPLATE.yaml]
-        CBD2[shared/design-tokens.yaml]
-    end
-
-    subgraph AGENT_CM["🤖 component-migrator"]
-        A5[Agent: Migration Planner]
-    end
-
-    subgraph AGENT_CR["🤖 critical-reviewer"]
-        A6[Agent: Spec Reviewer]
-    end
-
-    subgraph AGENT_AD["🤖 ambiguity-detector"]
-        A7[Agent: Ambiguity Finder]
-    end
-
-    subgraph AGENT_PA["🤖 persona-architect"]
-        A8[Agent: Persona Creator]
-    end
-
-    subgraph AGENT_TS["🤖 test-spec-writer"]
-        A9[Agent: Test Spec Writer]
-    end
-
-    subgraph AGENT_SA["🤖 spec-assembler"]
-        A10[Agent: Final Assembler]
-    end
-
-    S1 --> SD1 & SD2 & SD3 & SD4 & SD5
-    S1 --> A1 & A2 & A3 & A4 & A5 & A6 & A7 & A8 & A9 & A10
-
-    A2 --> UD1 & UD2 & UD3 & UD4 & UD5 & UD6 & UD7 & UD8 & UD9
-    A4 --> CBD1 & CBD2
-```
+- 📄 **직접 참조**
+  - `shared/output-rules.md`
+  - `shared/context-rules.md`
+  - `shared/rules/50-question-policy.md`
+  - `shared/rules/06-output-quality.md`
+  - `shared/templates/_INDEX.md`
+- 🤖 **design-interviewer**
+  - *(프롬프트 기반 Q&A, 별도 문서 참조 없음)*
+- 🤖 **ui-architect**
+  - 📄 `yaml-ui-frame/01-basic-structure.md`
+  - 📄 `yaml-ui-frame/02-grid-definition.md`
+  - 📄 `yaml-ui-frame/03-components.md`
+  - 📄 `yaml-ui-frame/07-design-direction.md`
+  - 📄 `design-trends-2026/references/trends-summary.md`
+  - 📄 `design-trends-2026/references/component-patterns.md`
+  - 📄 `design-trends-2026/templates/navigation-templates.md`
+  - 📄 `assets/templates/LAYOUT_TEMPLATE.yaml`
+  - 📄 `shared/design-tokens.yaml`
+- 🤖 **component-auditor**
+  - *(코드베이스 스캔, 별도 문서 참조 없음)*
+- 🤖 **component-builder**
+  - 📄 `assets/templates/COMPONENT_SPEC_TEMPLATE.yaml`
+  - 📄 `shared/design-tokens.yaml`
+- 🤖 **component-migrator**
+  - *(inventory 기반 분석, 별도 문서 참조 없음)*
+- 🤖 **critical-reviewer**
+  - *(생성된 spec 검토, 별도 문서 참조 없음)*
+- 🤖 **ambiguity-detector**
+  - *(생성된 spec 분석, 별도 문서 참조 없음)*
+- 🤖 **persona-architect**
+  - *(사용자 정의 기반, 별도 문서 참조 없음)*
+- 🤖 **test-spec-writer**
+  - *(spec 기반 테스트 생성, 별도 문서 참조 없음)*
+- 🤖 **spec-assembler**
+  - *(모든 산출물 취합, 별도 문서 참조 없음)*
 
 ---
 
 ## 2. spec-it-complex
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 spec-it-complex"]
-        S1[Hybrid 4-Milestone Mode]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[shared/output-rules.md]
-        SD2[shared/context-rules.md]
-        SD3[shared/rules/50-question-policy.md]
-        SD4[shared/templates/_INDEX.md]
-    end
-
-    subgraph AGENTS["🤖 Agents"]
-        A1[design-interviewer]
-        A2[divergent-thinker]
-        A3[chapter-planner]
-        A4[ui-architect]
-        A5[component-auditor]
-        A6[component-builder]
-        A7[component-migrator]
-        A8[critical-reviewer]
-        A9[ambiguity-detector]
-        A10[persona-architect]
-        A11[test-spec-writer]
-        A12[spec-assembler]
-    end
-
-    subgraph UI_DOCS["📄 ui-architect 참조"]
-        UD1[yaml-ui-frame/01-basic-structure.md]
-        UD2[yaml-ui-frame/02-grid-definition.md]
-        UD3[yaml-ui-frame/03-components.md]
-        UD4[yaml-ui-frame/07-design-direction.md]
-        UD5[design-trends-2026/references/trends-summary.md]
-        UD6[design-trends-2026/references/component-patterns.md]
-    end
-
-    subgraph CB_DOCS["📄 component-builder 참조"]
-        CBD1[assets/templates/COMPONENT_SPEC_TEMPLATE.yaml]
-        CBD2[shared/design-tokens.yaml]
-    end
-
-    S1 --> SD1 & SD2 & SD3 & SD4
-    S1 --> A1 & A2 & A3 & A4 & A5 & A6 & A7 & A8 & A9 & A10 & A11 & A12
-
-    A4 --> UD1 & UD2 & UD3 & UD4 & UD5 & UD6
-    A6 --> CBD1 & CBD2
-```
+- 📄 **직접 참조**
+  - `shared/output-rules.md`
+  - `shared/context-rules.md`
+  - `shared/rules/50-question-policy.md`
+  - `shared/templates/_INDEX.md`
+- 🤖 **design-interviewer**
+  - *(프롬프트 기반 Q&A)*
+- 🤖 **divergent-thinker**
+  - *(대안 탐색, 별도 문서 참조 없음)*
+- 🤖 **chapter-planner**
+  - *(챕터 구조 설계, 별도 문서 참조 없음)*
+- 🤖 **ui-architect**
+  - 📄 `yaml-ui-frame/01-basic-structure.md`
+  - 📄 `yaml-ui-frame/02-grid-definition.md`
+  - 📄 `yaml-ui-frame/03-components.md`
+  - 📄 `yaml-ui-frame/07-design-direction.md`
+  - 📄 `design-trends-2026/references/trends-summary.md`
+  - 📄 `design-trends-2026/references/component-patterns.md`
+- 🤖 **component-auditor**
+- 🤖 **component-builder**
+  - 📄 `assets/templates/COMPONENT_SPEC_TEMPLATE.yaml`
+  - 📄 `shared/design-tokens.yaml`
+- 🤖 **component-migrator**
+- 🤖 **critical-reviewer**
+- 🤖 **ambiguity-detector**
+- 🤖 **persona-architect**
+- 🤖 **test-spec-writer**
+- 🤖 **spec-assembler**
 
 ---
 
 ## 3. spec-it-automation
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 spec-it-automation"]
-        S1[Full Auto Mode]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[shared/output-rules.md]
-        SD2[shared/context-rules.md]
-        SD3[shared/templates/_INDEX.md]
-    end
-
-    subgraph CRITIC_AGENTS["🤖 Critic Agents"]
-        CA1[critic-logic]
-        CA2[critic-feasibility]
-        CA3[critic-frontend]
-        CA4[critic-moderator]
-    end
-
-    subgraph CORE_AGENTS["🤖 Core Agents"]
-        A1[design-interviewer]
-        A2[divergent-thinker]
-        A3[chapter-planner]
-        A4[ui-architect]
-        A5[component-auditor]
-        A6[component-builder]
-        A7[critical-reviewer]
-        A8[ambiguity-detector]
-        A9[persona-architect]
-        A10[test-spec-writer]
-        A11[spec-assembler]
-    end
-
-    subgraph UI_DOCS["📄 ui-architect 참조"]
-        UD1[yaml-ui-frame/*.md]
-        UD2[design-trends-2026/references/*.md]
-    end
-
-    S1 --> SD1 & SD2 & SD3
-    S1 --> CA1 & CA2 & CA3 & CA4
-    S1 --> A1 & A2 & A3 & A4 & A5 & A6 & A7 & A8 & A9 & A10 & A11
-
-    A4 --> UD1 & UD2
-```
+- 📄 **직접 참조**
+  - `shared/output-rules.md`
+  - `shared/context-rules.md`
+  - `shared/templates/_INDEX.md`
+- 🤖 **Critic Agents (Parallel)**
+  - 🤖 **critic-logic** - 논리 일관성 검증
+  - 🤖 **critic-feasibility** - 구현 가능성 검증
+  - 🤖 **critic-frontend** - 프론트엔드 관점 검증
+  - 🤖 **critic-moderator** - 비평 종합 및 조율
+- 🤖 **design-interviewer**
+- 🤖 **divergent-thinker**
+- 🤖 **chapter-planner**
+- 🤖 **ui-architect**
+  - 📄 `yaml-ui-frame/*.md`
+  - 📄 `design-trends-2026/references/*.md`
+- 🤖 **component-auditor**
+- 🤖 **component-builder**
+  - 📄 `assets/templates/COMPONENT_SPEC_TEMPLATE.yaml`
+  - 📄 `shared/design-tokens.yaml`
+- 🤖 **critical-reviewer**
+- 🤖 **ambiguity-detector**
+- 🤖 **persona-architect**
+- 🤖 **test-spec-writer**
+- 🤖 **spec-assembler**
 
 ---
 
 ## 4. spec-it-fast-launch
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 spec-it-fast-launch"]
-        S1[Rapid Wireframe Mode]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[shared/output-rules.md]
-        SD2[shared/rules/50-question-policy.md]
-        SD3[shared/rules/06-output-quality.md]
-    end
-
-    subgraph AGENTS["🤖 Agents"]
-        A1[ui-architect]
-        A2[spec-assembler]
-    end
-
-    subgraph UI_DOCS["📄 ui-architect 참조"]
-        UD1[yaml-ui-frame/*.md]
-        UD2[design-trends-2026/references/trends-summary.md]
-        UD3[design-trends-2026/references/component-patterns.md]
-    end
-
-    subgraph INVOKE_SKILL["⚡ Auto Invokes Skill"]
-        IS1[spec-it-execute]
-    end
-
-    subgraph EXEC_DOCS["📄 spec-it-execute 참조"]
-        ED1[spec-it-execute/docs/00-overview.md]
-        ED2[spec-it-execute/docs/01-rules.md]
-        ED3[spec-it-execute/docs/02-phase-0-2-init-load-plan.md]
-        ED4[spec-it-execute/docs/03-phase-3-execute.md]
-        ED5[spec-it-execute/docs/14-agents.md]
-    end
-
-    S1 --> SD1 & SD2 & SD3
-    S1 --> A1 & A2
-    A1 --> UD1 & UD2 & UD3
-    A2 --> IS1
-    IS1 --> ED1 & ED2 & ED3 & ED4 & ED5
-```
+- 📄 **직접 참조**
+  - `shared/output-rules.md`
+  - `shared/rules/50-question-policy.md`
+  - `shared/rules/06-output-quality.md`
+- 🤖 **ui-architect**
+  - 📄 `yaml-ui-frame/*.md`
+  - 📄 `design-trends-2026/references/trends-summary.md`
+  - 📄 `design-trends-2026/references/component-patterns.md`
+- 🤖 **spec-assembler**
+- ⚡ **Auto Invokes: spec-it-execute**
+  - 📄 `spec-it-execute/docs/00-overview.md`
+  - 📄 `spec-it-execute/docs/01-rules.md`
+  - 📄 `spec-it-execute/docs/02-phase-0-2-init-load-plan.md`
+  - 📄 `spec-it-execute/docs/03-phase-3-execute.md`
+  - 📄 `spec-it-execute/docs/04-phase-4-qa.md`
+  - 📄 `spec-it-execute/docs/05-phase-5-mirror.md`
+  - 📄 `spec-it-execute/docs/06-phase-6-unit-tests.md`
+  - 📄 `spec-it-execute/docs/07-phase-7-e2e.md`
+  - 📄 `spec-it-execute/docs/08-phase-8-validate.md`
+  - 📄 `spec-it-execute/docs/09-phase-9-complete.md`
+  - 📄 `spec-it-execute/docs/14-agents.md`
 
 ---
 
 ## 5. spec-change
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 spec-change"]
-        S1[Spec Modification Router]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[spec-change/references/output-formats.md]
-        SD2[shared/output-rules.md]
-        SD3[shared/context-rules.md]
-    end
-
-    subgraph BATCH1["🤖 Batch 1 Agents (Parallel)"]
-        B1A1[spec-doppelganger]
-        B1A2[spec-conflict]
-        B1A3[spec-clarity]
-        B1A4[spec-consistency]
-    end
-
-    subgraph BATCH2["🤖 Batch 2 Agents (Parallel)"]
-        B2A1[spec-coverage]
-        B2A2[spec-butterfly]
-    end
-
-    subgraph FINAL_AGENTS["🤖 Final Agents"]
-        FA1[change-planner]
-        FA2[rtm-updater]
-    end
-
-    subgraph OUTPUT["📤 Output"]
-        O1[_analysis/doppelganger.json]
-        O2[_analysis/conflict.json]
-        O3[_analysis/clarity.json]
-        O4[_analysis/consistency.json]
-        O5[_analysis/coverage.json]
-        O6[_analysis/butterfly.json]
-        O7[_analysis/change-plan.md]
-        O8[_traceability/rtm.json]
-    end
-
-    S1 --> SD1 & SD2 & SD3
-    S1 --> B1A1 & B1A2 & B1A3 & B1A4
-    S1 --> B2A1 & B2A2
-    S1 --> FA1 & FA2
-
-    B1A1 --> O1
-    B1A2 --> O2
-    B1A3 --> O3
-    B1A4 --> O4
-    B2A1 --> O5
-    B2A2 --> O6
-    FA1 --> O7
-    FA2 --> O8
-```
+- 📄 **직접 참조**
+  - `spec-change/references/output-formats.md`
+  - `shared/output-rules.md`
+  - `shared/context-rules.md`
+- 🤖 **Batch 1 Agents (Parallel)**
+  - 🤖 **spec-doppelganger** → `_analysis/doppelganger.json`
+  - 🤖 **spec-conflict** → `_analysis/conflict.json`
+  - 🤖 **spec-clarity** → `_analysis/clarity.json`
+  - 🤖 **spec-consistency** → `_analysis/consistency.json`
+- 🤖 **Batch 2 Agents (Parallel)**
+  - 🤖 **spec-coverage** → `_analysis/coverage.json`
+  - 🤖 **spec-butterfly** → `_analysis/butterfly.json`
+- 🤖 **Final Agents**
+  - 🤖 **change-planner** → `_analysis/change-plan.md`
+  - 🤖 **rtm-updater** → `_traceability/rtm.json`
 
 ---
 
 ## 6. hack-2-spec
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 hack-2-spec"]
-        S1[Reverse Engineering]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[shared/rules/06-output-quality.md]
-        SD2[shared/templates/_INDEX.md]
-        SD3[hack-2-spec/docs/01-output-structure.md]
-        SD4[hack-2-spec/docs/00-design-context.md]
-        SD5[shared/design-token-parser.md]
-        SD6[shared/rules/05-vercel-skills.md]
-    end
-
-    subgraph TEMPLATES["📄 Output Templates"]
-        T1[templates/00-REQUIREMENTS_TEMPLATE.md]
-        T2[templates/01-CHAPTER_PLAN_TEMPLATE.md]
-        T3[templates/02-SCREEN_LIST_TEMPLATE.md]
-        T4[templates/02-DOMAIN_MAP_TEMPLATE.md]
-        T5[templates/02-WIREFRAME_YAML_TEMPLATE.yaml]
-        T6[templates/03-COMPONENT_INVENTORY_TEMPLATE.md]
-        T7[templates/04-REVIEW_SUMMARY_TEMPLATE.md]
-        T8[templates/05-TEST_SPECIFICATIONS_TEMPLATE.md]
-        T9[templates/06-FINAL_SPEC_TEMPLATE.md]
-        T10[templates/06-DEV_TASKS_TEMPLATE.md]
-        T11[templates/PHASE_TEMPLATE.md]
-    end
-
-    subgraph INTEGRATION["⚡ Integration Skills"]
-        IS1[spec-it-mock]
-        IS2[spec-mirror]
-    end
-
-    S1 --> SD1 & SD2 & SD3 & SD4 & SD5 & SD6
-    SD2 --> T1 & T2 & T3 & T4 & T5 & T6 & T7 & T8 & T9 & T10 & T11
-    IS1 --> S1
-    IS2 --> S1
-```
+- 📄 **직접 참조**
+  - `shared/rules/06-output-quality.md`
+  - `shared/templates/_INDEX.md`
+  - `hack-2-spec/docs/01-output-structure.md`
+  - `hack-2-spec/docs/00-design-context.md`
+  - `shared/design-token-parser.md`
+  - `shared/rules/05-vercel-skills.md`
+- 📄 **Output Templates (via _INDEX.md)**
+  - `templates/00-REQUIREMENTS_TEMPLATE.md`
+  - `templates/01-CHAPTER_PLAN_TEMPLATE.md`
+  - `templates/02-SCREEN_LIST_TEMPLATE.md`
+  - `templates/02-DOMAIN_MAP_TEMPLATE.md`
+  - `templates/02-WIREFRAME_YAML_TEMPLATE.yaml`
+  - `templates/03-COMPONENT_INVENTORY_TEMPLATE.md`
+  - `templates/04-REVIEW_SUMMARY_TEMPLATE.md`
+  - `templates/05-TEST_SPECIFICATIONS_TEMPLATE.md`
+  - `templates/06-FINAL_SPEC_TEMPLATE.md`
+  - `templates/06-DEV_TASKS_TEMPLATE.md`
+  - `templates/PHASE_TEMPLATE.md`
+- ⬅️ **Referenced By**
+  - `spec-it-mock`
+  - `spec-mirror`
 
 ---
 
-## 7. spec-it-api-mcp
+## 7. spec-mirror
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 spec-it-api-mcp"]
-        S1[OpenAPI to MCP]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[spec-it-api-mcp/references/output-schemas.md]
-        SD2[spec-it-api-mcp/references/integration-examples.md]
-    end
-
-    subgraph AGENTS["🤖 Agents"]
-        A1[api-parser]
-        A2[mcp-generator]
-    end
-
-    subgraph PARSER_OUT["📤 api-parser Output"]
-        PO1[endpoints.json]
-        PO2[schemas.json]
-        PO3[metadata.json]
-    end
-
-    subgraph GEN_OUT["📤 mcp-generator Output"]
-        GO1[server.ts]
-        GO2[handlers/*.ts]
-        GO3[handlers/_meta.ts]
-        GO4[mocks/*.ts]
-    end
-
-    S1 --> SD1 & SD2
-    S1 --> A1 & A2
-    A1 --> PO1 & PO2 & PO3
-    A2 --> GO1 & GO2 & GO3 & GO4
-```
+- 📄 **직접 참조**
+  - `spec-mirror/assets/templates/MIRROR_REPORT_TEMPLATE.md`
+  - `shared/rules/05-vercel-skills.md`
+- ⚡ **Uses Skill: hack-2-spec**
+  - 📄 `shared/rules/06-output-quality.md`
+  - 📄 `shared/templates/_INDEX.md`
+  - 📄 `hack-2-spec/docs/01-output-structure.md`
+  - 📄 `shared/design-token-parser.md`
 
 ---
 
-## 8. spec-mirror
+## 8. spec-it-api-mcp
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 spec-mirror"]
-        S1[Implementation Verification]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[spec-mirror/assets/templates/MIRROR_REPORT_TEMPLATE.md]
-        SD2[shared/rules/05-vercel-skills.md]
-    end
-
-    subgraph INVOKE_SKILL["⚡ Uses Skill"]
-        IS1[hack-2-spec]
-    end
-
-    subgraph HACK_DOCS["📄 hack-2-spec 참조"]
-        HD1[shared/rules/06-output-quality.md]
-        HD2[shared/templates/_INDEX.md]
-        HD3[hack-2-spec/docs/01-output-structure.md]
-        HD4[shared/design-token-parser.md]
-    end
-
-    S1 --> SD1 & SD2
-    S1 --> IS1
-    IS1 --> HD1 & HD2 & HD3 & HD4
-```
+- 📄 **직접 참조**
+  - `spec-it-api-mcp/references/output-schemas.md`
+  - `spec-it-api-mcp/references/integration-examples.md`
+- 🤖 **api-parser**
+  - 📤 `endpoints.json`
+  - 📤 `schemas.json`
+  - 📤 `metadata.json`
+- 🤖 **mcp-generator**
+  - 📤 `server.ts`
+  - 📤 `handlers/*.ts`
+  - 📤 `handlers/_meta.ts`
+  - 📤 `mocks/*.ts`
 
 ---
 
 ## 9. spec-wireframe-edit
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 spec-wireframe-edit"]
-        S1[Wireframe Modification]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[spec-wireframe-edit/references/output-formats.md]
-    end
-
-    subgraph REF_DOCS["📄 YAML UI Frame Reference"]
-        RD1[yaml-ui-frame/01-basic-structure.md]
-        RD2[yaml-ui-frame/02-grid-definition.md]
-        RD3[yaml-ui-frame/03-components.md]
-        RD4[yaml-ui-frame/07-design-direction.md]
-    end
-
-    subgraph AGENTS["🤖 Agents"]
-        A1[spec-butterfly]
-        A2[wireframe-editor]
-    end
-
-    S1 --> SD1
-    S1 --> RD1 & RD2 & RD3 & RD4
-    S1 --> A1 & A2
-    A2 --> RD1 & RD2 & RD3 & RD4
-```
+- 📄 **직접 참조**
+  - `spec-wireframe-edit/references/output-formats.md`
+- 📄 **YAML UI Frame Reference**
+  - `yaml-ui-frame/01-basic-structure.md`
+  - `yaml-ui-frame/02-grid-definition.md`
+  - `yaml-ui-frame/03-components.md`
+  - `yaml-ui-frame/07-design-direction.md`
+- 🤖 **spec-butterfly**
+  - *(변경 영향 분석)*
+- 🤖 **wireframe-editor**
+  - 📄 `yaml-ui-frame/*.md` *(동일 참조)*
 
 ---
 
 ## 10. init-spec-md
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 init-spec-md"]
-        S1[SPEC-IT Registry Generator]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[shared/context-rules.md]
-        SD2[spec-it/assets/templates/SPEC_IT_COMPONENT_TEMPLATE.md]
-        SD3[spec-it/assets/templates/SPEC_IT_PAGE_TEMPLATE.md]
-    end
-
-    subgraph AGENTS["🤖 Agents"]
-        A1[spec-md-generator]
-        A2[spec-md-maintainer]
-    end
-
-    subgraph AGENT_DOCS["📄 Agent 참조"]
-        AD1[SPEC_IT_COMPONENT_TEMPLATE.md]
-        AD2[SPEC_IT_PAGE_TEMPLATE.md]
-    end
-
-    S1 --> SD1 & SD2 & SD3
-    S1 --> A1 & A2
-    A1 --> AD1 & AD2
-    A2 --> AD1 & AD2
-```
+- 📄 **직접 참조**
+  - `shared/context-rules.md`
+  - `spec-it/assets/templates/SPEC_IT_COMPONENT_TEMPLATE.md`
+  - `spec-it/assets/templates/SPEC_IT_PAGE_TEMPLATE.md`
+- 🤖 **spec-md-generator**
+  - 📄 `SPEC_IT_COMPONENT_TEMPLATE.md`
+  - 📄 `SPEC_IT_PAGE_TEMPLATE.md`
+- 🤖 **spec-md-maintainer**
+  - 📄 `SPEC_IT_COMPONENT_TEMPLATE.md`
+  - 📄 `SPEC_IT_PAGE_TEMPLATE.md`
 
 ---
 
 ## 11. stitch-convert
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 stitch-convert"]
-        S1[YAML to HTML]
-    end
-
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[shared/rules/05-vercel-skills.md]
-    end
-
-    subgraph MCP_TOOLS["🔧 MCP Tools (Not Agents)"]
-        M1[mcp__stitch__create_project]
-        M2[mcp__stitch__set_workspace_project]
-        M3[mcp__stitch__generate_screen_from_text]
-        M4[mcp__stitch__design_qa]
-        M5[mcp__stitch__export_design_system]
-    end
-
-    S1 --> SD1
-    S1 --> M1 & M2 & M3 & M4 & M5
-```
+- 📄 **직접 참조**
+  - `shared/rules/05-vercel-skills.md`
+- 🔧 **MCP Tools (Not Agents)**
+  - `mcp__stitch__create_project`
+  - `mcp__stitch__set_workspace_project`
+  - `mcp__stitch__generate_screen_from_text`
+  - `mcp__stitch__design_qa`
+  - `mcp__stitch__export_design_system`
 
 ---
 
 ## 12. design-trends-2026
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 design-trends-2026"]
-        S1[Design Reference Pack]
-    end
-
-    subgraph DOCS["📄 Documents"]
-        D1[references/trends-summary.md]
-        D2[references/component-patterns.md]
-        D3[references/motion-presets.md]
-        D4[references/color-systems.md]
-        D5[templates/card-templates.md]
-        D6[templates/dashboard-templates.md]
-        D7[templates/form-templates.md]
-        D8[templates/navigation-templates.md]
-        D9[integration/agent-prompts.md]
-    end
-
-    subgraph USED_BY["⬅️ Referenced By"]
-        UB1[spec-it-stepbystep]
-        UB2[spec-it-complex]
-        UB3[spec-it-automation]
-        UB4[spec-it-fast-launch]
-    end
-
-    S1 --> D1 & D2 & D3 & D4 & D5 & D6 & D7 & D8 & D9
-    UB1 & UB2 & UB3 & UB4 --> S1
-```
+- 📄 **제공 문서**
+  - `references/trends-summary.md`
+  - `references/component-patterns.md`
+  - `references/motion-presets.md`
+  - `references/color-systems.md`
+  - `templates/card-templates.md`
+  - `templates/dashboard-templates.md`
+  - `templates/form-templates.md`
+  - `templates/navigation-templates.md`
+  - `integration/agent-prompts.md`
+- ⬅️ **Referenced By**
+  - `spec-it-stepbystep`
+  - `spec-it-complex`
+  - `spec-it-automation`
+  - `spec-it-fast-launch`
 
 ---
 
 ## 13. spec-it-mock
 
-```mermaid
-flowchart TB
-    subgraph SKILL["🎯 spec-it-mock"]
-        S1[Clone & Reproduce Mode]
-    end
+- 📄 **직접 참조**
+  - `shared/design-token-parser.md`
+  - `spec-it-mock/docs/01-design-system-load.md`
+  - `spec-it-mock/docs/02-hack-2-spec-integration.md`
+  - `spec-it-mock/docs/03-spec-it-execution.md`
+  - `shared/rules/05-vercel-skills.md`
+- ⚡ **Step 1: hack-2-spec**
+  - 📄 `shared/rules/06-output-quality.md`
+  - 📄 `shared/templates/_INDEX.md`
+  - 📄 `hack-2-spec/docs/*.md`
+- ⚡ **Step 2: spec-it-* (선택)**
+  - `spec-it-stepbystep`
+    - 📄 `shared/output-rules.md`
+    - 📄 `shared/templates/*`
+    - 📄 `yaml-ui-frame/*.md`
+    - 📄 `design-trends-2026/*`
+  - `spec-it-complex`
+  - `spec-it-automation`
+  - `spec-it-fast-launch`
 
-    subgraph SKILL_DOCS["📄 Skill 직접 참조"]
-        SD1[shared/design-token-parser.md]
-        SD2[spec-it-mock/docs/01-design-system-load.md]
-        SD3[spec-it-mock/docs/02-hack-2-spec-integration.md]
-        SD4[spec-it-mock/docs/03-spec-it-execution.md]
-        SD5[shared/rules/05-vercel-skills.md]
-    end
+---
 
-    subgraph INVOKE_SKILL1["⚡ Step 1: hack-2-spec"]
-        IS1[hack-2-spec]
-    end
-    subgraph HACK_CHAIN["📄 hack-2-spec 참조 체인"]
-        HC1[shared/rules/06-output-quality.md]
-        HC2[shared/templates/_INDEX.md]
-        HC3[hack-2-spec/docs/*.md]
-    end
+## 14. Loader Skills
 
-    subgraph INVOKE_SKILL2["⚡ Step 2: spec-it-*"]
-        IS2[spec-it-stepbystep]
-        IS3[spec-it-complex]
-        IS4[spec-it-automation]
-        IS5[spec-it-fast-launch]
-    end
-    subgraph SPECIT_CHAIN["📄 spec-it-* 참조 체인"]
-        SC1[shared/output-rules.md]
-        SC2[shared/templates/*]
-        SC3[yaml-ui-frame/*.md]
-        SC4[design-trends-2026/*]
-    end
+### spec-scenario-loader
+- 📄 **로드 대상**: `05-tests/scenarios/*`
+- 🎯 **목적**: 점진적 시나리오 로딩
 
-    S1 --> SD1 & SD2 & SD3 & SD4 & SD5
-    S1 --> IS1
-    IS1 --> HC1 & HC2 & HC3
-    S1 --> IS2 & IS3 & IS4 & IS5
-    IS2 & IS3 & IS4 & IS5 --> SC1 & SC2 & SC3 & SC4
-```
+### spec-component-loader
+- 📄 **로드 대상**: `03-components/*`
+- 🎯 **목적**: 컴포넌트 스펙 선택적 로딩
+
+### spec-test-loader
+- 📄 **로드 대상**: `05-tests/*`
+- 🎯 **목적**: 테스트 계획서 점진적 로딩
 
 ---
 
 # 전체 Skill 호출 그래프
 
-```mermaid
-flowchart TB
-    subgraph ROUTER["Main Router"]
-        SPEC_IT[spec-it]
-    end
+```
+spec-it (Router)
+├── spec-it-stepbystep ─┬─→ design-trends-2026
+├── spec-it-complex ────┤
+├── spec-it-automation ─┤
+└── spec-it-fast-launch ┴─→ spec-it-execute
 
-    subgraph MODES["Generation Modes"]
-        SBS[spec-it-stepbystep]
-        CX[spec-it-complex]
-        AUTO[spec-it-automation]
-        FAST[spec-it-fast-launch]
-    end
+spec-it-mock
+├──→ hack-2-spec
+└──→ spec-it-* (stepbystep/complex/automation/fast-launch)
 
-    subgraph EXECUTION["Execution"]
-        EXEC[spec-it-execute]
-    end
+spec-mirror
+└──→ hack-2-spec
 
-    subgraph ANALYSIS["Analysis & Change"]
-        CHANGE[spec-change]
-        MIRROR[spec-mirror]
-        MOCK[spec-it-mock]
-    end
+spec-change
+└──→ (8 analysis agents)
 
-    subgraph REVERSE["Reverse Engineering"]
-        HACK[hack-2-spec]
-    end
+spec-wireframe-edit
+└──→ spec-butterfly, wireframe-editor
 
-    subgraph UTILS["Utilities"]
-        STITCH[stitch-convert]
-        API[spec-it-api-mcp]
-        WF[spec-wireframe-edit]
-        INIT[init-spec-md]
-    end
+spec-it-api-mcp
+└──→ api-parser, mcp-generator
 
-    subgraph REFERENCE["Reference Only"]
-        DESIGN[design-trends-2026]
-    end
+init-spec-md
+└──→ spec-md-generator, spec-md-maintainer
 
-    SPEC_IT --> SBS & CX & AUTO & FAST
-
-    FAST --> EXEC
-    SBS -.-> EXEC
-    CX -.-> EXEC
-    AUTO -.-> EXEC
-
-    MOCK --> HACK
-    MOCK --> SBS & CX & AUTO & FAST
-
-    MIRROR --> HACK
-
-    SBS & CX & AUTO & FAST -.-> DESIGN
+stitch-convert
+└──→ Stitch MCP Tools
 ```
 
 ---
@@ -650,12 +365,12 @@ flowchart TB
 
 | 문서 | 참조하는 Skill 수 |
 |------|-----------------|
-| `shared/rules/06-output-quality.md` | 5+ (거의 모든 생성 Skill) |
-| `shared/templates/_INDEX.md` | 4+ (hack-2-spec, spec-it-*) |
-| `shared/output-rules.md` | 4+ (모든 spec-it 모드) |
-| `shared/rules/05-vercel-skills.md` | 4+ (레이아웃 관련 Skill) |
-| `yaml-ui-frame/*.md` | 3+ (ui-architect 사용 Skill) |
-| `design-trends-2026/*` | 4 (모든 spec-it 모드) |
+| `shared/rules/06-output-quality.md` | 5+ |
+| `shared/templates/_INDEX.md` | 4+ |
+| `shared/output-rules.md` | 4+ |
+| `shared/rules/05-vercel-skills.md` | 4+ |
+| `yaml-ui-frame/*.md` | 3+ |
+| `design-trends-2026/*` | 4 |
 
 ---
 
@@ -663,5 +378,6 @@ flowchart TB
 
 | 버전 | 날짜 | 작성자 | 변경 내용 |
 |------|------|--------|----------|
-| 1.0 | 2026-02-03 | Claude | 초안 작성 |
+| 1.0 | 2026-02-03 | Claude | 초안 작성 (Mermaid) |
 | 2.0 | 2026-02-03 | Claude | Agent/Skill 참조 문서 전체 체인 포함 |
+| 3.0 | 2026-02-03 | Claude | 들여쓰기 목록 형식으로 변경 (가독성 개선) |
