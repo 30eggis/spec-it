@@ -1,0 +1,403 @@
+# Design Tokens YAML Output Schema
+# This schema defines the structure for converted design system files
+
+# =============================================================================
+# METADATA
+# =============================================================================
+meta:
+  name: "Project Design System"
+  version: "1.0.0"
+  description: "Design tokens extracted from design system documentation"
+  source: "design-system.md"
+
+# =============================================================================
+# COLOR SYSTEM
+# =============================================================================
+colors:
+  # Brand/Primary Colors
+  brand:
+    primary:
+      value: "#FFD700"
+      description: "Primary CTA, selected states, accent elements"
+    secondary:
+      value: "#000000"
+      description: "Secondary buttons, headers"
+
+  # Neutral/Gray Scale
+  neutral:
+    black:
+      value: "#000000"
+    white:
+      value: "#FFFFFF"
+    gray:
+      50:
+        value: "#F5F5F5"
+        description: "Light background"
+      100:
+        value: "#E0E0E0"
+        description: "Borders, dividers"
+      400:
+        value: "#999999"
+        description: "Tertiary text, placeholders"
+      600:
+        value: "#666666"
+        description: "Secondary text"
+      800:
+        value: "#2D2D2D"
+        description: "Dark gray chips, cards"
+
+  # Semantic/Status Colors
+  semantic:
+    error:
+      value: "#FF0000"
+      description: "Errors, important notifications"
+    success:
+      value: "#4CAF50"
+      description: "Success states, confirmations"
+    info:
+      value: "#4A90E2"
+      description: "Links, information"
+    warning:
+      value: "#FF9800"
+      description: "Warning states"
+
+  # Text Colors
+  text:
+    primary:
+      light:
+        value: "#000000"
+        description: "Primary text on light backgrounds"
+      dark:
+        value: "#FFFFFF"
+        description: "Primary text on dark backgrounds"
+    secondary:
+      value: "#666666"
+    tertiary:
+      value: "#999999"
+    placeholder:
+      value: "#CCCCCC"
+
+# =============================================================================
+# TYPOGRAPHY
+# =============================================================================
+typography:
+  # Font Family
+  family:
+    primary:
+      value: "SF Pro Display"
+      fallback: "-apple-system, BlinkMacSystemFont, sans-serif"
+
+  # Font Sizes
+  size:
+    xs:
+      value: "12px"
+      description: "Caption, timestamps"
+    sm:
+      value: "14px"
+      description: "Supporting text, labels"
+    base:
+      value: "16px"
+      description: "Default body text"
+    lg:
+      value: "18px"
+      description: "Large body text"
+    xl:
+      value: "20px"
+      description: "Card titles"
+    2xl:
+      value: "24px"
+      description: "Section titles"
+    3xl:
+      value: "28px"
+      description: "Section titles alt"
+    4xl:
+      value: "32px"
+      description: "Hero/page titles"
+
+  # Font Weights
+  weight:
+    regular:
+      value: 400
+    medium:
+      value: 500
+    semibold:
+      value: 600
+    bold:
+      value: 700
+
+  # Line Heights
+  lineHeight:
+    tight:
+      value: 1.2
+    normal:
+      value: 1.4
+    relaxed:
+      value: 1.5
+
+  # Heading Presets
+  headings:
+    h1:
+      size: "32px"
+      weight: 700
+      lineHeight: 1.2
+      description: "Hero/Page Title"
+    h2:
+      size: "24-28px"
+      weight: 700
+      lineHeight: 1.3
+      description: "Section headers"
+    h3:
+      size: "20px"
+      weight: 600
+      lineHeight: 1.4
+      description: "Card titles"
+    body:
+      size: "16px"
+      weight: 400
+      lineHeight: 1.5
+    caption:
+      size: "12px"
+      weight: 400
+      lineHeight: 1.4
+
+# =============================================================================
+# SPACING
+# =============================================================================
+spacing:
+  # Base Unit
+  base:
+    value: "4px"
+
+  # Scale
+  scale:
+    1:
+      value: "4px"
+    2:
+      value: "8px"
+    3:
+      value: "12px"
+    4:
+      value: "16px"
+    5:
+      value: "20px"
+    6:
+      value: "24px"
+    8:
+      value: "32px"
+    10:
+      value: "40px"
+    12:
+      value: "48px"
+
+  # Semantic Spacing
+  semantic:
+    screenEdge:
+      value: "16px"
+      description: "Horizontal screen padding"
+    sectionGap:
+      value: "24-32px"
+      description: "Between sections"
+    cardGap:
+      value: "12-16px"
+      description: "Between cards"
+    listItemGap:
+      value: "12px"
+      description: "Between list items"
+    cardPadding:
+      value: "16-20px"
+      description: "Card inner padding"
+    modalPadding:
+      value: "24px"
+      description: "Modal inner padding"
+
+# =============================================================================
+# BORDER RADIUS
+# =============================================================================
+radius:
+  none:
+    value: "0px"
+  sm:
+    value: "4px"
+  md:
+    value: "12px"
+  lg:
+    value: "16px"
+  xl:
+    value: "20px"
+  2xl:
+    value: "22px"
+  full:
+    value: "9999px"
+    description: "Pill shape"
+
+# =============================================================================
+# SHADOWS
+# =============================================================================
+shadows:
+  sm:
+    value: "0 2px 4px rgba(0,0,0,0.1)"
+  md:
+    value: "0 4px 12px rgba(0,0,0,0.15)"
+  lg:
+    value: "0 4px 20px rgba(0,0,0,0.1)"
+
+# =============================================================================
+# ANIMATION
+# =============================================================================
+animation:
+  # Timing Functions
+  easing:
+    standard:
+      value: "cubic-bezier(0.4, 0.0, 0.2, 1)"
+    deceleration:
+      value: "cubic-bezier(0.0, 0.0, 0.2, 1)"
+    acceleration:
+      value: "cubic-bezier(0.4, 0.0, 1, 1)"
+    sharp:
+      value: "cubic-bezier(0.4, 0.0, 0.6, 1)"
+
+  # Durations
+  duration:
+    fast:
+      value: "100ms"
+    normal:
+      value: "200ms"
+    slow:
+      value: "300ms"
+
+# =============================================================================
+# COMPONENTS
+# =============================================================================
+components:
+  # Button Sizes
+  button:
+    primary:
+      height: "56px"
+      radius: "28px"
+      padding: "16px 32px"
+      fontSize: "16px"
+      fontWeight: 600
+      background: "{colors.brand.primary.value}"
+      text: "{colors.neutral.black.value}"
+    secondary:
+      height: "56px"
+      radius: "28px"
+      padding: "16px 32px"
+      fontSize: "16px"
+      fontWeight: 600
+      background: "{colors.neutral.black.value}"
+      text: "{colors.neutral.white.value}"
+    ghost:
+      height: "44px"
+      radius: "22px"
+      padding: "12px 24px"
+      border: "1px solid {colors.neutral.gray.100.value}"
+    icon:
+      size: "44px"
+      iconSize: "24px"
+      radius: "22px"
+
+  # Input
+  input:
+    default:
+      height: "52px"
+      radius: "12px"
+      padding: "16px"
+      fontSize: "16px"
+      background: "{colors.neutral.gray.50.value}"
+      borderFocused: "2px solid {colors.brand.primary.value}"
+    search:
+      height: "44px"
+      radius: "22px"
+      padding: "12px 16px 12px 44px"
+      iconSize: "20px"
+
+  # Chip
+  chip:
+    default:
+      height: "44px"
+      radius: "22px"
+      padding: "12px 20px"
+      fontSize: "15px"
+      fontWeight: 500
+      background: "{colors.neutral.gray.800.value}"
+      text: "{colors.neutral.white.value}"
+    selected:
+      background: "{colors.brand.primary.value}"
+      text: "{colors.neutral.black.value}"
+      fontWeight: 600
+    small:
+      height: "32px"
+      radius: "16px"
+      padding: "8px 16px"
+      fontSize: "13px"
+
+  # Card
+  card:
+    default:
+      radius: "20px"
+      padding: "20px"
+      shadow: "{shadows.md.value}"
+    chat:
+      height: "72px"
+      padding: "12px 16px"
+      borderBottom: "1px solid {colors.neutral.gray.100.value}"
+    member:
+      height: "64px"
+      radius: "12px"
+      padding: "12px"
+
+  # Avatar
+  avatar:
+    xl:
+      size: "120px"
+    lg:
+      size: "80px"
+    md:
+      size: "48px"
+    sm:
+      size: "32px"
+    border: "2px solid {colors.neutral.white.value}"
+
+  # Modal
+  modal:
+    radius: "20px"
+    padding: "24px"
+    headerHeight: "60px"
+    backdrop: "rgba(0,0,0,0.5)"
+
+  # Navigation
+  navigation:
+    top:
+      height: "44px"
+    bottom:
+      height: "56px"
+      centerButton:
+        size: "56px"
+        elevation: "8px"
+
+# =============================================================================
+# BREAKPOINTS
+# =============================================================================
+breakpoints:
+  mobile:
+    value: "0px"
+    max: "767px"
+  tablet:
+    value: "768px"
+    max: "1023px"
+  desktop:
+    value: "1024px"
+
+# =============================================================================
+# ACCESSIBILITY
+# =============================================================================
+accessibility:
+  minTouchTarget:
+    value: "44px"
+  minContrastRatio:
+    text: 4.5
+    largeText: 3
+    uiComponents: 3
+  minFontSize:
+    value: "14px"
