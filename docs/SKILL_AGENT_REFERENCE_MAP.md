@@ -129,6 +129,10 @@
   - 📄 `spec-it-execute/docs/08-phase-8-validate.md`
   - 📄 `spec-it-execute/docs/09-phase-9-complete.md`
   - 📄 `spec-it-execute/docs/14-agents.md`
+  - 🤖 **Phase 2 Agents**
+    - **spec-dev-plan-critic** - execution plan 검증
+  - 🤖 **Phase 4 Agents**
+    - **code-reviewer** - spec compliance + code quality 검증
 
 ---
 
@@ -353,11 +357,16 @@ stitch-convert
 
 | Agent | 설명 | 비고 |
 |-------|------|------|
-| `code-reviewer` | PR/코드 리뷰 전문가 | 외부에서 직접 호출 전용 |
-| `spec-critic` | Work plan 비평가 | 미사용/미구현 |
-| `security-reviewer` | 보안 감사 (OWASP) | 미사용/미구현 |
-| `screen-vision` | 스크린샷 시각 분석 | 미사용/미구현 |
-| `spec-executor` | 복잡한 멀티파일 실행 | spec-it-execute와 혼동 주의 |
+| `security-reviewer` | 보안 감사 (OWASP) | 외부에서 직접 호출 전용 |
+| `screen-vision` | 스크린샷 시각 분석 | 향후 hack-2-spec 통합 예정 |
+
+## 최근 정리된 Agent
+
+| Agent | 변경 사항 |
+|-------|----------|
+| `spec-executor` | **삭제됨** - spec-it-execute와 역할 중복 |
+| `spec-critic` → `spec-dev-plan-critic` | **이름 변경** - Phase 2에 통합 |
+| `code-reviewer` | **Phase 4에 통합** - QA 단계에서 호출 |
 
 ---
 

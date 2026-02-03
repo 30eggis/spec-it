@@ -17,5 +17,10 @@
 ## Phase 2: Plan
 
 - Generate execution plan
-- Critique and refine plan
-- Complete phase when plan is acceptable
+- **Validate with spec-dev-plan-critic agent**:
+  - Clarity: Is each task unambiguous?
+  - Verifiability: Does each task have measurable success criteria?
+  - Completeness: Is 90%+ context present to execute?
+  - Big Picture: Does the plan explain WHY/WHAT/HOW?
+- If REJECT → Refine plan and re-validate
+- If OKAY → Complete phase and proceed to Phase 3

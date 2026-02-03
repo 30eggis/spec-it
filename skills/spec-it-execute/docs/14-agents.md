@@ -1,13 +1,18 @@
 # Agents
 
-- spec-critic
-- spec-executor
+## Phase 2: Plan
+- spec-dev-plan-critic (execution plan validation)
+
+## Phase 3: Execute
 - spec-mirror-analyst
 - test-implementer
-- test-critic
 - e2e-implementer
 - scenario-recommender
+
+## Phase 4: QA
+- code-reviewer (spec compliance + code quality)
+- test-critic
 - regression-checker
-- code-reviewer
-- security-reviewer
-- screen-vision
+
+## Optional (External Use)
+- security-reviewer (manual invocation for security audits)
