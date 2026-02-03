@@ -54,7 +54,7 @@ Analyze services/projects and generate spec-it compatible documentation.
 ## Workflow
 
 ```
-[Step 1: Source] → [Step 2: Language] → [Step 3: Analyze] → [Step 4-8: Generate] → [Step 9: Verify]
+[Step 1: Source] → [Step 2: Language] → [Step 2.5: Design Context] → [Step 3: Analyze] → [Step 4-8: Generate] → [Step 9: Verify]
 ```
 
 ---
@@ -77,6 +77,50 @@ Which language for output documents?
 - Korean (한국어)
 - Other
 ```
+
+---
+
+## Step 2.5: Ask Design Context (IMPORTANT)
+
+디자인 시스템 문서가 있으면 HTML/코드 해석이 훨씬 정확해집니다.
+
+```
+Do you have a design system document to reference?
+- Yes, I have design tokens (Figma, Style Dictionary, etc.)
+- Yes, I have a design guideline document
+- No, analyze without design context
+```
+
+### If Design Context Provided
+
+| Format | How to Use |
+|--------|-----------|
+| **Figma Tokens** | Export as JSON, provide path |
+| **Style Dictionary** | Provide tokens.json path |
+| **Design Guideline** | Provide .md or .pdf path |
+| **Tailwind Config** | Provide tailwind.config.js path |
+| **Custom CSS Variables** | Provide CSS file path |
+
+**When design context is available:**
+1. Load and parse design tokens
+2. Map CSS values to design tokens during analysis
+3. Use token references in wireframe output: `_ref:color.primary.500`
+4. Match component styles to design system variants
+
+**Example with design context:**
+```yaml
+# Without design context
+styles:
+  background: "bg-blue-600"
+  padding: "p-6"
+
+# With design context (more accurate)
+styles:
+  background: "_ref:color.semantic.bg.brand.primary"
+  padding: "_ref:spacing.24"
+```
+
+> **For token parsing details:** Read `shared/references/common/design-token-parser.md`
 
 ---
 
@@ -104,6 +148,20 @@ FOR each HTML file:
 2. Read component files
 3. Extract props, states, events
 4. Map dependencies
+```
+
+### 3.3 Apply Design Context (if provided)
+
+```
+IF design context provided:
+  1. Load design tokens from provided path
+  2. Build token-to-CSS mapping
+  3. During component extraction:
+     - Match colors to color tokens
+     - Match spacing to spacing tokens
+     - Match typography to font tokens
+     - Match borders/shadows to effect tokens
+  4. Store token references for wireframe generation
 ```
 
 **Layout Rules:**
