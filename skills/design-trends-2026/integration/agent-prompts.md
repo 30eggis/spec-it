@@ -427,10 +427,10 @@ IF answer == "Custom":
 
 ```bash
 # skills path 설정
-if [ -d "$HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills" ]; then
-  export SKILLS_PATH="$HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills"
-elif [ -d "$HOME/project/claude-frontend-skills/skills" ]; then
-  export SKILLS_PATH="$HOME/project/claude-frontend-skills/skills"
+if [ -d "$HOME/.claude/plugins/marketplaces/spec-it/skills" ]; then
+  export SKILLS_PATH="$HOME/.claude/plugins/marketplaces/spec-it/skills"
+elif [ -d "$HOME/project/spec-it/skills" ]; then
+  export SKILLS_PATH="$HOME/project/spec-it/skills"
 else
   echo "Warning: SKILLS_PATH not found"
 fi
@@ -443,6 +443,6 @@ echo "  \"skillsPath\": \"$SKILLS_PATH\"," >> "$SESSION_DIR/_meta.json"
 
 ```
 $SKILLS_PATH = {one of}:
-  - $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills
-  - /Users/{user}/project/claude-frontend-skills/skills
+  - $HOME/.claude/plugins/marketplaces/spec-it/skills
+  - /Users/{user}/project/spec-it/skills
 ```

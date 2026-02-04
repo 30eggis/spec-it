@@ -87,7 +87,7 @@ fi
 ### Step 0.0: Setup Intake
 
 ```
-DESIGN_TRENDS_PATH = $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026
+DESIGN_TRENDS_PATH = $HOME/.claude/plugins/marketplaces/spec-it/skills/design-trends-2026
 
 questions = []
 IF designStyle missing: questions += design style question

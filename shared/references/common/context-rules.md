@@ -22,7 +22,7 @@ Bash: echo '{"key": "value"}' > /path/to/file.json
 Write(/path/to/file.json, '{"key": "value"}')
 
 # ✅ GOOD - 상태 파일은 스크립트 사용
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
 ```
 
 **이유:**

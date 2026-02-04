@@ -395,10 +395,10 @@ Task(
 
 ```bash
 # In session-init.sh or at the start of spec-it
-export SKILLS_PATH="$HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills"
+export SKILLS_PATH="$HOME/.claude/plugins/marketplaces/spec-it/skills"
 
 # Or in Task prompt
-$SKILLS_PATH = $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills
+$SKILLS_PATH = $HOME/.claude/plugins/marketplaces/spec-it/skills
 ```
 
 ---

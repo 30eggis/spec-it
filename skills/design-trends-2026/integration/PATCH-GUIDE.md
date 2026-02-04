@@ -13,7 +13,7 @@
 
 \`\`\`
 # Load design trends skill reference
-designTrendsPath = $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026
+designTrendsPath = $HOME/.claude/plugins/marketplaces/spec-it/skills/design-trends-2026
 
 AskUserQuestion(
   questions: [{

@@ -98,7 +98,7 @@ fi
 ```
 # If already provided in args/user request, do NOT ask again.
 
-DESIGN_TRENDS_PATH = $HOME/.claude/plugins/marketplaces/claude-frontend-skills/skills/design-trends-2026
+DESIGN_TRENDS_PATH = $HOME/.claude/plugins/marketplaces/spec-it/skills/design-trends-2026
 designStyle = args.designStyle or userRequest
 designTrends = args.designTrends or userRequest
 dashboard = args.dashboard or userRequest
@@ -165,7 +165,7 @@ _meta.dashboardEnabled = dashboard
 
 ```
 # Generate session and get SESSION_DIR
-result = Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/session-init.sh "" yaml "$(pwd)"
+result = Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/session-init.sh "" yaml "$(pwd)"
 
 # Parse output to get SESSION_DIR (full absolute path)
 sessionId = extract SESSION_ID from result
@@ -174,7 +174,7 @@ sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script
 → Creates folders, _meta.json, _status.json
 
 IF _meta.dashboardEnabled == "Enable":
-  Output: "⏺ Dashboard:  file://$HOME/.claude/plugins/marketplaces/claude-frontend-skills/web-dashboard/index.html  을 열어 실시간 진행 상황을 확인할 수 있습니다."
+  Output: "⏺ Dashboard:  file://$HOME/.claude/plugins/marketplaces/spec-it/web-dashboard/index.html  을 열어 실시간 진행 상황을 확인할 수 있습니다."
 ```
 
 ### Step 0.R: Resume
@@ -231,7 +231,7 @@ IF designStyle missing:
   _meta.designTrends = selectedTrends
   _meta.designTrendsPath = DESIGN_TRENDS_PATH
 
-  Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 0.2
+  Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/meta-checkpoint.sh {sessionId} 0.2
 ```
 
 ---
@@ -270,8 +270,8 @@ Write: 00-requirements/quick-brief.md
   - Estimated screens
   - User's original request (PRD/description)
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/meta-checkpoint.sh {sessionId} 1.1
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/meta-checkpoint.sh {sessionId} 1.1
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} phase-complete 1 2 "2.1"
 ```
 
 ---
@@ -281,7 +281,7 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/sta
 ### Step 2.1: Screen List + Layout
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} agent-start ui-architect
 
 Task(ui-architect, sonnet):
   prompt: "
@@ -308,7 +308,7 @@ Task(ui-architect, sonnet):
     3. 02-wireframes/domain-map.md (domains + user types)
   "
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect "" 2.1
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect "" 2.1
 ```
 
 ### Step 2.1b: Shared + Screen Lists (Parallel)
@@ -346,7 +346,7 @@ FOR each domain/user-type in domain-map (parallel, max 4):
 Glob: 02-wireframes/*/*/screen-list.md
 Extract: domain, user_type, screen IDs
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start ui-architect-wireframes
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} agent-start ui-architect-wireframes
 
 FOR each screen-list group (parallel, max 4):
   Task(ui-architect, sonnet):
@@ -397,9 +397,9 @@ FOR each screen-list group (parallel, max 4):
       Output: 02-wireframes/<user-type>/<domain>/wireframes/{screenId}.yaml
     "
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect-wireframes "" 2.2
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} phase-complete 2 3 "3.1"
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate-output.sh "$(pwd)/tmp"
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} agent-complete ui-architect-wireframes "" 2.2
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} phase-complete 2 3 "3.1"
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/validate-output.sh "$(pwd)/tmp"
 ```
 
 ---
@@ -409,7 +409,7 @@ Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate
 ### Step 3.1: Summary
 
 ```
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-start spec-assembler
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} agent-start spec-assembler
 
 Task(spec-assembler, haiku):
   prompt: "
@@ -432,16 +432,16 @@ Task(spec-assembler, haiku):
        - Color token summary
   "
 
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} agent-complete spec-assembler "" 3.1
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/core/status-update.sh {sessionDir} complete
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/validate-output.sh "$(pwd)/tmp"
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} agent-complete spec-assembler "" 3.1
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/status-update.sh {sessionDir} complete
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/validate-output.sh "$(pwd)/tmp"
 ```
 
 ### Step 3.2: Minimal QA Gate (Default)
 
 ```
 # Run minimal QA before execute
-Bash: $HOME/.claude/plugins/marketplaces/claude-frontend-skills/scripts/qa/run-qa.sh "$(pwd)" --skip-test --skip-build
+Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/qa/run-qa.sh "$(pwd)" --skip-test --skip-build
 
 IF failed:
   Output: "QA failed. Fix lint/type errors, then re-run /spec-it-execute."
