@@ -329,6 +329,151 @@ api-predictor (NEW)
 
 ---
 
+---
+
+## 14. spec-it-execute (Phase 0-9)
+
+Plan mode (P1-P14) 완료 후 코드 구현을 수행하는 Execute mode.
+
+- 📄 **Direct References**
+  - `skills/spec-it-execute/docs/00-overview.md`
+  - `skills/spec-it-execute/docs/14-agents.md`
+  - `shared/references/common/rules/05-vercel-skills.md`
+
+### Phase Map
+
+| Phase | Skill | Agent | Output |
+|-------|-------|-------|--------|
+| 0 | `bash-executor` | - | execute-state.json |
+| 1 | - | - | task-registry.json |
+| 2 | - | `spec-dev-plan-critic` (opus) | execution-plan.md |
+| 3 | `dev-pilot` | dev-executor* | src/**/* |
+| 4 | `bash-executor` | `dev-build-fixer` (sonnet) | lint/type/build results |
+| 5 | `spec-mirror` | - | MIRROR_REPORT.md |
+| 6 | `ultraqa` (unit) | `qa-tester`, `qa-tester-high` | *.test.ts, coverage/ |
+| 7 | `ultraqa` (e2e) | `qa-tester-high` | *.spec.ts |
+| 8 | - | `code-reviewer` + Vercel BP, `security-reviewer` | review reports |
+| 9 | - | - | final-summary.md |
+
+### Sub-Skills
+
+#### dev-pilot (Phase 3)
+- 📄 **References**: `skills/dev-pilot/SKILL.md`
+- **Internal Agents** (spawned as workers):
+
+| Agent | Model | Role |
+|-------|-------|------|
+| `dev-executor-low` | Haiku | Simple single-file tasks |
+| `dev-executor` | Sonnet | Standard feature implementation |
+| `dev-executor-high` | Opus | Complex multi-file architecture |
+| `dev-architect` | Opus | Spec compliance verification (READ-ONLY) |
+| `dev-build-fixer` | Sonnet | Build/type error resolution |
+
+- **Fix Mode**: `--mode=fix --tasks={*-tasks.json}`
+
+#### ultraqa (Phase 6, 7)
+- 📄 **References**: `skills/ultraqa/SKILL.md`
+- **Internal Agents**:
+
+| Agent | Model | Mode | Role |
+|-------|-------|------|------|
+| `qa-tester` | Sonnet | unit | Standard unit tests (tmux) |
+| `qa-tester-high` | Opus | unit, e2e | Comprehensive tests, E2E |
+
+#### spec-mirror (Phase 5)
+- 📄 **References**: `skills/spec-mirror/SKILL.md`
+- **Uses**: `hack-2-spec` internally
+
+### Regression Flow
+
+모든 Hard Gate 실패 → Phase 3 회귀:
+
+```
+Phase 4 FAIL → fix-tasks.json ────────────┐
+Phase 5 FAIL → mirror-report-tasks.json ──┤
+Phase 6 FAIL → test-fix-tasks.json ───────┼──► Phase 3 (dev-pilot --mode=fix)
+Phase 7 FAIL → e2e-fix-tasks.json ────────┤
+Phase 8 FAIL → review-fix-tasks.json ─────┘
+```
+
+### *-tasks.json Schema
+
+```json
+{
+  "source": "{failure report path}",
+  "sourcePhase": 4 | 5 | 6 | 7 | 8,
+  "generatedAt": "ISO timestamp",
+  "iteration": 1,
+  "tasks": [
+    {
+      "id": "fix-001",
+      "type": "build-error | missing | test-fail | security | code-quality",
+      "specRef": "{related spec file}",
+      "description": "{fix description}",
+      "priority": "CRITICAL | HIGH | MEDIUM | LOW",
+      "files": ["src/..."],
+      "errorDetail": "{detailed error}"
+    }
+  ]
+}
+```
+
+### TDD Agents (Plan Mode Integration)
+
+| Agent | Model | Phase | Role |
+|-------|-------|-------|------|
+| `tdd-guide` | Sonnet | Plan (04-scenarios/) | Test scenario generation |
+| `tdd-guide-low` | Haiku | Plan | Quick test suggestions (READ-ONLY) |
+
+---
+
+## Complete Execute Call Graph
+
+```
+spec-it-execute (Orchestrator)
+│
+├── Phase 0-2: Initialize, Load, Plan
+│   └── spec-dev-plan-critic (opus)
+│
+├── Phase 3: Execute
+│   └── dev-pilot (skill)
+│       ├── dev-executor-low (haiku) ──┐
+│       ├── dev-executor (sonnet) ─────┼── Parallel Workers
+│       ├── dev-executor-high (opus) ──┘
+│       ├── dev-architect (opus) ── Spec Compliance
+│       └── dev-build-fixer (sonnet) ── Build Errors
+│
+├── Phase 4: Bringup
+│   └── dev-build-fixer (sonnet)
+│       ✗ FAIL → fix-tasks.json → Phase 3
+│
+├── Phase 5: Spec-Mirror
+│   └── spec-mirror (skill)
+│       └── hack-2-spec (internal)
+│       ✗ FAIL → mirror-report-tasks.json → Phase 3
+│
+├── Phase 6: Unit Tests
+│   └── ultraqa (skill, unit mode)
+│       ├── qa-tester (sonnet)
+│       └── qa-tester-high (opus)
+│       ✗ FAIL → test-fix-tasks.json → Phase 3
+│
+├── Phase 7: E2E Tests
+│   └── ultraqa (skill, e2e mode)
+│       └── qa-tester-high (opus)
+│       ✗ FAIL → e2e-fix-tasks.json → Phase 3
+│
+├── Phase 8: Validate
+│   ├── code-reviewer (opus) + Vercel Best Practices
+│   └── security-reviewer (opus)
+│       ✗ FAIL → review-fix-tasks.json → Phase 3
+│
+└── Phase 9: Complete
+    └── final-summary.md, screenshots/
+```
+
+---
+
 ## Version History
 
 | Version | Date | Author | Changes |
@@ -337,3 +482,4 @@ api-predictor (NEW)
 | 2.0 | 2026-02-03 | Claude | Full reference chains |
 | 3.0 | 2026-02-03 | Claude | Indented list format |
 | 4.0 | 2026-02-03 | Claude | P1-P14 unified flow, new agents/skills |
+| 5.0 | 2026-02-04 | Claude | spec-it-execute Phase 0-9 추가, regression flow |

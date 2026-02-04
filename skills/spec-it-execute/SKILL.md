@@ -1,6 +1,6 @@
 ---
 name: spec-it-execute
-description: "Autopilot executor that turns spec-it output into working code (9 phases)."
+description: "Autopilot executor that turns spec-it output into working code (10 phases: 0-9)."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion
 argument-hint: "<spec-folder> [--resume <sessionId>] [--design-style <style>] [--design-trends <trends>] [--dashboard <Enable|Skip>]"
 permissionMode: bypassPermissions
@@ -13,17 +13,57 @@ Autopilot execution engine that turns spec-it output into working code with mini
 ## Quick Start
 
 ```
-/frontend-skills:spec-it-execute <spec-folder>
-/frontend-skills:spec-it-execute <spec-folder> --resume <sessionId>
+/spec-it:spec-it-execute <spec-folder>
+/spec-it:spec-it-execute <spec-folder> --resume <sessionId>
 ```
 
 ## What This Skill Does
 
-- Loads spec output from plan mode
-- Generates an execution plan
-- Implements code in batches
-- Runs QA and spec-mirror verification
-- Implements tests and validates quality
+- Loads spec output from plan mode (P1-P14)
+- Generates an execution plan with validation
+- Implements code via **dev-pilot** (parallel workers)
+- Runs QA via **ultraqa** (unit/e2e test cycles)
+- Validates with **Vercel Best Practices** code review
+- Auto-regresses to Phase 3 on any Hard Gate failure
+
+## Phase Overview (0-9)
+
+| Phase | Role | Skill | Hard Gate |
+|-------|------|-------|-----------|
+| 0 | Initialize | bash-executor | - |
+| 1 | Load | - | - |
+| 2 | Plan | - | - |
+| 3 | Execute | **dev-pilot** | - |
+| 4 | Bringup | bash-executor | **Yes** → 3 |
+| 5 | Spec-Mirror | **spec-mirror** | **Yes** → 3 |
+| 6 | Unit Tests | **ultraqa** (unit) | **Yes** → 3 |
+| 7 | E2E Tests | **ultraqa** (e2e) | **Yes** → 3 |
+| 8 | Validate | - | **Yes** → 3 |
+| 9 | Complete | - | - |
+
+## Key Sub-Skills
+
+| Skill | Phase | Description |
+|-------|-------|-------------|
+| `dev-pilot` | 3 | Parallel autopilot with file ownership (up to 5 workers) |
+| `spec-mirror` | 5 | Spec compliance verification |
+| `ultraqa` | 6, 7 | Test cycle orchestration (test → verify → fix → repeat) |
+
+## Regression Flow (Fix Mode)
+
+All Hard Gate failures (Phase 4-8) regress to Phase 3:
+
+```
+Phase N FAIL → {type}-fix-tasks.json → dev-pilot --mode=fix → Phase 4 → ... → Phase N
+```
+
+| Phase | Fix Task File |
+|-------|---------------|
+| 4 | fix-tasks.json |
+| 5 | mirror-report-tasks.json |
+| 6 | test-fix-tasks.json |
+| 7 | e2e-fix-tasks.json |
+| 8 | review-fix-tasks.json |
 
 ## Setup Intake (Only if Missing)
 
@@ -100,7 +140,7 @@ _meta.dashboardEnabled = dashboard
 - `skills/spec-it-execute/docs/01-rules.md`
 - `skills/spec-it-execute/docs/02-phase-0-2-init-load-plan.md`
 - `skills/spec-it-execute/docs/03-phase-3-execute.md`
-- `skills/spec-it-execute/docs/04-phase-4-qa.md`
+- `skills/spec-it-execute/docs/04-phase-4-bringup.md`
 - `skills/spec-it-execute/docs/05-phase-5-mirror.md`
 - `skills/spec-it-execute/docs/06-phase-6-unit-tests.md`
 - `skills/spec-it-execute/docs/07-phase-7-e2e.md`

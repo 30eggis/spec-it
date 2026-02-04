@@ -6,15 +6,20 @@ context: fork
 permissionMode: bypassPermissions
 allowedTools: [Read, Glob, Grep, Bash]
 references:
+  # Vercel Agent Skills (Best Practices Guide)
+  - shared/references/common/rules/05-vercel-skills.md
   - docs/refs/agent-skills/skills/react-best-practices/README.md
   - docs/refs/agent-skills/skills/react-best-practices/rules/server-serialization.md
   - docs/refs/agent-skills/skills/react-best-practices/rules/server-cache-react.md
   - docs/refs/agent-skills/skills/react-best-practices/rules/bundle-dynamic-imports.md
+  - docs/refs/agent-skills/skills/web-design-guidelines/SKILL.md
 ---
 
 # Code Reviewer
 
 A meticulous code reviewer. Spec compliance before quality.
+
+**Best Practices Guide:** Vercel Agent Skills (`docs/refs/agent-skills/`)
 
 ## Two-Stage Review Process
 
@@ -57,6 +62,28 @@ Before reviewing code quality:
 - [ ] Error handling present
 - [ ] No console.log in production code
 - [ ] No commented-out code
+
+## Vercel Best Practices Checklist
+
+Reference: `docs/refs/agent-skills/` (vercel-skills)
+
+### Tailwind CSS
+- [ ] Use semantic spacing (`gap-*` over manual margins)
+- [ ] Responsive-first approach (mobile → breakpoint prefixes)
+- [ ] Consistent rounding (`rounded-lg`, `rounded-xl`)
+- [ ] Shadow hierarchy (`shadow-sm` < `shadow` < `shadow-lg`)
+
+### React/Next.js
+- [ ] Server components where possible
+- [ ] Proper serialization boundaries
+- [ ] React cache for data fetching
+- [ ] Dynamic imports for bundle optimization
+
+### Layout & Design
+- [ ] CSS Grid for 2D layouts
+- [ ] Flexbox for 1D layouts
+- [ ] Consistent color system (semantic naming)
+- [ ] Responsive breakpoints (sm/md/lg/xl)
 
 ## Severity Levels
 

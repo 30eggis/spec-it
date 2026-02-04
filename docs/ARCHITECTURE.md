@@ -487,3 +487,128 @@ Re-execution conditions:
 2. **New requirement** - Previously unidentified requirement
 3. **Persona change** - Persona definition modified
 4. **Architecture change** - Navigation structure overhauled
+
+---
+
+## spec-it-execute Phase Flow (Phase 0-9)
+
+Plan mode (P1-P14) 완료 후, Execute mode로 코드 구현을 수행합니다.
+
+```
+╔═══════════════════════════════════════════════════════════════════════════════╗
+║                         SPEC-IT-EXECUTE WORKFLOW                              ║
+║                            (Phase 0-9)                                        ║
+╠═══════════════════════════════════════════════════════════════════════════════╣
+║                                                                               ║
+║  Phase 0: Initialize ────────────────────────────────────────────────────────║
+║  │   └─ bash-executor → .spec-it/{sessionId}/execute-state.json              ║
+║  │                                                                            ║
+║  Phase 1: Load ──────────────────────────────────────────────────────────────║
+║  │   └─ spec-map.md, wireframes, components, scenarios 로딩                  ║
+║  │   → task-registry.json (immutable)                                        ║
+║  │                                                                            ║
+║  Phase 2: Plan ──────────────────────────────────────────────────────────────║
+║  │   └─ spec-dev-plan-critic (opus) → execution-plan.md                      ║
+║  │                                                                            ║
+║  Phase 3: Execute ◀──────────────────────────────────────────────────────────║
+║  │   └─ dev-pilot (skill)                          ▲                         ║
+║  │       ├─ dev-executor-low (haiku)               │                         ║
+║  │       ├─ dev-executor (sonnet)                  │ 회귀                    ║
+║  │       ├─ dev-executor-high (opus)               │ 포인트                  ║
+║  │       └─ dev-architect (opus)                   │                         ║
+║  │   → src/**/* (구현 코드)                        │                         ║
+║  │                                                 │                         ║
+║  Phase 4: Bringup (Hard Gate) ───────────────────│─────────────────────────║
+║  │   └─ dev-build-fixer (sonnet)                  │                         ║
+║  │   → lint/typecheck/build 검증                  │                         ║
+║  │   ✗ FAIL → fix-tasks.json ─────────────────────┘                         ║
+║  │                                                                            ║
+║  Phase 5: Spec-Mirror (Hard Gate) ───────────────│─────────────────────────║
+║  │   └─ spec-mirror (skill)                       │                         ║
+║  │   → MIRROR_REPORT.md                           │                         ║
+║  │   ✗ FAIL → mirror-report-tasks.json ───────────┘                         ║
+║  │                                                                            ║
+║  Phase 6: Unit Tests (Hard Gate) ────────────────│─────────────────────────║
+║  │   └─ ultraqa (skill, unit mode)                │                         ║
+║  │       ├─ qa-tester (sonnet)                    │                         ║
+║  │       └─ qa-tester-high (opus)                 │                         ║
+║  │   → *.test.ts, coverage/                       │                         ║
+║  │   ✗ FAIL → test-fix-tasks.json ────────────────┘                         ║
+║  │                                                                            ║
+║  Phase 7: E2E Tests (Hard Gate) ─────────────────│─────────────────────────║
+║  │   └─ ultraqa (skill, e2e mode)                 │                         ║
+║  │       └─ qa-tester-high (opus)                 │                         ║
+║  │   → *.spec.ts (Playwright)                     │                         ║
+║  │   ✗ FAIL → e2e-fix-tasks.json ─────────────────┘                         ║
+║  │                                                                            ║
+║  Phase 8: Validate (Hard Gate) ──────────────────│─────────────────────────║
+║  │   ├─ code-reviewer (opus) + Vercel Best Practices                        ║
+║  │   └─ security-reviewer (opus)                  │                         ║
+║  │   → code-review-report.md, security-report.md  │                         ║
+║  │   ✗ FAIL → review-fix-tasks.json ──────────────┘                         ║
+║  │                                                                            ║
+║  Phase 9: Complete ──────────────────────────────────────────────────────────║
+║      └─ final-summary.md, screenshots/                                       ║
+║                                                                               ║
+╚═══════════════════════════════════════════════════════════════════════════════╝
+```
+
+### Execute Phase 회귀 흐름
+
+모든 Hard Gate 실패 → Phase 3 (Execute)로 회귀:
+
+```
+Phase 4 FAIL → fix-tasks.json → Phase 3 → 4
+Phase 5 FAIL → mirror-report-tasks.json → Phase 3 → 4 → 5
+Phase 6 FAIL → test-fix-tasks.json → Phase 3 → 4 → 5 → 6
+Phase 7 FAIL → e2e-fix-tasks.json → Phase 3 → 4 → 5 → 6 → 7
+Phase 8 FAIL → review-fix-tasks.json → Phase 3 → 4 → 5 → 6 → 7 → 8
+```
+
+### Execute Agents Reference
+
+| Phase | Agent | Model | Role |
+|-------|-------|-------|------|
+| 2 | `spec-dev-plan-critic` | Opus | Execution plan validation |
+| 3 | `dev-executor-low` | Haiku | Simple single-file tasks |
+| 3 | `dev-executor` | Sonnet | Standard feature implementation |
+| 3 | `dev-executor-high` | Opus | Complex multi-file architecture |
+| 3 | `dev-architect` | Opus | Spec compliance verification |
+| 4 | `dev-build-fixer` | Sonnet | Build/type error resolution |
+| 6 | `qa-tester` | Sonnet | Unit test execution (tmux) |
+| 6/7 | `qa-tester-high` | Opus | Comprehensive/E2E tests |
+| 8 | `code-reviewer` | Opus | 2-stage review + Vercel BP |
+| 8 | `security-reviewer` | Opus | Security audit |
+
+### Execute Skills Reference
+
+| Skill | Phase | Role |
+|-------|-------|------|
+| `dev-pilot` | 3 | Parallel autopilot (up to 5 workers) |
+| `spec-mirror` | 5 | Spec compliance verification |
+| `ultraqa` | 6, 7 | Test cycle orchestration |
+| `bash-executor` | 0, 4 | Script execution |
+
+### Fix Mode (회귀 시)
+
+```bash
+/spec-it:dev-pilot {sessionId} --mode=fix --tasks={*-tasks.json}
+```
+
+공통 *-tasks.json 스키마:
+```json
+{
+  "source": "{실패 리포트}",
+  "sourcePhase": 4 | 5 | 6 | 7 | 8,
+  "iteration": 1,
+  "tasks": [
+    {
+      "id": "fix-001",
+      "type": "build-error | missing | test-fail | security | code-quality",
+      "priority": "CRITICAL | HIGH | MEDIUM | LOW",
+      "files": ["src/..."],
+      "errorDetail": "..."
+    }
+  ]
+}
+```
