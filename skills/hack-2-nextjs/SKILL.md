@@ -1,9 +1,8 @@
 ---
 name: hack-2-nextjs
 description: |
-  Extract design tokens, assets, and components from existing React-based UI.
-  Goal: Code reuse + design system standardization.
-  Supports: URLs, local HTML files (React/Next.js based)
+  Copy existing UI to NextJS. LITERAL COPY - no interpretation.
+  Extract exact HTML/CSS/Assets and convert to NextJS project.
   Arguments: --source (path or url), --scope (single or all)
 allowed-tools: Read, Write, Edit, Bash, Glob, Grep, Task, AskUserQuestion, mcp__chrome-devtools__*, mcp__plugin_spec-it_chrome-devtools__*
 bypassPermissions: true
@@ -11,136 +10,219 @@ bypassPermissions: true
 
 # Hack 2 NextJS
 
-Extract design tokens, assets, and components from existing React-based UI for reuse.
+LITERAL COPY of existing UI to NextJS. No interpretation. No improvement. Just copy.
+
+## CRITICAL RULES
+
+```
+❌ NEVER:
+- Interpret or "improve" the design
+- Change layout structure
+- Add components that don't exist
+- Remove components that exist
+- Change colors, spacing, typography
+- Reorganize sections
+- "Optimize" anything
+
+✅ ONLY:
+- Copy outerHTML exactly
+- Convert HTML syntax to JSX syntax
+- Download assets preserving paths
+- Extract CSS as-is
+```
+
+## Allowed JSX Conversions (ONLY THESE)
+
+| HTML | JSX |
+|------|-----|
+| `class=""` | `className=""` |
+| `for=""` | `htmlFor=""` |
+| `<img>` | `<img />` |
+| `<input>` | `<input />` |
+| `<br>` | `<br />` |
+| `onclick=""` | Remove (add later) |
+| `style="a:b"` | `style={{a:'b'}}` |
+| `tabindex` | `tabIndex` |
+| `colspan` | `colSpan` |
+
+**NOTHING ELSE CHANGES.**
 
 ## Inputs
 
-| Input | Required | Default | Description |
-|-------|----------|---------|-------------|
-| source | Yes | - | URL or local HTML file path |
-| scope | No | all | `single` = one screen, `all` = all linked screens |
+| Input | Required | Description |
+|-------|----------|-------------|
+| source | Yes | URL or local HTML file path |
+| scope | No | `single` or `all` (default: all) |
 
-## Output Structure
+## Output
 
 ```
 hack-2-nextjs/
-├── navigation-map.md
-├── extracted/{page-id}/
-│   ├── source.tsx
-│   ├── styles.css
-│   ├── computed.json
-│   ├── assets.json
-│   └── metadata.json
-├── assets/
-│   ├── images/
-│   ├── fonts/
-│   ├── icons/
-│   └── asset-manifest.json
-├── design-system/
-│   ├── tokens.ts
-│   ├── tokens.css
-│   ├── tailwind.config.ts
-│   └── design-tokens.md
-├── components/
-│   ├── layout/
-│   └── ui/
-├── component-catalog.md
-└── nextjs-scaffold/
+├── pages/
+│   ├── {page-id}.tsx      # Exact copy of each page
+│   └── ...
+├── assets/                 # All assets, paths preserved
+├── styles/
+│   └── globals.css         # Extracted CSS as-is
+└── nextjs-app/
     ├── app/
-    ├── public/
-    ├── components/
+    │   ├── page.tsx
+    │   └── globals.css
+    ├── public/             # Assets copied
     └── package.json
 ```
 
-## Phase 1: Extraction
-
-> Reference: `shared/references/hack-2-nextjs/extraction.md`
-
-### 1.1 Source Detection
+## Phase 1: Extract Exact HTML
 
 ```javascript
+// Get EXACT outerHTML - no modifications
 evaluate_script({
-  function: `() => ({
-    isReact: !!window.__REACT_DEVTOOLS_GLOBAL_HOOK__,
-    isNextJS: !!window.__NEXT_DATA__
-  })`
+  function: `() => {
+    return {
+      html: document.documentElement.outerHTML,
+      title: document.title
+    };
+  }`
 })
 ```
 
-### 1.2 Style Extraction
+Save raw HTML to `pages/{page-id}.html`.
 
-Extract computed styles from all elements. Collect colors, typography, spacing, shadows, border-radius with frequency counts.
+## Phase 2: Extract Exact CSS
 
-### 1.3 Asset Extraction
+```javascript
+// Get ALL stylesheets exactly as-is
+evaluate_script({
+  function: `() => {
+    const css = [];
 
-Extract all referenced assets preserving original paths:
-- Images: `<img src>`, `background-image`
-- SVGs: inline and external
-- Fonts: from `@font-face` rules
-- Other: video, audio sources
+    // Embedded styles
+    document.querySelectorAll('style').forEach(s => {
+      css.push(s.textContent);
+    });
 
-Save to `assets/` maintaining directory structure. Generate `asset-manifest.json`.
+    return css.join('\\n');
+  }`
+})
+```
 
-### 1.4 Output
+For external CSS files, download them directly:
+```bash
+curl -o styles/{filename}.css {css_url}
+```
 
-Per page: `source.tsx`, `styles.css`, `computed.json`, `assets.json`, `metadata.json`
+## Phase 3: Download All Assets
 
-## Phase 2: Design Tokens
+```javascript
+evaluate_script({
+  function: `() => {
+    const assets = [];
 
-> Reference: `shared/references/hack-2-nextjs/tokens.md`
+    // Images
+    document.querySelectorAll('img').forEach(img => {
+      if (img.src) assets.push({ type: 'image', src: img.src, path: new URL(img.src).pathname });
+    });
 
-Aggregate all `computed.json` files. Map to semantic tokens by frequency.
+    // Background images
+    document.querySelectorAll('*').forEach(el => {
+      const bg = getComputedStyle(el).backgroundImage;
+      if (bg && bg.includes('url(')) {
+        const match = bg.match(/url\\(["']?([^"')]+)["']?\\)/);
+        if (match) assets.push({ type: 'image', src: match[1], path: new URL(match[1], location.href).pathname });
+      }
+    });
 
-Output files:
-- `tokens.ts` - TypeScript constants
-- `tokens.css` - CSS variables
-- `tailwind.config.ts` - Tailwind extension
-- `design-tokens.md` - Documentation
+    // SVGs, fonts, etc.
+    document.querySelectorAll('img[src$=".svg"]').forEach(el => {
+      assets.push({ type: 'svg', src: el.src, path: new URL(el.src).pathname });
+    });
 
-## Phase 3: Component Analysis
+    return assets;
+  }`
+})
+```
 
-> Reference: `shared/references/hack-2-nextjs/components.md`
+Download preserving exact paths:
+```bash
+# Original: /images/logo.png
+# Save to: assets/images/logo.png
+mkdir -p "assets$(dirname $path)"
+curl -o "assets$path" "$src"
+```
 
-Analyze `source.tsx` files for repeating patterns. Score candidates:
-- 3+ pages: +3
-- 2+ same page: +2
-- Clear role: +2
-- Independent styling: +1
-- Props extractable: +1
+## Phase 4: Convert to JSX (Syntax Only)
 
-Score >= 5: Extract as component.
+Use simple regex replacements:
 
-## Phase 4: Component Catalog
+```bash
+# class → className
+sed 's/class="/className="/g'
 
-Create components with token classes applied. Generate `component-catalog.md` with replacement map.
+# Self-closing tags
+sed 's/<img([^>]*)>/<img\1 \/>/g'
+sed 's/<input([^>]*)>/<input\1 \/>/g'
+sed 's/<br>/<br \/>/g'
 
-## Phase 5: NextJS Scaffold
+# for → htmlFor
+sed 's/ for="/ htmlFor="/g'
 
-Create project with:
-- Design tokens globally applied via `globals.css`
-- Assets copied to `public/` preserving paths
-- Components linked
-- Ready to run with `npm install && npm run dev`
+# Remove onclick (will wire navigation later)
+sed 's/ onclick="[^"]*"//g'
+```
+
+**DO NOT change any class names, structure, or content.**
+
+## Phase 5: Create NextJS Project
+
+```bash
+mkdir -p nextjs-app/{app,public}
+
+# Copy assets to public (preserving paths)
+cp -r assets/* nextjs-app/public/
+
+# Copy CSS
+cp styles/*.css nextjs-app/app/
+
+# Create page.tsx from converted JSX
+# Just wrap in export default function
+```
+
+**page.tsx template:**
+```tsx
+import './globals.css';
+
+export default function Page() {
+  return (
+    <>
+      {/* PASTE EXACT JSX HERE - NO CHANGES */}
+    </>
+  );
+}
+```
 
 ## Verification
 
-| Phase | Check |
-|-------|-------|
-| 1 | All pages extracted |
-| 1 | All assets downloaded with paths preserved |
-| 1 | asset-manifest.json generated |
-| 2 | tokens.ts, tokens.css, tailwind.config.ts generated |
-| 3 | Component candidates scored |
-| 4 | Components use token classes |
-| 5 | Assets in public/ work without code changes |
-| 5 | npm install succeeds |
+After `npm run dev`:
 
-## Error Handling
+1. Open original and generated side by side
+2. They MUST look identical
+3. If ANY difference exists → FIX IT by copying more exactly
 
-| Error | Recovery |
+| Check | Required |
 |-------|----------|
-| Not React-based | Fallback to HTML parsing |
-| Chrome MCP unavailable | Use file:// URL |
-| CSS CORS error | Parse inline styles only |
-| Asset 404/CORS | Log warning, skip |
-| Large asset (>5MB) | Skip, record URL only |
+| Same layout | ✓ |
+| Same colors | ✓ |
+| Same spacing | ✓ |
+| Same fonts | ✓ |
+| Same components | ✓ |
+| Same content | ✓ |
+| All images load | ✓ |
+
+## Error Recovery
+
+| Issue | Fix |
+|-------|-----|
+| Asset 404 | Check path, copy from source |
+| Style missing | Copy more CSS |
+| Layout different | You changed something - revert |
+| Component missing | Copy from original |
