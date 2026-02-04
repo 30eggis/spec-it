@@ -23,8 +23,50 @@ Chrome MCP 기반 직접 TSX 생성으로 기존 UI를 NextJS 앱으로 변환.
 **핵심 변경:**
 - YAML 와이어프레임 중간 단계 제거
 - Chrome MCP로 실제 렌더링 결과에서 직접 추출
-- 클래스/스타일 보존 → 시각적 동일성 95%+
+- **outerHTML 직접 추출 → JSX 문법 변환만** (클래스 100% 보존)
 - 디자인 토큰 자동 생성 → 수정 용이
+
+---
+
+## Context Token Management (CRITICAL)
+
+### 문제점 (기존)
+
+```
+Phase 0: 클릭 → 스냅샷 → 클릭 → 스냅샷 (반복)
+         ↓
+         컨텍스트 폭발 💥 (페이지 많으면 토큰 한도 도달)
+```
+
+### 해결책 (신규)
+
+```
+[Phase 0: Route Discovery]     ← 메인 에이전트 (가벼운 탐색)
+         │
+         ▼
+    navigation-map.md          ← 파일 저장 (컨텍스트 해제)
+         │
+         ▼
+[Phase 1: Parallel Extraction] ← N개 에이전트 동시 실행
+    ├─ Agent 1 → page-a.html → CSS + TSX → P001.json
+    ├─ Agent 2 → page-b.html → CSS + TSX → P002.json
+    ├─ Agent 3 → page-c.html → CSS + TSX → P003.json
+    └─ ...
+         │
+         ▼
+[Phase 2: Integration]         ← 메인 에이전트
+    ├─ 토큰 통합 (모든 JSON에서 수집)
+    ├─ 네비게이션 연결
+    └─ npm run dev
+```
+
+### 컨텍스트 크기 비교
+
+| Phase | 역할 | 컨텍스트 크기 |
+|-------|------|---------------|
+| **0** | URL/경로만 수집 (스냅샷 NO) | 작음 |
+| **1** | 각 에이전트가 1개 페이지만 담당 | 분산됨 |
+| **2** | 파일에서 읽어서 통합 | 작음 |
 
 ---
 
@@ -43,7 +85,12 @@ Chrome MCP 기반 직접 TSX 생성으로 기존 UI를 NextJS 앱으로 변환.
 
 ```
 hack-2-nextjs/
-├── next-frame-map.md        # 점진적 로딩용 맵 문서
+├── navigation-map.md        # Phase 0 출력
+├── extracted/               # Phase 1 출력 (에이전트별)
+│   ├── P001.json
+│   ├── P002.json
+│   └── ...
+├── next-frame-map.md        # 최종 맵 문서
 ├── design-system/
 │   ├── tokens.ts            # 자동 생성된 디자인 토큰
 │   └── tailwind.config.ts   # 토큰 기반 Tailwind 설정
@@ -71,16 +118,16 @@ hack-2-nextjs/
 ## Workflow
 
 ```
-[Phase 0: Screen Discovery] → [Phase 1: Extract & Generate] → [Phase 2: Connect & Run]
+[Phase 0: Route Discovery] → [Phase 1: Parallel Extraction] → [Phase 2: Integration]
 ```
 
 ---
 
-## Phase 0: Screen Discovery
+## Phase 0: Route Discovery
 
 > Reference: `shared/references/hack-2-nextjs/screen-discovery.md`
 
-Chrome MCP로 모든 화면을 재귀적으로 탐색.
+**목표:** 가볍게 URL과 경로만 수집, 파일로 저장 (스냅샷 NO!)
 
 ### 0.1 Source Type Detection
 
@@ -91,237 +138,179 @@ Chrome MCP로 모든 화면을 재귀적으로 탐색.
 | **Local Code** | Directory with `*.tsx`, `*.vue` | File parsing (fallback) |
 | **Screenshot** | Image file | Vision analysis (fallback) |
 
-### 0.2 Navigation Graph Building
+### 0.2 Lightweight Navigation (NO SNAPSHOT!)
 
 ```
 IF scope == "all":
   1. navigate_page(source)
-  2. take_snapshot() → 현재 화면 구조
-  3. Collect clickable elements:
-     - All <a href>
-     - All <button onclick>
-     - All elements with data-nav, data-href
-  4. FOR each clickable:
-     a. click(uid)
-     b. take_snapshot() → 새 화면 발견?
-     c. Record navigation: source → target
-     d. Recurse if new screen
-  5. Build navigation graph
+  2. evaluate_script() → 클릭 가능 요소 추출 (URL/href만!)
+     - <a href>, <button onclick>, [data-nav]
+     - title 추출
+  3. FOR each link:
+     a. navigate_page(link.href)
+     b. evaluate_script() → URL, title만 기록
+     c. 새 링크 발견 시 재귀
+  4. navigation-map.md 저장
 ```
 
-### 0.3 Route Structure Decision
+**CRITICAL: 스냅샷(take_snapshot) 호출 금지!**
+- 스냅샷은 컨텍스트를 크게 소모함
+- Phase 0에서는 URL/title/경로 정보만 필요
 
-탐색된 화면들을 NextJS 폴더 구조로 매핑:
+### 0.3 Output: navigation-map.md
 
-| 패턴 | NextJS Route |
-|------|--------------|
-| `index.html` (viewMode=hr) | `/(hr)/page.tsx` |
-| `index.html` (viewMode=emp) | `/(employee)/page.tsx` |
-| `*-management.html` | `/(hr)/*/page.tsx` |
-| `emp-*.html` | `/(employee)/*/page.tsx` |
-| 탭 내 화면 (URL 불변) | 같은 page.tsx 내 탭 컴포넌트 |
+```markdown
+# Navigation Map
 
-### 0.4 Output: Discovery Report
+## Pages
+| ID | URL | Title | Suggested Route |
+|----|-----|-------|-----------------|
+| P001 | file:///mockup/index.html | HR Dashboard | /(hr) |
+| P002 | file:///mockup/leave.html | Leave Mgmt | /(hr)/leave |
+| P003 | file:///mockup/emp-leave.html | My Leave | /(employee)/leave |
 
+## Navigation Graph
+P001 → P002 (click: "휴가 관리")
+P001 → P003 (click: "직원 모드")
+P002 → P004 (click: "휴가 신청")
+
+## Route Groups
+(hr): P001, P002, P005
+(employee): P003, P004, P006
 ```
-screens: [
-  { id: "SCR-001", url: "...", route: "/", components: [...] },
-  { id: "SCR-002", url: "...", route: "/leave", parentClick: "nav-leave" },
-  ...
-]
-navigation_graph: [
-  { from: "SCR-001", to: "SCR-002", trigger: "nav-leave" },
-  ...
-]
-route_groups: {
-  "(hr)": ["SCR-001", "SCR-003"],
-  "(employee)": ["SCR-002", "SCR-004"]
+
+---
+
+## Phase 1: Parallel Extraction
+
+> Reference: `shared/references/hack-2-nextjs/style-extraction.md`
+
+**목표:** 각 페이지를 병렬 에이전트가 독립 처리
+
+### 1.1 Agent Spawning
+
+```python
+# navigation-map.md 파싱
+pages = parse_navigation_map("hack-2-nextjs/navigation-map.md")
+
+# 병렬 Task 에이전트 실행 (최대 5개씩)
+for batch in chunk(pages, 5):
+    # 동시에 여러 Task 호출
+    for page in batch:
+        Task(
+            subagent_type="general-purpose",
+            prompt=f"""
+            Extract and generate TSX for: {page.url}
+            Page ID: {page.id}
+            Suggested Route: {page.route}
+
+            Steps:
+            1. navigate_page(url)
+            2. evaluate_script() → outerHTML 추출
+            3. evaluate_script() → CSS 추출
+            4. evaluate_script() → Assets 수집
+            5. HTML → JSX 변환 (클래스 100% 보존!)
+            6. Save to: hack-2-nextjs/extracted/{page.id}.json
+
+            CRITICAL: outerHTML의 클래스를 절대 변경하지 마세요!
+            - grid-cols-3 → grid-cols-3 (그대로!)
+            - gap-6 → gap-6 (그대로!)
+            - 허용: class→className, style 문법 변환
+            """,
+            run_in_background=True
+        )
+```
+
+### 1.2 Per-Page Extraction (Agent Task)
+
+> Reference: `shared/references/hack-2-nextjs/html-to-jsx.md`
+
+```javascript
+// Step 1: Navigate
+navigate_page({ url: page.url })
+
+// Step 2: outerHTML 직접 추출 (CRITICAL!)
+evaluate_script({
+  function: `() => {
+    const main = document.querySelector('main, [role="main"], .main-content, body');
+    return {
+      html: main.outerHTML,
+      title: document.title
+    };
+  }`
+})
+
+// Step 3: CSS/Style 추출
+evaluate_script({ /* style extraction script */ })
+
+// Step 4: Assets 수집
+evaluate_script({ /* asset collection script */ })
+
+// Step 5: HTML → JSX 변환 (문법만!)
+// Step 6: JSON 저장
+```
+
+### 1.3 Agent Output: {page-id}.json
+
+```json
+{
+  "id": "P001",
+  "url": "file:///mockup/index.html",
+  "title": "HR Dashboard",
+  "route": "/(hr)",
+  "styles": {
+    "colors": { "#3b82f6": 45, "#1e293b": 120 },
+    "typography": { ... },
+    "spacing": { ... }
+  },
+  "assets": {
+    "images": ["logo.png", "avatar.jpg"],
+    "svgs": [{ "id": "icon-home", "html": "..." }]
+  },
+  "tsx": "export default function HRDashboard() { return (...); }"
 }
 ```
 
 ---
 
-## Phase 1: Extract & Generate
+## Phase 2: Integration
 
-> Reference: `shared/references/hack-2-nextjs/style-extraction.md`
+**목표:** 추출된 결과물 통합
 
-각 화면에서 스타일 추출 + TSX 생성을 동시 진행.
-
-### 1.1 Per-Screen Extraction
-
-```javascript
-// Step 1: Navigate
-navigate_page({ url: screen.url })
-
-// Step 2: A11y Tree
-take_snapshot() → component_structure
-
-// Step 3: CSS/Style Extraction (CRITICAL)
-evaluate_script({
-  function: `() => {
-    const result = { colors: {}, typography: {}, spacing: {}, components: [] };
-
-    document.querySelectorAll('*').forEach(el => {
-      const computed = getComputedStyle(el);
-      const classes = el.className;
-
-      // Color collection
-      ['color', 'backgroundColor', 'borderColor'].forEach(prop => {
-        const value = computed[prop];
-        if (value && value !== 'rgba(0, 0, 0, 0)' && value !== 'transparent') {
-          const key = value.replace(/\\s/g, '');
-          result.colors[key] = (result.colors[key] || 0) + 1;
-        }
-      });
-
-      // Typography
-      const fontKey = computed.fontFamily + '|' + computed.fontSize + '|' + computed.fontWeight;
-      result.typography[fontKey] = (result.typography[fontKey] || 0) + 1;
-
-      // Spacing (gap, padding, margin)
-      ['gap', 'padding', 'margin'].forEach(prop => {
-        const value = computed[prop];
-        if (value && value !== '0px') {
-          result.spacing[value] = (result.spacing[value] || 0) + 1;
-        }
-      });
-
-      // Component with layout
-      if (computed.display === 'grid' || computed.display === 'flex') {
-        result.components.push({
-          tag: el.tagName,
-          classes: typeof classes === 'string' ? classes : '',
-          display: computed.display,
-          gridTemplateColumns: computed.gridTemplateColumns,
-          flexDirection: computed.flexDirection,
-          justifyContent: computed.justifyContent,
-          alignItems: computed.alignItems,
-          gap: computed.gap
-        });
-      }
-    });
-
-    return result;
-  }`
-})
-```
-
-### 1.2 Asset Collection
-
-```javascript
-evaluate_script({
-  function: `() => ({
-    images: [...document.querySelectorAll('img')].map(img => ({
-      src: img.src,
-      alt: img.alt,
-      width: img.width,
-      height: img.height
-    })),
-    backgrounds: [...document.querySelectorAll('*')]
-      .map(el => getComputedStyle(el).backgroundImage)
-      .filter(bg => bg !== 'none' && bg.includes('url')),
-    svgs: [...document.querySelectorAll('svg')].map(svg => ({
-      id: svg.id || svg.closest('[id]')?.id || 'icon-' + Math.random().toString(36).slice(2, 8),
-      html: svg.outerHTML,
-      viewBox: svg.getAttribute('viewBox')
-    })),
-    fonts: document.fonts ? [...document.fonts].map(f => ({
-      family: f.family,
-      weight: f.weight,
-      style: f.style
-    })) : []
-  })`
-})
-```
-
-### 1.3 Design Token Auto-Generation
-
-수집된 스타일을 시맨틱 토큰으로 자동 매핑:
-
-```typescript
-// tokens.ts 자동 생성 로직
-const colorUsage = extractedColors;
-
-// 가장 많이 사용된 accent color → primary
-const primary = Object.entries(colorUsage)
-  .filter(([color]) => isAccentColor(color))
-  .sort((a, b) => b[1] - a[1])[0];
-
-// 가장 많이 사용된 text color → foreground
-const foreground = Object.entries(colorUsage)
-  .filter(([color]) => isTextColor(color))
-  .sort((a, b) => b[1] - a[1])[0];
-
-export const tokens = {
-  colors: {
-    primary: primary[0],
-    foreground: foreground[0],
-    background: mostUsedBackground,
-    // ...more semantic colors
-  },
-  spacing: {
-    // Normalize to 4px grid
-  },
-  typography: {
-    // Font family, sizes, weights
-  }
-};
-```
-
-### 1.4 TSX Generation (Per Screen)
-
-**직접 TSX 생성 (YAML 없이):**
+### 2.1 Token Generation
 
 ```
-1. a11y tree에서 컴포넌트 구조 파악
-2. CSS extraction 결과에서 레이아웃 정보 적용
-3. Tailwind 클래스 생성 (token 참조)
-4. Static TSX 작성 (no interactivity yet)
+1. extracted/*.json 모두 읽기
+2. 모든 colors 통합 → 빈도 기반 시맨틱 토큰
+3. tokens.ts, tailwind.config.ts 생성
 ```
 
-**클래스 변환 예시:**
-```
-원본: bg-blue-500 → 생성: bg-primary (tokens.colors.primary = blue-500 equivalent)
-원본: gap-4 → 생성: gap-4 (또는 gap-base if tokenized)
-```
+> Reference: `shared/references/hack-2-nextjs/token-generation.md`
 
-### 1.5 Output: Per Screen
+### 2.2 TSX Placement & Navigation Wiring
 
 ```
-hack-2-nextjs/nextjs-app/
-├── app/{route}/page.tsx     # Static TSX
-└── components/ui/*.tsx      # Extracted components
+1. 각 tsx를 route에 맞게 배치
+   - P001.json (route: "/(hr)") → app/(hr)/page.tsx
+2. navigation-map.md 기반으로 Link 연결
+   - P001 → P002 (click: "휴가 관리")
+   - <button>휴가 관리</button> → <Link href="/leave">휴가 관리</Link>
+3. 공통 컴포넌트 추출 (Header, Sidebar 등)
 ```
 
----
-
-## Phase 2: Connect & Run
-
-### 2.1 Navigation Wiring
-
-Navigation graph를 기반으로 Link 연결:
-
-```typescript
-// Before (static)
-<button>휴가 관리</button>
-
-// After (wired)
-<Link href="/leave">휴가 관리</Link>
-```
-
-### 2.2 Asset Download
+### 2.3 Asset Download
 
 ```bash
 # Images
 FOR each image in collected_images:
   curl -o public/images/{filename} {image.src}
 
-# Fonts
+# Fonts (if local)
 FOR each font in collected_fonts:
-  # Download or configure Google Fonts
+  curl -o public/fonts/{filename} {font.src}
 ```
 
-### 2.3 Project Setup & Run
+### 2.4 Project Setup & Run
 
 ```bash
 cd hack-2-nextjs/nextjs-app
@@ -329,13 +318,63 @@ npm install
 npm run dev
 ```
 
-### 2.4 Verification
+---
+
+## CRITICAL: outerHTML 직접 변환 방식
+
+> Reference: `shared/references/hack-2-nextjs/html-to-jsx.md`
+
+### 문제점 (기존)
 
 ```
-1. Open http://localhost:3000
-2. Compare with original source
-3. Check all navigation links
-4. Verify visual fidelity (95%+ match)
+take_snapshot() → AI "해석" → 임의 변환
+                    ↓
+grid-cols-3 → grid-cols-12 (임의 판단) ❌
+```
+
+### 해결책 (신규)
+
+```
+evaluate_script(outerHTML) → JSX 문법 변환만 → 클래스 100% 보존
+                              ↓
+grid-cols-3 → grid-cols-3 (그대로!) ✓
+```
+
+### JSX 변환 규칙 (허용 목록)
+
+| HTML | JSX | 설명 |
+|------|-----|------|
+| `class="..."` | `className="..."` | 속성명만 변경 |
+| `for="..."` | `htmlFor="..."` | 속성명만 변경 |
+| `onclick="..."` | 제거 | 이벤트는 별도 처리 |
+| `<img>` | `<img />` | 셀프 클로징 |
+| `<input>` | `<input />` | 셀프 클로징 |
+| `<br>` | `<br />` | 셀프 클로징 |
+| `<hr>` | `<hr />` | 셀프 클로징 |
+| `style="color: red"` | `style={{ color: 'red' }}` | 객체로 변환 |
+| `tabindex="0"` | `tabIndex={0}` | camelCase |
+| `colspan="2"` | `colSpan={2}` | camelCase |
+| `rowspan="2"` | `rowSpan={2}` | camelCase |
+| HTML comments | 제거 | `<!-- -->` 제거 |
+
+### 금지 규칙 (CRITICAL - 절대 위반 불가!)
+
+```markdown
+❌ 절대 금지:
+- grid-cols-N 값 변경
+- flex-direction 변경
+- gap-N 값 변경
+- p-N, m-N 값 변경
+- 원본에 없는 클래스 추가
+- "더 나은" 레이아웃으로 "개선"
+- 컴포넌트 구조 재해석
+- 레이아웃 "정리"나 "최적화"
+
+✅ 허용:
+- HTML → JSX 문법 변환 (위 표 참조)
+- 색상 토큰 치환 (bg-blue-500 → bg-primary)
+- onclick 제거 (나중에 Link로 연결)
+- SVG 내부 속성 camelCase 변환
 ```
 
 ---
@@ -358,13 +397,13 @@ graph TD
 ## Screens
 | ID | Route | File | Parent | Children | Components |
 |----|-------|------|--------|----------|------------|
-| SCR-001 | / | app/page.tsx | - | SCR-002, SCR-003 | Header, Sidebar, StatCards |
+| P001 | / | app/page.tsx | - | P002, P003 | Header, Sidebar, StatCards |
 
 ## Components
 | Name | File | Used In |
 |------|------|---------|
-| Header | components/layout/header.tsx | SCR-001, SCR-002 |
-| Sidebar | components/layout/sidebar.tsx | SCR-001, SCR-002 |
+| Header | components/layout/header.tsx | P001, P002 |
+| Sidebar | components/layout/sidebar.tsx | P001, P002 |
 
 ## Design Tokens
 | Category | File | Section |
@@ -386,9 +425,10 @@ graph TD
 
 | Topic | File |
 |-------|------|
-| Screen Discovery Details | `shared/references/hack-2-nextjs/screen-discovery.md` |
-| Style Extraction Scripts | `shared/references/hack-2-nextjs/style-extraction.md` |
-| Token Generation Logic | `shared/references/hack-2-nextjs/token-generation.md` |
+| Screen Discovery (Phase 0) | `shared/references/hack-2-nextjs/screen-discovery.md` |
+| Style Extraction (Phase 1) | `shared/references/hack-2-nextjs/style-extraction.md` |
+| HTML to JSX Rules | `shared/references/hack-2-nextjs/html-to-jsx.md` |
+| Token Generation | `shared/references/hack-2-nextjs/token-generation.md` |
 | Layout Rules | `shared/references/common/rules/07-layout-extraction-rules.md` |
 
 ---
@@ -398,22 +438,25 @@ graph TD
 | Phase | Check | Required |
 |-------|-------|----------|
 | **Phase 0** |||
-| Discovery | All screens found | ✓ |
-| Discovery | Navigation graph complete | ✓ |
-| Discovery | Route structure decided | ✓ |
+| Discovery | navigation-map.md 생성됨 | ✓ |
+| Discovery | 모든 페이지 URL 수집됨 | ✓ |
+| Discovery | 라우트 그룹 결정됨 | ✓ |
+| Discovery | 스냅샷 호출 없음 | ✓ |
 | **Phase 1** |||
-| Extraction | Colors collected | ✓ |
-| Extraction | Typography collected | ✓ |
-| Extraction | Assets collected | ✓ |
-| Generation | tokens.ts created | ✓ |
-| Generation | tailwind.config.ts created | ✓ |
-| Generation | All pages generated | ✓ |
+| Extraction | 병렬 에이전트 실행됨 | ✓ |
+| Extraction | extracted/*.json 생성됨 | ✓ |
+| Extraction | outerHTML 클래스 보존됨 | ✓ |
 | **Phase 2** |||
-| Connect | Navigation wired | ✓ |
-| Connect | Assets downloaded | ✓ |
-| Run | npm install succeeds | ✓ |
-| Run | npm run dev starts | ✓ |
-| Run | Visual match 95%+ | ✓ |
+| Integration | tokens.ts 생성됨 | ✓ |
+| Integration | tailwind.config.ts 생성됨 | ✓ |
+| Integration | 네비게이션 Link 연결됨 | ✓ |
+| Integration | Assets 다운로드됨 | ✓ |
+| Run | npm install 성공 | ✓ |
+| Run | npm run dev 성공 | ✓ |
+| **Verification** |||
+| Layout | 원본 grid-cols-N == 생성 grid-cols-N | ✓ |
+| Layout | 원본 gap-N == 생성 gap-N | ✓ |
+| Visual | 시각적 일치 95%+ | ✓ |
 
 ---
 
@@ -424,21 +467,25 @@ Done. Generated NextJS application:
 
 📁 hack-2-nextjs/
 
-Phase 0 - Discovery:
+Phase 0 - Route Discovery:
+├── navigation-map.md
 └── [N screens found, M navigation links]
 
-Phase 1 - Extract & Generate:
+Phase 1 - Parallel Extraction:
+├── extracted/ [N JSON files]
+└── [X agents completed]
+
+Phase 2 - Integration:
 ├── design-system/
 │   ├── tokens.ts (X colors, Y typography, Z spacing)
 │   └── tailwind.config.ts
-└── nextjs-app/
-    ├── app/ [N pages]
-    └── components/ [K components]
-
-Phase 2 - Connect & Run:
+├── nextjs-app/
+│   ├── app/ [N pages]
+│   └── components/ [K components]
 ├── Navigation wired [M links]
-├── Assets downloaded [A images, B icons]
-└── Running at http://localhost:3000
+└── Assets downloaded [A images, B icons]
+
+Running at http://localhost:3000
 
 next-frame-map.md created for progressive loading.
 ```
@@ -452,4 +499,5 @@ next-frame-map.md created for progressive loading.
 | Chrome MCP not available | Try file:// URL for local files |
 | Navigation fails (SPA) | Use evaluate_script to trigger navigation |
 | Assets 404 | Log warning, use placeholder |
-| Style extraction incomplete | Use take_screenshot for visual reference |
+| Agent timeout | Retry with smaller batch size |
+| Context limit reached | Reduce parallel agents from 5 to 3 |

@@ -1,26 +1,42 @@
 # Screen Discovery Reference
 
-Chrome MCP를 사용한 화면 탐색 및 네비게이션 그래프 구축.
+Phase 0: 가벼운 경로 탐색 전용 (스냅샷 금지!)
 
 ---
 
 ## 1. Overview
 
-Phase 0에서 모든 화면을 재귀적으로 탐색하여:
-- 전체 화면 목록 수집
-- 네비게이션 그래프 구축
-- NextJS 라우트 구조 결정
+**목표:** URL과 경로만 수집, 파일로 저장 → 컨텍스트 해제
+
+**핵심 원칙:**
+- ❌ `take_snapshot()` 호출 금지 → 컨텍스트 폭발 방지
+- ✅ `evaluate_script()` 로 URL/href/title만 추출
+- ✅ 결과를 `navigation-map.md` 파일로 저장
+
+```
+[기존 - 컨텍스트 폭발]
+navigate → snapshot → click → snapshot → click → snapshot → 💥
+
+[신규 - 가벼운 탐색]
+navigate → evaluate(links) → navigate → evaluate(links) → ... → save to file ✓
+```
 
 ---
 
 ## 2. Initial Navigation
 
 ```javascript
-// Step 1: Open source
+// Step 1: Open source URL
 navigate_page({ url: source, type: "url" })
 
-// Step 2: Get initial snapshot
-take_snapshot()
+// Step 2: Get page info (NO SNAPSHOT!)
+evaluate_script({
+  function: `() => ({
+    url: window.location.href,
+    title: document.title,
+    // 가벼운 정보만!
+  })`
+})
 ```
 
 **Source URL 변환:**
@@ -32,185 +48,69 @@ take_snapshot()
 
 ---
 
-## 3. Clickable Element Collection
+## 3. Lightweight Link Collection
+
+스냅샷 없이 링크만 수집:
 
 ```javascript
 evaluate_script({
   function: `() => {
-    const clickables = [];
+    const links = [];
+    const seen = new Set();
 
-    // Links
+    // <a href> 링크
     document.querySelectorAll('a[href]').forEach(el => {
       const href = el.getAttribute('href');
-      if (href && !href.startsWith('#') && !href.startsWith('javascript:')) {
-        clickables.push({
+      if (href &&
+          !href.startsWith('#') &&
+          !href.startsWith('javascript:') &&
+          !href.startsWith('mailto:') &&
+          !seen.has(href)) {
+        seen.add(href);
+        links.push({
           type: 'link',
           text: el.textContent.trim().slice(0, 50),
           href: href,
-          uid: el.dataset?.uid || null
+          // 절대 URL로 변환
+          absoluteUrl: new URL(href, window.location.href).href
         });
       }
     });
 
-    // Buttons with navigation
-    document.querySelectorAll('button, [role="button"], [onclick]').forEach(el => {
+    // onclick navigation 버튼
+    document.querySelectorAll('button[onclick], [onclick]').forEach(el => {
       const onclick = el.getAttribute('onclick') || '';
-      const dataNav = el.dataset?.nav || el.dataset?.href || null;
-      if (onclick.includes('navigate') || onclick.includes('location') || dataNav) {
-        clickables.push({
+      // location.href, window.open, navigate 패턴 감지
+      const hrefMatch = onclick.match(/(?:location\\.href|window\\.open)\\s*[=\\(]\\s*['"]([^'"]+)['"]/);
+      if (hrefMatch && !seen.has(hrefMatch[1])) {
+        seen.add(hrefMatch[1]);
+        links.push({
           type: 'button',
           text: el.textContent.trim().slice(0, 50),
-          onclick: onclick.slice(0, 100),
-          dataNav: dataNav,
-          uid: el.dataset?.uid || null
+          href: hrefMatch[1],
+          absoluteUrl: new URL(hrefMatch[1], window.location.href).href
         });
       }
     });
 
-    // Tab triggers
-    document.querySelectorAll('[role="tab"], [data-tab], .tab-trigger').forEach(el => {
-      clickables.push({
-        type: 'tab',
-        text: el.textContent.trim().slice(0, 50),
-        target: el.dataset?.tab || el.getAttribute('aria-controls'),
-        uid: el.dataset?.uid || null
-      });
-    });
-
-    // Navigation menu items
-    document.querySelectorAll('nav a, [role="menuitem"], .nav-item').forEach(el => {
-      if (!clickables.some(c => c.text === el.textContent.trim())) {
-        clickables.push({
-          type: 'nav',
+    // data-nav, data-href 속성
+    document.querySelectorAll('[data-nav], [data-href]').forEach(el => {
+      const href = el.dataset.nav || el.dataset.href;
+      if (href && !seen.has(href)) {
+        seen.add(href);
+        links.push({
+          type: 'data-attr',
           text: el.textContent.trim().slice(0, 50),
-          href: el.getAttribute('href'),
-          uid: el.dataset?.uid || null
+          href: href,
+          absoluteUrl: new URL(href, window.location.href).href
         });
       }
     });
-
-    return clickables;
-  }`
-})
-```
-
----
-
-## 4. Screen State Detection
-
-화면이 변경되었는지 감지:
-
-```javascript
-evaluate_script({
-  function: `() => ({
-    url: window.location.href,
-    title: document.title,
-    hash: window.location.hash,
-    // Content fingerprint
-    mainContent: document.querySelector('main, [role="main"], .main-content')?.textContent?.slice(0, 200),
-    // Active navigation
-    activeNav: document.querySelector('.active, [aria-selected="true"], .selected')?.textContent,
-    // Visible modal/dialog
-    hasModal: !!document.querySelector('[role="dialog"]:not([hidden]), .modal:not(.hidden)')
-  })`
-})
-```
-
-**새 화면 판단 기준:**
-1. URL 변경 (path 또는 hash)
-2. Title 변경
-3. Main content 변경 (70%+ 다름)
-4. Active navigation 변경
-
----
-
-## 5. Recursive Exploration Algorithm
-
-```python
-visited_urls = set()
-visited_states = set()
-screens = []
-navigation_graph = []
-
-def explore(url, parent_screen=None, trigger=None):
-    # 1. Navigate
-    navigate_page({ url: url })
-
-    # 2. Get current state
-    state = get_screen_state()
-    state_hash = hash(state.url + state.title + state.mainContent[:100])
-
-    # 3. Skip if visited
-    if state_hash in visited_states:
-        return
-    visited_states.add(state_hash)
-
-    # 4. Create screen record
-    screen = {
-        id: f"SCR-{len(screens)+1:03d}",
-        url: state.url,
-        title: state.title,
-        parent: parent_screen,
-        trigger: trigger
-    }
-    screens.append(screen)
-
-    # 5. Record navigation edge
-    if parent_screen:
-        navigation_graph.append({
-            from: parent_screen.id,
-            to: screen.id,
-            trigger: trigger
-        })
-
-    # 6. Collect clickables
-    clickables = collect_clickables()
-
-    # 7. Explore each clickable
-    for clickable in clickables:
-        if clickable.type == 'link' and clickable.href:
-            # External link - skip
-            if is_external(clickable.href):
-                continue
-            explore(resolve_url(url, clickable.href), screen, clickable.text)
-
-        elif clickable.type in ['button', 'tab', 'nav']:
-            # Click and check for navigation
-            click({ uid: clickable.uid })
-            new_state = get_screen_state()
-
-            if is_new_screen(state, new_state):
-                explore(new_state.url, screen, clickable.text)
-
-            # Go back
-            navigate_page({ type: "back" })
-```
-
----
-
-## 6. SPA Navigation Handling
-
-Single Page App에서는 URL이 변경되지 않을 수 있음:
-
-```javascript
-// SPA 네비게이션 감지
-evaluate_script({
-  function: `() => {
-    // Check for router state
-    const reactRouter = window.__REACT_ROUTER_HISTORY__;
-    const vueRouter = window.$nuxt?.$router || document.querySelector('[data-vue-router]');
-
-    // Check for hash-based routing
-    const hashRouting = window.location.hash.length > 1;
-
-    // Check for visible content change
-    const mainSelector = 'main, [role="main"], .page-content, #app';
-    const mainContent = document.querySelector(mainSelector)?.innerHTML;
 
     return {
-      isSPA: !!(reactRouter || vueRouter),
-      hashRouting: hashRouting,
-      contentHash: mainContent ? hashCode(mainContent) : null
+      currentUrl: window.location.href,
+      currentTitle: document.title,
+      links: links
     };
   }`
 })
@@ -218,139 +118,236 @@ evaluate_script({
 
 ---
 
-## 7. Tab vs Page Detection
+## 4. Recursive Exploration (NO SNAPSHOT!)
+
+```python
+visited_urls = set()
+pages = []
+navigation_graph = []
+page_counter = 0
+
+def explore(url, parent_id=None, trigger_text=None):
+    global page_counter
+
+    # 1. Skip if visited
+    if url in visited_urls:
+        return None
+    visited_urls.add(url)
+
+    # 2. Navigate (NO SNAPSHOT!)
+    navigate_page({ url: url })
+
+    # 3. Get lightweight info
+    info = evaluate_script({ function: "..." })  # links collection script
+
+    # 4. Assign page ID
+    page_counter += 1
+    page_id = f"P{page_counter:03d}"
+
+    # 5. Determine route
+    route = determine_route(url, info.currentTitle)
+
+    # 6. Record page
+    pages.append({
+        "id": page_id,
+        "url": url,
+        "title": info.currentTitle,
+        "route": route
+    })
+
+    # 7. Record navigation edge
+    if parent_id:
+        navigation_graph.append({
+            "from": parent_id,
+            "to": page_id,
+            "trigger": trigger_text
+        })
+
+    # 8. Explore each link (recursively)
+    for link in info.links:
+        # Skip external links
+        if is_external(link.absoluteUrl, url):
+            continue
+        explore(link.absoluteUrl, page_id, link.text)
+
+    return page_id
+
+# Start exploration
+explore(source_url)
+
+# Save to file (컨텍스트 해제!)
+save_navigation_map(pages, navigation_graph)
+```
+
+---
+
+## 5. Route Determination Logic
+
+URL/title에서 NextJS 라우트 추론:
+
+```python
+def determine_route(url, title):
+    # Extract filename from URL
+    path = urlparse(url).path
+    filename = path.split('/')[-1].replace('.html', '')
+
+    # Pattern matching
+    patterns = [
+        # viewMode 파라미터
+        (r'viewMode=hr', '/(hr)'),
+        (r'viewMode=emp', '/(employee)'),
+
+        # HR 관리 화면
+        (r'index\.html.*HR|hr-|admin-', '/(hr)'),
+        (r'-management$', '/(hr)/{domain}'),
+
+        # Employee 화면
+        (r'emp-', '/(employee)/{domain}'),
+
+        # 특정 도메인
+        (r'leave|휴가', '/leave'),
+        (r'attendance|출퇴근', '/attendance'),
+        (r'employee|직원', '/employees'),
+        (r'schedule|근무', '/schedule'),
+        (r'settings|설정', '/settings'),
+    ]
+
+    route_group = '/(hr)'  # default
+    route_path = '/'
+
+    for pattern, route in patterns:
+        if re.search(pattern, url + title, re.I):
+            if route.startswith('/('):
+                route_group = route
+            else:
+                route_path = route
+
+    # Combine: /(hr)/leave
+    if route_path == '/':
+        return route_group
+    return f"{route_group}{route_path}"
+```
+
+---
+
+## 6. External Link Detection
+
+```python
+def is_external(target_url, source_url):
+    """외부 링크인지 판단"""
+    source_domain = urlparse(source_url).netloc
+    target_domain = urlparse(target_url).netloc
+
+    # file:// URL의 경우
+    if source_url.startswith('file://'):
+        # 같은 디렉토리 또는 하위 디렉토리만 허용
+        source_dir = os.path.dirname(urlparse(source_url).path)
+        target_dir = os.path.dirname(urlparse(target_url).path)
+        return not target_dir.startswith(source_dir)
+
+    # http(s):// URL의 경우
+    return source_domain != target_domain
+```
+
+---
+
+## 7. Output: navigation-map.md
+
+```markdown
+# Navigation Map
+
+Generated: 2024-01-15T10:30:00Z
+Source: file:///Users/ted/project/mockup/index.html
+
+## Pages
+| ID | URL | Title | Suggested Route |
+|----|-----|-------|-----------------|
+| P001 | file:///mockup/index.html | HR Dashboard | /(hr) |
+| P002 | file:///mockup/leave-management.html | Leave Management | /(hr)/leave |
+| P003 | file:///mockup/emp-index.html | Employee Portal | /(employee) |
+| P004 | file:///mockup/emp-leave.html | My Leave | /(employee)/leave |
+| P005 | file:///mockup/attendance.html | Attendance | /(hr)/attendance |
+
+## Navigation Graph
+P001 → P002 (click: "휴가 관리")
+P001 → P003 (click: "직원 모드")
+P001 → P005 (click: "출퇴근 관리")
+P002 → P004 (click: "휴가 신청")
+P003 → P004 (click: "휴가 신청")
+
+## Route Groups
+(hr): P001, P002, P005
+(employee): P003, P004
+
+## Statistics
+- Total pages: 5
+- Navigation links: 5
+- Route groups: 2
+```
+
+---
+
+## 8. Tab Detection (In-Page Navigation)
 
 탭은 별도 페이지가 아닌 같은 페이지 내 컴포넌트:
 
-| Signal | Tab | Page |
-|--------|-----|------|
-| URL 변경 | ✗ | ✓ |
-| `role="tab"` | ✓ | ✗ |
-| Parent container `role="tablist"` | ✓ | ✗ |
-| Content in same DOM | ✓ | ✗ |
+```javascript
+evaluate_script({
+  function: `() => {
+    const tabs = [];
 
-**탭 발견 시:**
-```yaml
-# screen.yaml에 탭으로 기록
-components:
-  - id: "settings-tabs"
-    type: "Tabs"
-    items:
-      - { label: "일반", panel: "general-panel" }
-      - { label: "알림", panel: "notifications-panel" }
-      - { label: "보안", panel: "security-panel" }
+    // role="tab" 탭
+    document.querySelectorAll('[role="tab"]').forEach(tab => {
+      tabs.push({
+        text: tab.textContent.trim(),
+        id: tab.id,
+        controls: tab.getAttribute('aria-controls'),
+        selected: tab.getAttribute('aria-selected') === 'true'
+      });
+    });
+
+    // .tab-trigger 클래스
+    document.querySelectorAll('.tab-trigger, [data-tab]').forEach(tab => {
+      tabs.push({
+        text: tab.textContent.trim(),
+        target: tab.dataset.tab
+      });
+    });
+
+    return tabs;
+  }`
+})
 ```
+
+**탭 처리:**
+- 탭은 navigation-map.md에 별도 페이지로 기록하지 않음
+- 대신 Phase 1에서 해당 페이지의 컴포넌트로 처리
 
 ---
 
-## 8. Route Structure Mapping
+## 9. SPA Detection
 
-발견된 화면들을 NextJS 라우트로 매핑:
+SPA의 경우 URL 변경 없이 컨텐츠만 변경될 수 있음:
 
-### 8.1 Pattern Matching
-
-```python
-def determine_route(screen):
-    url = screen.url
-    title = screen.title
-
-    # Pattern: index with viewMode param
-    if 'viewMode=hr' in url or 'HR' in title:
-        return '/(hr)/page.tsx'
-    if 'viewMode=emp' in url or 'Employee' in title:
-        return '/(employee)/page.tsx'
-
-    # Pattern: *-management.html → /(hr)/*/
-    if '-management' in url:
-        domain = url.split('-management')[0].split('/')[-1]
-        return f'/(hr)/{domain}/page.tsx'
-
-    # Pattern: emp-*.html → /(employee)/*/
-    if '/emp-' in url:
-        domain = url.split('emp-')[1].split('.')[0]
-        return f'/(employee)/{domain}/page.tsx'
-
-    # Default: use path
-    path = urlparse(url).path
-    return f'/app{path}/page.tsx'
+```javascript
+evaluate_script({
+  function: `() => ({
+    isSPA: !!(
+      window.__REACT_ROOT__ ||
+      window.__VUE_APP__ ||
+      window.$nuxt ||
+      document.querySelector('[data-reactroot]') ||
+      document.querySelector('#__next')
+    ),
+    hashRouting: window.location.hash.length > 1,
+    historyAPI: !!window.history.pushState
+  })`
+})
 ```
 
-### 8.2 Route Grouping
-
-```python
-def group_routes(screens):
-    groups = {}
-
-    for screen in screens:
-        # Determine group by access level
-        if is_admin_screen(screen):
-            group = '(hr)'
-        elif is_employee_screen(screen):
-            group = '(employee)'
-        else:
-            group = '(shared)'
-
-        if group not in groups:
-            groups[group] = []
-        groups[group].append(screen.id)
-
-    return groups
-```
-
----
-
-## 9. Output Format
-
-### 9.1 Screens List
-
-```json
-{
-  "screens": [
-    {
-      "id": "SCR-001",
-      "url": "file:///path/mockup/index.html",
-      "title": "HR Dashboard",
-      "route": "/(hr)/page.tsx",
-      "parent": null,
-      "trigger": null,
-      "components": ["Header", "Sidebar", "StatCards", "DataTable"]
-    },
-    {
-      "id": "SCR-002",
-      "url": "file:///path/mockup/leave-management.html",
-      "title": "Leave Management",
-      "route": "/(hr)/leave/page.tsx",
-      "parent": "SCR-001",
-      "trigger": "nav-leave",
-      "components": ["Header", "Sidebar", "FilterBar", "LeaveTable"]
-    }
-  ]
-}
-```
-
-### 9.2 Navigation Graph
-
-```json
-{
-  "navigation_graph": [
-    { "from": "SCR-001", "to": "SCR-002", "trigger": "휴가 관리", "type": "nav" },
-    { "from": "SCR-001", "to": "SCR-003", "trigger": "출퇴근 관리", "type": "nav" },
-    { "from": "SCR-002", "to": "SCR-004", "trigger": "휴가 신청", "type": "button" }
-  ]
-}
-```
-
-### 9.3 Route Groups
-
-```json
-{
-  "route_groups": {
-    "(hr)": ["SCR-001", "SCR-002", "SCR-003"],
-    "(employee)": ["SCR-004", "SCR-005"],
-    "(shared)": ["SCR-006"]
-  }
-}
-```
+**SPA 처리:**
+- Hash routing: `#/page` 형태의 URL 처리
+- History API: `popstate` 이벤트 감지
 
 ---
 
@@ -358,22 +355,37 @@ def group_routes(screens):
 
 | Error | Recovery |
 |-------|----------|
-| Navigation timeout | Retry with longer timeout (30s) |
-| Element not found | Skip and continue with next clickable |
-| Infinite loop detected | Break after 50 screens or 3 visits to same state |
-| Modal blocks navigation | Dismiss modal and retry |
+| Navigation timeout | 30초 대기 후 재시도 |
+| 404 페이지 | 스킵하고 다음 링크 진행 |
+| 무한 루프 감지 | 50개 페이지 또는 3회 방문 시 중단 |
+| JavaScript 에러 | 스킵하고 기록 |
 
 ```javascript
-// Modal dismissal
+// 모달이 네비게이션을 막는 경우
 evaluate_script({
   function: `() => {
-    const modal = document.querySelector('[role="dialog"], .modal');
+    const modal = document.querySelector('[role="dialog"]:not([hidden]), .modal:not(.hidden)');
     if (modal) {
-      const closeBtn = modal.querySelector('[aria-label="Close"], .close-btn, button');
-      if (closeBtn) closeBtn.click();
-      return true;
+      const closeBtn = modal.querySelector('[aria-label="Close"], .close-btn, button[type="button"]');
+      if (closeBtn) {
+        closeBtn.click();
+        return { dismissed: true };
+      }
     }
-    return false;
+    return { dismissed: false };
   }`
 })
 ```
+
+---
+
+## 11. Verification Checklist
+
+| Check | Required |
+|-------|----------|
+| `take_snapshot()` 호출 없음 | ✓ |
+| 모든 내부 링크 수집됨 | ✓ |
+| navigation-map.md 생성됨 | ✓ |
+| 무한 루프 방지 동작 | ✓ |
+| 외부 링크 스킵됨 | ✓ |
+| 라우트 그룹 분류됨 | ✓ |
