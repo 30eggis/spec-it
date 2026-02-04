@@ -231,3 +231,90 @@ Phase-0 (Shared)
 3. Phase-0 must complete before persona phases
 
 4. All wireframe/component references must exist
+
+---
+
+## CRITICAL: Full Scope Requirements (함축 금지)
+
+### Rule 1: ALL Chapters Must Be Included
+```yaml
+requirement: MANDATORY
+check: chapters_in_devplan == chapters_in_spec
+
+# Example verification
+chapter_plan_final: CH-00, CH-01, CH-02, ..., CH-11 (12 chapters)
+development_map: Must include tasks for ALL 12 chapters
+
+❌ VIOLATION: "P0 MVP scope: CH-00 to CH-06"
+✅ CORRECT: "Full scope: CH-00 to CH-11"
+```
+
+### Rule 2: ALL Screens Must Be Covered
+```yaml
+requirement: MANDATORY
+check: screens_in_tasks == screens_in_spec
+
+# Example verification
+screen_list: 25 screens + 9 modals
+development_map: Must have tasks covering ALL 34 UI elements
+
+❌ VIOLATION: "14 screens for MVP release"
+✅ CORRECT: "All 25 screens + 9 modals"
+```
+
+### Rule 3: NO Priority-Based Exclusion
+```yaml
+priority_usage:
+  P0: Execute first (highest priority)
+  P1: Execute second
+  P2: Execute last
+
+priority_NOT_for:
+  - Excluding features from plan
+  - Deferring to "future releases"
+  - Creating "MVP only" scope
+
+❌ VIOLATION: "P1/P2 features deferred to Phase 2 release"
+✅ CORRECT: "P1 tasks follow P0, P2 tasks follow P1"
+```
+
+### Rule 4: Completeness Checklist
+
+Before finalizing development-map.md:
+
+```markdown
+## Scope Verification
+
+| Check | Expected | Actual | Status |
+|-------|----------|--------|--------|
+| Total Chapters | {N from spec} | {N in plan} | ✓/✗ |
+| Total Screens | {N from spec} | {N in plan} | ✓/✗ |
+| Total Modals | {N from spec} | {N in plan} | ✓/✗ |
+| P0 Chapters | {list} | {list} | ✓/✗ |
+| P1 Chapters | {list} | {list} | ✓/✗ |
+| P2 Chapters | {list} | {list} | ✓/✗ |
+| MVP-only language | None | None | ✓/✗ |
+| Deferred language | None | None | ✓/✗ |
+```
+
+### Rule 5: Rejected Patterns
+
+The following patterns will cause plan REJECTION:
+
+```
+❌ "This plan prioritizes P0 MVP scope"
+❌ "P1 features will be addressed in future releases"
+❌ "MVP-critical features only"
+❌ "Deferred to Phase 2"
+❌ "Out of scope for initial delivery"
+❌ "Nice-to-have features excluded"
+```
+
+### Rule 6: Language Consistency
+
+If spec uses specific language (e.g., Korean):
+```
+❌ WRONG: English labels when spec is Korean
+❌ WRONG: English mock data when spec uses Korean names
+✅ CORRECT: Match spec language exactly
+```

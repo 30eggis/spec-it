@@ -33,6 +33,126 @@ Before implementing, ALWAYS load relevant spec artifacts:
 4. Read scenarios from 04-scenarios/ for test requirements
 ```
 
+## CRITICAL: WIREFRAME ADHERENCE LAW (설계 준수 불변의 법칙)
+
+**YOU ARE AN EXECUTOR, NOT A DESIGNER. ZERO CREATIVE FREEDOM.**
+
+### 🚫 ABSOLUTELY FORBIDDEN (위반 시 구현 REJECT)
+
+```
+❌ FORBIDDEN: Guessing, estimating, assuming ANY value
+❌ FORBIDDEN: Translating labels (Korean → English, etc.)
+❌ FORBIDDEN: Changing color references (green-100 → different color)
+❌ FORBIDDEN: Simplifying UI structure (removing progress bars, etc.)
+❌ FORBIDDEN: Using "reasonable defaults" instead of spec values
+❌ FORBIDDEN: Changing component structure "for better UX"
+❌ FORBIDDEN: Using placeholder text when spec has real text
+❌ FORBIDDEN: Using English mock data when spec uses Korean
+```
+
+### ✅ MANDATORY: READ WIREFRAME YAML FIRST
+
+Before writing ANY code for a screen, you MUST:
+
+```
+1. Read: 02-wireframes/{domain}/{screen}/wireframes/SCR-*.yaml
+2. Extract EVERY prop value exactly as written
+3. Use spec language (if Korean labels → Korean in code)
+4. Use spec colors (if iconBg: "green-100" → use green-100)
+5. Use spec data (if name: "김철수" → use "김철수")
+```
+
+### Example: CORRECT vs WRONG
+
+**Wireframe YAML says:**
+```yaml
+- type: "StatCard"
+  props:
+    icon: "CheckCircle"
+    iconBg: "green-100"
+    value: "287"
+    label: "출근 인원"
+```
+
+**❌ WRONG Implementation:**
+```tsx
+{
+  label: 'Present',           // ← VIOLATION: translated to English
+  icon: <CheckCircle />,
+  colorClass: styles.green,   // ← VIOLATION: different naming
+}
+```
+
+**✅ CORRECT Implementation:**
+```tsx
+{
+  label: '출근 인원',          // ← EXACT from spec
+  icon: <CheckCircle />,
+  iconBg: 'green-100',        // ← EXACT from spec
+  value: '287',               // ← EXACT from spec
+}
+```
+
+### Language Rule (언어 규칙)
+
+```
+IF wireframe uses Korean:
+  - ALL labels MUST be Korean
+  - ALL button text MUST be Korean
+  - ALL placeholder text MUST be Korean
+  - ALL mock data names MUST be Korean
+  - ALL error messages MUST be Korean
+
+NO EXCEPTIONS. NO TRANSLATIONS.
+```
+
+### Color/Style Rule (스타일 규칙)
+
+```
+IF wireframe says iconBg: "green-100":
+  - Use EXACTLY "green-100" or map to --color-green-10
+  - DO NOT use "emerald", "lime", or any other green variant
+  - DO NOT change to "var(--success-color)" or semantic names
+
+IF wireframe says rounded-2xl:
+  - Use EXACTLY rounded-2xl or equivalent 16px radius
+  - DO NOT change to rounded-lg, rounded-xl
+```
+
+### Structure Rule (구조 규칙)
+
+```
+IF wireframe shows progress bar for overtime:
+  - IMPLEMENT progress bar
+  - DO NOT replace with badge or text
+
+IF wireframe shows 5 stat cards:
+  - IMPLEMENT 5 stat cards
+  - DO NOT add 6th card
+  - DO NOT remove any card
+
+IF wireframe shows action button "알림 일괄 발송":
+  - IMPLEMENT that button with EXACT text
+  - DO NOT omit it
+  - DO NOT rename it
+```
+
+### Verification Checklist (Before claiming completion)
+
+```yaml
+wireframe_compliance_check:
+  - [ ] All labels match wireframe props EXACTLY
+  - [ ] All colors match wireframe props EXACTLY
+  - [ ] All icons match wireframe props EXACTLY
+  - [ ] All mock data matches wireframe props EXACTLY
+  - [ ] Language matches wireframe (no translations)
+  - [ ] Component count matches wireframe
+  - [ ] UI structure matches wireframe (no simplification)
+  - [ ] All buttons/actions from wireframe implemented
+```
+
+---
+
 ## Implementation Rules
 
 ### Follow Spec Exactly

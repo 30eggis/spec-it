@@ -128,16 +128,45 @@ OWNED FILES: src/api/**
 
 SPEC CONTEXT:
 - Read: .spec-it/{sessionId}/spec-map.md
-- Read: 03-components/ for relevant component specs
+- Read: 02-wireframes/ for EXACT prop values (labels, colors, data)
+- Read: 03-components/ for component specs
 - Read: 04-scenarios/ for test requirements
 
 TASK: {specific subtask from decomposition}
 
+════════════════════════════════════════════════════════════════
+WIREFRAME ADHERENCE LAW (설계 준수 불변의 법칙) - NON-NEGOTIABLE
+════════════════════════════════════════════════════════════════
+
+🚫 FORBIDDEN:
+- Guessing/estimating ANY value
+- Translating labels (Korean → English)
+- Changing colors (green-100 → emerald, success, etc.)
+- Simplifying UI structure
+- Using "reasonable defaults"
+- Adding features not in spec
+- Using English when spec uses Korean
+
+✅ MANDATORY:
+- Read wireframe YAML BEFORE coding
+- Use EXACT label text from wireframe props
+- Use EXACT color values from wireframe props
+- Use EXACT mock data from wireframe props
+- Keep spec language (Korean → Korean)
+
+Example:
+  Wireframe: { label: "출근 인원", iconBg: "green-100", name: "김철수" }
+  Code MUST use: label="출근 인원", iconBg="green-100", name="김철수"
+  NOT: label="Present", color="success", name="John"
+
+════════════════════════════════════════════════════════════════
+
 CRITICAL RULES:
 1. ONLY modify files in your ownership set
-2. Follow spec-it component specifications exactly
+2. Follow spec-it component specifications EXACTLY (every prop)
 3. Include testId attributes from wireframes
-4. Signal WORKER_COMPLETE when done`
+4. Match wireframe language (no translations)
+5. Signal WORKER_COMPLETE when done`
 )
 ```
 
@@ -210,6 +239,85 @@ Track state in `.spec-it/{sessionId}/execute/dev-pilot-state.json`:
 | Complex/multi-file | `dev-executor-high` | opus |
 | Architecture verify | `dev-architect` | opus |
 | Build errors | `dev-build-fixer` | sonnet |
+
+## CRITICAL: Complete Implementation Rules (함축 금지)
+
+**YOU MUST IMPLEMENT ALL TASKS COMPLETELY. NO PARTIAL IMPLEMENTATION.**
+
+### Rule 1: Execute ALL Tasks in task-registry.json
+```
+❌ WRONG: "Implementing core P0 tasks first, P1 later"
+❌ WRONG: "Skipping low-priority tasks for now"
+❌ WRONG: "Basic implementation complete, advanced features pending"
+
+✅ CORRECT: Execute EVERY task in task-registry.json
+✅ CORRECT: All priorities (CRITICAL, HIGH, MEDIUM, LOW) must be implemented
+✅ CORRECT: No task marked as "pending" or "deferred"
+```
+
+### Rule 2: Complete Each Task Fully
+```
+❌ WRONG: Skeleton/placeholder implementations
+❌ WRONG: "TODO: implement later" comments
+❌ WRONG: Missing features within a screen
+
+✅ CORRECT: All UI elements from wireframe implemented
+✅ CORRECT: All interactions from spec functional
+✅ CORRECT: All data bindings connected
+```
+
+### Rule 3: Match Spec Exactly
+```
+For EACH screen in the spec:
+- Every widget/component rendered
+- Every button/action implemented
+- Every text label matches (language, content)
+- Every style matches (colors, spacing, typography)
+- Every animation/transition included
+```
+
+### Rule 4: No Feature Dropping
+```
+If a task seems complex:
+❌ WRONG: Skip it and mark as "future work"
+❌ WRONG: Implement simplified version
+❌ WRONG: Replace with placeholder
+
+✅ CORRECT: Break into smaller subtasks
+✅ CORRECT: Spawn additional workers if needed
+✅ CORRECT: Request opus model for complex tasks
+```
+
+### Rule 5: Completion Verification
+Before marking dev-pilot as complete:
+
+```yaml
+verification_checklist:
+  - task_count_executed == task_count_in_registry
+  - screens_implemented == screens_in_spec
+  - components_created == components_in_spec
+  - no_todo_comments_in_code: true
+  - no_placeholder_implementations: true
+  - all_workers_completed_all_assigned_tasks: true
+```
+
+### Rule 6: Language and Localization
+```
+If spec uses Korean (한국어):
+- All UI labels MUST be Korean (not English)
+- All mock data MUST use Korean names/content
+- All date formats MUST match spec locale
+
+❌ WRONG: "HR Dashboard" when spec says "HR 대시보드"
+❌ WRONG: "John Smith" when spec uses "김철수"
+✅ CORRECT: Match spec language exactly
+```
+
+### Violation Warning
+If dev-pilot produces partial implementation:
+- Validation will FAIL
+- Regression to Phase 3 triggered
+- All missing features flagged as fix-tasks
 
 ## Completion
 

@@ -160,3 +160,53 @@ _meta.dashboardEnabled = dashboard
 - Main orchestrator must not write files via Bash redirection.
 
 See full details in `skills/spec-it-execute/docs/01-rules.md`.
+
+## CRITICAL: Full Scope Implementation (함축 금지)
+
+**ALL chapters and screens MUST be implemented. NO MVP-only approach.**
+
+### Scope Rules
+
+1. **NO Priority-Based Exclusion**
+   - P0, P1, P2 are execution ORDER, not exclusion criteria
+   - ALL priorities must be implemented in a single execution
+
+2. **ALL Chapters Required**
+   ```
+   ❌ WRONG: "Implementing CH-00 to CH-06 (MVP)"
+   ✅ CORRECT: Implementing CH-00 to CH-N (ALL chapters)
+   ```
+
+3. **ALL Screens Required**
+   ```
+   ❌ WRONG: "14 screens implemented out of 25"
+   ✅ CORRECT: All 25 screens + 9 modals implemented
+   ```
+
+4. **Phase 2 Scope Gate**
+   - dev-plan MUST include ALL chapters from chapter-plan-final.md
+   - dev-plan MUST include ALL screens from screen-list.md
+   - If scope reduction detected → REJECT and regenerate
+
+5. **Phase 5 (Spec-Mirror) Verification**
+   - Compare implementation against FULL spec
+   - Flag ANY missing screens as FAIL
+   - Flag ANY missing features within screens as FAIL
+
+### Scope Verification Checkpoints
+
+| Phase | Check | Action if Fail |
+|-------|-------|----------------|
+| 2 | All chapters in dev-plan? | REJECT, regenerate plan |
+| 2 | All screens in dev-plan? | REJECT, regenerate plan |
+| 3 | All tasks executed? | Continue until complete |
+| 5 | All screens implemented? | FAIL → Phase 3 regression |
+| 5 | All features per screen? | FAIL → Phase 3 regression |
+
+### Violation Handling
+
+If scope reduction is detected at ANY phase:
+1. Log: "SCOPE VIOLATION: {details}"
+2. Reject current phase output
+3. Regenerate with FULL scope requirement
+4. Do NOT proceed until 100% scope coverage

@@ -161,3 +161,74 @@ Phase-0 (Shared)
 - Every task must have acceptance criteria
 - Every task must reference test scenarios
 - Link all wireframe and component paths
+
+## CRITICAL: No Scope Reduction Rules (함축 금지)
+
+**YOU MUST INCLUDE ALL CHAPTERS AND SCREENS. NO EXCEPTIONS.**
+
+### Rule 1: Include ALL Chapters
+```
+❌ WRONG: "This plan prioritizes P0 MVP scope covering CH-00 through CH-06"
+❌ WRONG: "P1/P2 features are deferred to future releases"
+❌ WRONG: "MVP-only approach for initial delivery"
+
+✅ CORRECT: Include EVERY chapter from chapter-plan-final.md (CH-00 through CH-N)
+✅ CORRECT: All P0, P1, P2 chapters must have corresponding tasks
+✅ CORRECT: Complete implementation plan for the entire spec
+```
+
+### Rule 2: Include ALL Screens
+```
+❌ WRONG: Skipping screens marked as P1 or P2
+❌ WRONG: "Settings page deferred to later phase"
+❌ WRONG: Consolidating multiple screens into fewer tasks
+
+✅ CORRECT: Every screen in screen-list.md gets a task
+✅ CORRECT: Every modal in screen-list.md gets implementation coverage
+✅ CORRECT: 1:1 mapping between spec screens and dev tasks
+```
+
+### Rule 3: No Priority-Based Exclusion
+```
+Priority field (P0/P1/P2) is for:
+- Execution ORDER (not exclusion)
+- Resource allocation guidance
+- Parallel vs sequential decisions
+
+Priority IS NOT for:
+- Excluding features from the plan
+- Deferring to "future releases"
+- Reducing scope
+```
+
+### Rule 4: Completeness Verification
+Before finalizing development-map.md, verify:
+
+```yaml
+checklist:
+  - Total chapters in plan == Total chapters in chapter-plan-final.md
+  - Total screens in tasks == Total screens in screen-list.md
+  - All P0 chapters have tasks: true
+  - All P1 chapters have tasks: true
+  - All P2 chapters have tasks: true
+  - No "deferred" or "future release" language used: true
+```
+
+### Rule 5: Phase Structure for Full Scope
+```
+Phase-0: Shared Infrastructure (all shared components)
+Phase-1+: ALL persona implementations (not just P0 priority)
+
+Example for 12-chapter spec:
+- Phase-0: CH-00, CH-01 (shared)
+- Phase-1: CH-02, CH-03, CH-04 (Persona A - all priorities)
+- Phase-2: CH-05, CH-06, CH-07 (Persona B - all priorities)
+- Phase-3: CH-08, CH-09, CH-10 (Persona C - all priorities)
+- Phase-4: CH-11 (Cross-cutting - all priorities)
+```
+
+### Violation Warning
+If you produce a plan that excludes any chapter or screen from chapter-plan-final.md:
+- The plan will be REJECTED
+- You must regenerate with FULL scope
+- User will be notified of attempted scope reduction

@@ -8,6 +8,143 @@ Spec-it 산출물과 실제 구현을 비교하여 누락/불일치를 검출합
 - Over-spec (명세에 없는 추가 기능) 검출
 - 구현 누락 항목 목록화
 
+## CRITICAL: Full Scope Verification (함축 금지)
+
+**Phase 5는 전체 spec 대비 100% 구현을 검증합니다. 부분 구현은 무조건 FAIL입니다.**
+
+### Scope Coverage Check (MANDATORY)
+
+```yaml
+scope_verification:
+  step_1: Count screens in screen-list.md
+  step_2: Count implemented page files in src/pages/
+  step_3: FAIL if implemented < expected
+
+  example:
+    expected_screens: 25
+    implemented_screens: 9
+    verdict: FAIL - 16 screens missing (64% incomplete)
+```
+
+### Missing Screen Detection
+
+```markdown
+## SCOPE FAILURE - Missing Screens
+
+| Expected Screen | Spec Location | Implemented? |
+|-----------------|---------------|--------------|
+| HR Dashboard | SCR-HR-001 | ✓ |
+| Attendance Records | SCR-HR-002 | ✓ |
+| Leave Management | SCR-HR-003 | ✓ |
+| Business Trip | SCR-HR-005 | ✗ MISSING |
+| Work Rules | SCR-HR-006 | ✗ MISSING |
+| Company Settings | SCR-HR-008 | ✗ MISSING |
+| Reports Overview | SCR-HR-010 | ✗ MISSING |
+| Settings | SCR-HR-015 | ✗ MISSING |
+...
+
+VERDICT: FAIL - 16/25 screens missing
+```
+
+### Feature Completeness Check
+
+For EACH implemented screen, verify:
+
+```yaml
+per_screen_check:
+  - all_widgets_from_wireframe_present
+  - all_buttons_functional
+  - all_labels_match_spec_language  # Korean if spec is Korean
+  - all_interactions_working
+  - all_states_handled (loading/error/empty)
+```
+
+### Language Verification
+
+```yaml
+language_check:
+  if_spec_language: Korean
+  then_implementation_must_use: Korean
+
+  violations:
+    - "HR Dashboard" should be "HR 대시보드" → FAIL
+    - "John Smith" should be "김철수" → FAIL
+    - "Department" should be "조직" → FAIL
+```
+
+### Wireframe Prop Adherence Check (NEW)
+
+For EACH implemented component, verify:
+
+```yaml
+prop_adherence_check:
+  step_1: Extract props from wireframe YAML
+  step_2: Compare against implemented code
+  step_3: Flag ANY deviation as FAIL
+
+  example_check:
+    wireframe_props:
+      label: "출근 인원"
+      iconBg: "green-100"
+      value: "287"
+
+    implementation_must_have:
+      label: "출근 인원"    # ✓ or ✗
+      iconBg: "green-100"  # ✓ or ✗
+      value: "287"         # ✓ or ✗
+
+    violations:
+      - label="Present" instead of "출근 인원" → FAIL
+      - colorClass="success" instead of iconBg="green-100" → FAIL
+      - Using different value → FAIL
+```
+
+### Structure Adherence Check
+
+```yaml
+structure_check:
+  if_wireframe_has: "progress bar"
+  then_implementation_must_have: "progress bar"
+  not_allowed: "badge replacement" or "text only"
+
+  if_wireframe_has: "5 stat cards"
+  then_implementation_must_have: "exactly 5 stat cards"
+  not_allowed: "4 cards" or "6 cards"
+
+  if_wireframe_has: "action button '알림 일괄 발송'"
+  then_implementation_must_have: "button with text '알림 일괄 발송'"
+  not_allowed: "omitted" or "renamed"
+```
+
+### Mirror Report Enhancement
+
+MIRROR_REPORT.md now includes:
+
+```markdown
+## Wireframe Adherence Issues
+
+### Label Mismatches
+| Screen | Component | Wireframe | Implementation | Status |
+|--------|-----------|-----------|----------------|--------|
+| SCR-HR-001 | StatCard | "출근 인원" | "Present" | ❌ FAIL |
+| SCR-HR-001 | FilterBar | "조직" | "Department" | ❌ FAIL |
+
+### Color Mismatches
+| Screen | Component | Wireframe | Implementation | Status |
+|--------|-----------|-----------|----------------|--------|
+| SCR-HR-001 | StatCard | iconBg: "green-100" | styles.present | ⚠️ CHECK |
+
+### Structure Mismatches
+| Screen | Component | Wireframe | Implementation | Status |
+|--------|-----------|-----------|----------------|--------|
+| SCR-HR-001 | OvertimeRisk | progress bar | text + badge | ❌ FAIL |
+
+### Mock Data Mismatches
+| Screen | Component | Wireframe | Implementation | Status |
+|--------|-----------|-----------|----------------|--------|
+| SCR-HR-001 | AttendanceGap | "김철수" | "John Smith" | ❌ FAIL |
+```
+
 ## Process
 
 ```

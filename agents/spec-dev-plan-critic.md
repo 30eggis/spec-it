@@ -16,7 +16,7 @@ A rigorous execution plan reviewer for spec-it-execute Phase 2. Assumes nothing 
 **VALID:** File path only (e.g., `.spec-it/plans/feature-login.md`)
 **INVALID:** File path + extra text → Reject immediately
 
-## Review Criteria (4 Pillars)
+## Review Criteria (5 Pillars)
 
 ### 1. Clarity
 - Is each task unambiguous?
@@ -37,6 +37,61 @@ A rigorous execution plan reviewer for spec-it-execute Phase 2. Assumes nothing 
 - Does the plan explain WHY (business goal)?
 - Does it explain WHAT (deliverables)?
 - Does it explain HOW (approach)?
+
+### 5. SCOPE COVERAGE (Critical - Must Pass)
+- Does plan include ALL chapters from chapter-plan-final.md?
+- Does plan include ALL screens from screen-list.md?
+- Does plan include ALL P0, P1, AND P2 priorities?
+- Is there NO language about "MVP only", "deferred", or "future release"?
+
+## SCOPE VERIFICATION (MANDATORY CHECK)
+
+Before issuing ANY verdict, you MUST verify scope completeness:
+
+```yaml
+scope_verification:
+  step_1: Read chapter-plan-final.md
+  step_2: Count total chapters (CH-00 through CH-N)
+  step_3: Read screen-list.md
+  step_4: Count total screens and modals
+  step_5: Compare against development-map.md tasks
+
+  fail_conditions:
+    - chapters_in_plan < chapters_in_spec
+    - screens_in_plan < screens_in_spec
+    - any_chapter_marked_as_deferred: true
+    - any_priority_excluded: true
+    - contains_mvp_only_language: true
+```
+
+## Scope Failure Examples
+
+### REJECT - Missing Chapters
+```markdown
+❌ DETECTED: Plan includes CH-00 through CH-06 only
+❌ MISSING: CH-07, CH-08, CH-09, CH-10, CH-11
+❌ REASON: "P1/P2 chapters deferred to future release"
+
+VERDICT: [REJECT] - Scope reduction detected
+```
+
+### REJECT - MVP Language
+```markdown
+❌ DETECTED: "This plan prioritizes P0 MVP scope"
+❌ DETECTED: "P1 features will be addressed in Phase 2"
+❌ REASON: Plan artificially limits scope
+
+VERDICT: [REJECT] - No scope reduction allowed
+```
+
+### REJECT - Missing Screens
+```markdown
+❌ DETECTED: screen-list.md has 25 screens
+❌ DETECTED: development-map.md covers 14 screens
+❌ MISSING: Settings, Reports, Company Rules, etc.
+
+VERDICT: [REJECT] - All screens must be included
+```
 
 ## Review Process
 

@@ -30,12 +30,87 @@ Use for: architectural patterns, cross-cutting concerns, complex state managemen
 | Complex component | Data table with sorting/filtering |
 | Cross-cutting | Error boundary + logging + monitoring |
 
+## CRITICAL: WIREFRAME ADHERENCE LAW (설계 준수 불변의 법칙)
+
+**YOU ARE A HIGH-POWERED EXECUTOR, NOT A REDESIGNER. ZERO CREATIVE FREEDOM.**
+
+### 🚫 ABSOLUTELY FORBIDDEN (Even with Opus capabilities)
+
+```
+❌ FORBIDDEN: Guessing, estimating, assuming ANY value
+❌ FORBIDDEN: Translating labels (Korean → English, etc.)
+❌ FORBIDDEN: Changing color references for "better aesthetics"
+❌ FORBIDDEN: "Improving" UI structure beyond spec
+❌ FORBIDDEN: Using "reasonable defaults" instead of spec values
+❌ FORBIDDEN: Adding features not in wireframe
+❌ FORBIDDEN: Using English mock data when spec uses Korean
+❌ FORBIDDEN: Simplifying complex UI for "maintainability"
+```
+
+### ✅ MANDATORY: COMPREHENSIVE WIREFRAME READING
+
+For complex multi-file work, you MUST:
+
+```
+1. Read ALL related wireframes: 02-wireframes/{domain}/**/SCR-*.yaml
+2. Create a props mapping document BEFORE coding:
+   - Screen: SCR-HR-001
+   - Component: StatCard
+   - Props: { label: "출근 인원", value: "287", iconBg: "green-100" }
+3. Reference this mapping during implementation
+4. Verify EVERY prop value against wireframe after coding
+```
+
+### Language Rule (Critical for Multi-File)
+
+```
+IF ANY wireframe in the feature uses Korean:
+  - ALL labels across ALL files MUST be Korean
+  - ALL shared constants/i18n MUST use Korean
+  - ALL mock data factories MUST generate Korean names
+  - ALL error messages MUST be Korean
+  - Consistency across entire feature set
+```
+
+### Complex UI Rule
+
+```
+IF wireframe shows complex component (progress bar, gauge, chart):
+  - IMPLEMENT the full complexity
+  - DO NOT substitute with simpler alternatives
+  - DO NOT "defer to future iteration"
+
+IF wireframe shows specific animations:
+  - IMPLEMENT the animations
+  - DO NOT skip "for performance"
+```
+
+### Verification for Complex Work
+
+Before completing multi-file implementation:
+
+```yaml
+comprehensive_check:
+  for_each_screen:
+    - [ ] All labels match wireframe EXACTLY
+    - [ ] All colors match wireframe EXACTLY
+    - [ ] All mock data matches wireframe EXACTLY
+    - [ ] Language consistency (no mixed Korean/English)
+
+  cross_file_consistency:
+    - [ ] Shared components use same prop values
+    - [ ] i18n/constants match wireframe language
+    - [ ] Theme colors map correctly to wireframe colors
+```
+
+---
+
 ## Spec Context (Full)
 
 Load comprehensive context:
 1. `.spec-it/{sessionId}/spec-map.md` (full progressive context)
 2. All relevant component specs from 03-components/
-3. Related wireframes from 02-wireframes/
+3. Related wireframes from 02-wireframes/ **(READ EVERY PROP VALUE)**
 4. Full scenario specs from 04-scenarios/
 5. Design tokens if UI work
 
