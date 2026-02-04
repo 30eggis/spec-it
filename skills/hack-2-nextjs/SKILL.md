@@ -106,17 +106,66 @@ Phase 0: Route Discovery
     ↓
 Phase 1: HTML Analysis (Extract As-Is)
     ↓
+    🚦 GATE CHECK: post-extraction (MANDATORY)
+    ↓
 Phase 2: Design Token Candidates → Aggregate → tokens.ts
     ↓
 Phase 3: App Shell Candidates → Aggregate → Persona/Function Shells
     ↓
 Phase 4: Component Candidates → Aggregate → Reusable Components
     ↓
+    🚦 GATE CHECK: post-components (MANDATORY)
+    ↓
 Phase 5: TSX Generation (Substitute Shell/Component/Tokens)
+    ↓
+    🚦 GATE CHECK: post-generation (MANDATORY)
     ↓
 Phase 6: Route Substitution (file:// → NextJS routes)
     ↓
 Phase 7: Mock Data Identification → mock-data-list.md
+    ↓
+    🚦 FINAL VALIDATION (MANDATORY)
+```
+
+---
+
+## Validation Gates (MANDATORY)
+
+**CRITICAL:** Validation gates MUST pass before proceeding. If a gate fails, STOP and fix errors.
+
+### Gate Scripts
+
+| Script | When | Purpose |
+|--------|------|---------|
+| `gate-check.ts post-extraction` | After Phase 1 | Verify classes preserved |
+| `gate-check.ts post-components` | After Phase 4 | Verify no imaginary components |
+| `gate-check.ts post-generation` | After Phase 5 | Verify structure matches |
+| `run-validators.sh` | Final | Full validation suite |
+
+### Running Gates
+
+```bash
+# After Phase 1
+npx ts-node scripts/gate-check.ts ./candidates post-extraction
+
+# After Phase 4
+npx ts-node scripts/gate-check.ts ./candidates post-components
+
+# After Phase 5
+npx ts-node scripts/gate-check.ts ./candidates post-generation
+
+# Final validation
+./scripts/run-validators.sh ./hack-2-nextjs
+```
+
+### Gate Failure = STOP
+
+```
+If gate returns exit code 1:
+  ❌ DO NOT proceed to next phase
+  ❌ DO NOT ask user "should I continue anyway?"
+  ✅ Report the errors
+  ✅ Re-run the failed phase with corrections
 ```
 
 ---
