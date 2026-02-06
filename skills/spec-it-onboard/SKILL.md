@@ -18,47 +18,24 @@ Transform existing Next.js mockup projects into production-ready specifications.
 See [shared/references/common/output-rules.md](../../shared/references/common/output-rules.md).
 See [shared/references/common/context-rules.md](../../shared/references/common/context-rules.md).
 
-## Workflow Overview (P1-P12)
+## Execution Order
 
-```
-P1: mockup-analyzer → 00-analysis/
-      ↓ ★ Approval
-P2: persona-architect → 01-personas/
-      ↓ ★ Approval
-P3: path-architect → 02-restructure/
-      ↓ ★ Approval
-P4: ux-scorer → 03-ux-audit/
-      ↓ ★ Approval
-P5: component-auditor → 04-components/
-      ↓
-P6: ui-pattern-detector → 05-patterns/
-      ↓ ★ Approval
-P7: component-builder → 06-component-specs/
-      ↓ ★ Approval
-P8: component-migrator → 07-migration/
-      ↓ ★ Approval
-P9: context-synthesizer → spec-map.md
-      ↓
-P10: critical-review → 08-review/
-      ↓ ★ Approval
-P11: test-spec-writer → 09-tests/
-      ↓ ★ Approval
-P12: spec-assembler + dev-planner → 10-final/ + dev-plan/
-      ↓
-★ Final Approval
-```
+Run each phase strictly in order. Do NOT start the next phase until the current phase is complete and approved (where applicable).
 
-## Parallel Execution
-
-```
-P1 ─────┬──→ P2 → P3
-        │
-        ├──→ P4 (parallel with P2)
-        │
-        └──→ P5 → P6 → P7 → P8 (parallel with P2-P3)
-
-P9 waits for all above
-```
+| Phase | Agent | Input | Output | ★ |
+|-------|-------|-------|--------|---|
+| P1 | mockup-analyzer | `projectPath`, `devServerUrl` | `00-analysis/_index.md`, `00-analysis/navigation-structure.md`, `00-analysis/screens/*.md` | ★ |
+| P2 | persona-architect | `00-analysis/_index.md`, `00-analysis/navigation-structure.md` | `01-personas/*.md` | ★ |
+| P3 | path-architect | `01-personas/*.md`, `00-analysis/navigation-structure.md` | `02-restructure/_index.md`, `02-restructure/{persona}-paths.md` | ★ |
+| P4 | ux-scorer | `00-analysis/screens/*.md`, `devServerUrl` | `03-ux-audit/_index.md`, `03-ux-audit/{persona}/{screen}-score.md` | ★ |
+| P5 | component-auditor | `projectPath/components/` | `04-components/_index.md`, `04-components/inventory.md` | - |
+| P6 | ui-pattern-detector | `projectPath/**/*.tsx`, `04-components/inventory.md` | `05-patterns/_index.md`, `05-patterns/existing-components.md`, `05-patterns/duplicates/*.md`, `05-patterns/extraction-plan.md` | ★ |
+| P7 | component-builder | `05-patterns/duplicates/*.md` | `06-component-specs/{component}.md` | ★ |
+| P8 | component-migrator | `04-components/`, `05-patterns/`, `06-component-specs/` | `07-migration/_index.md`, `07-migration/migration-plan.md` | ★ |
+| P9 | context-synthesizer | P1~P8 전체 output | `spec-map.md` | - |
+| P10 | critical-review | `spec-map.md` | `08-review/` | ★ |
+| P11 | test-spec-writer | `01-personas/`, `spec-map.md` | `09-tests/` | ★ |
+| P12 | spec-assembler + dev-planner | `spec-map.md`, `09-tests/`, 전체 artifacts | `10-final/`, `dev-plan/development-map.md`, `dev-plan/{persona}/Phase-{n}/` | ★ |
 
 ---
 
@@ -101,21 +78,30 @@ IF --resume in args:
 
 ## P1: Mockup Analysis
 
+> **MANDATORY**: P1 MUST use Playwright MCP for all analysis.
+> The agent MUST visit every screen in the browser and click ALL interactive elements.
+> - Click every button, link, tab, dropdown, and role="button" element
+> - Click elements that have onClick handlers or appear clickable in the snapshot
+> - Click center of button-like visual elements even if not properly componentized as `<button>`
+> - Record all state changes: modals, dropdowns, navigation, toasts, expanded content
+> - Code-only analysis without browser interaction is NOT acceptable
+
 ```
 Bash: status-update.sh {sessionDir} agent-start mockup-analyzer
 
 Task(mockup-analyzer, sonnet):
   Input: projectPath, devServerUrl
-  Tools: Playwright MCP
+  Tools: Playwright MCP (browser_navigate, browser_snapshot, browser_click, browser_hover, browser_wait_for, browser_take_screenshot, browser_evaluate, browser_press_key)
+  REQUIRED: Use browser_snapshot on every screen, browser_click ALL interactive elements found in snapshot
   Output:
     - 00-analysis/_index.md
     - 00-analysis/navigation-structure.md
-    - 00-analysis/screens/*.md
+    - 00-analysis/screens/*.md (MUST include Interactive Exploration Results + Hidden UI Discovered sections)
 
 Bash: status-update.sh {sessionDir} agent-complete mockup-analyzer "" 1.1
 Bash: meta-checkpoint.sh {sessionDir} 1.1
 
-AskUserQuestion: "Analysis complete. {screenCount} screens detected. Review?"
+AskUserQuestion: "Analysis complete. {screenCount} screens detected, {interactionCount} interactive elements explored. Review?"
 Options: [Approve, Revise]
 ```
 

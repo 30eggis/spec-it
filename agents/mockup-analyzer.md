@@ -1,15 +1,17 @@
 ---
 name: mockup-analyzer
-description: "Analyze Next.js mockup projects using Playwright MCP. Crawl screens, detect personas, extract navigation structure."
+description: "Analyze Next.js mockup projects using Playwright MCP. Crawl screens, click ALL interactive elements, detect personas, extract navigation structure."
 model: sonnet
 context: fork
 permissionMode: bypassPermissions
-allowedTools: [Read, Write, Glob, Grep, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_wait_for]
+allowedTools: [Read, Write, Glob, Grep, mcp__playwright__browser_navigate, mcp__playwright__browser_snapshot, mcp__playwright__browser_click, mcp__playwright__browser_wait_for, mcp__playwright__browser_take_screenshot, mcp__playwright__browser_hover, mcp__playwright__browser_evaluate, mcp__playwright__browser_press_key]
 ---
 
 # Mockup Analyzer
 
-A mockup crawler that uses Playwright MCP to explore Next.js projects and extract structure.
+A mockup crawler that uses **Playwright MCP** to explore Next.js projects and extract structure.
+
+> **CRITICAL**: This agent MUST use Playwright MCP for ALL analysis. Never rely on code reading alone. Every screen must be visited in the browser, every interactive element must be clicked and explored.
 
 ## Input
 
@@ -29,7 +31,7 @@ Glob: app/**/page.tsx OR pages/**/*.tsx
 ### Step 2: Dev Server Check
 
 ```
-WebFetch or browser_navigate to localhost:PORT
+browser_navigate: http://localhost:PORT
 IF connection refused:
   Output: "Dev server not running. Start with: npm run dev"
   STOP
@@ -73,6 +75,96 @@ FOR each URL discovered:
   - Action buttons (button text: 승인, 반려, 신청, etc.)
   - Cards/Widgets (heading + data)
   - Stats displays
+```
+
+### Step 5.5: Interactive Element Exploration (MANDATORY)
+
+> **This step is REQUIRED for every screen. Do NOT skip.**
+
+For every screen visited in Step 5, perform exhaustive interactive exploration using Playwright MCP:
+
+```
+FOR each screen:
+  browser_snapshot: Get full element tree with uids
+
+  ## 5.5.1: Click all components with onClick / interactive attributes
+  Parse snapshot for ALL elements that are:
+  - <button> elements (any)
+  - <a> links (any)
+  - Elements with role="button", role="tab", role="menuitem", role="link"
+  - Elements with aria-expanded, aria-haspopup
+  - Elements with onClick handlers (visible in snapshot as clickable)
+  - <select> dropdowns
+  - Checkbox / radio inputs
+  - Any element with cursor:pointer styling
+
+  FOR each interactive element found:
+    browser_click(ref): Click the element
+    browser_wait_for: Brief wait for UI response
+    browser_snapshot: Capture state change
+
+    Record what happened:
+    - Modal/dialog opened? → Record modal content and actions
+    - Dropdown appeared? → Record all options
+    - Navigation occurred? → Record destination URL
+    - Content expanded/collapsed? → Record hidden content
+    - Toast/notification? → Record message
+    - State toggle? → Record before/after state
+
+    IF modal/dialog opened:
+      Explore modal contents:
+      - browser_click all buttons inside modal
+      - Record form fields
+      - Dismiss modal (click close/cancel or press Escape)
+
+    IF dropdown appeared:
+      Record all dropdown options
+      browser_press_key: Escape to close
+
+    browser_navigate back to original screen state if needed
+
+  ## 5.5.2: Click center of button-like visual elements
+  Some elements may not be properly componentized but visually appear as buttons.
+  Use browser_evaluate to find elements that LOOK like buttons:
+
+  browser_evaluate: () => {
+    const allElements = document.querySelectorAll('div, span, p, td');
+    const buttonLike = [];
+    allElements.forEach(el => {
+      const style = window.getComputedStyle(el);
+      const text = el.innerText?.trim();
+      if (text && text.length < 30 &&
+          (style.cursor === 'pointer' ||
+           style.borderRadius !== '0px' ||
+           el.classList.toString().match(/btn|button|chip|tag|badge|action|clickable/i))) {
+        buttonLike.push({
+          text: text,
+          tag: el.tagName,
+          classes: el.className
+        });
+      }
+    });
+    return buttonLike;
+  }
+
+  FOR each button-like element:
+    Try browser_click on the element or its parent
+    browser_snapshot: Check for any state change
+    Record results
+
+  ## 5.5.3: Explore tab/navigation components
+  IF tabs detected:
+    browser_click EACH tab
+    browser_snapshot after each tab switch
+    Record content shown per tab
+
+  IF pagination detected:
+    browser_click next/prev page
+    Record if content changes
+
+  IF accordion/collapsible sections detected:
+    Expand ALL sections
+    Record hidden content
 ```
 
 ### Step 6: Persona Inference
@@ -150,6 +242,21 @@ persona: hr-admin
 - 전체 보기 (link)
 - 승인 (button)
 - 반려 (button)
+
+## Interactive Exploration Results
+| Element | Type | Click Result |
+|---------|------|-------------|
+| 승인 button | button | Opens confirmation modal with "승인하시겠습니까?" |
+| 반려 button | button | Opens rejection modal with textarea for reason |
+| 전체 보기 | link | Navigates to /attendance-records |
+| StatCard(출근) | div.clickable | Navigates to /attendance-records?filter=present |
+| Tab(주간) | role=tab | Shows weekly view |
+| Tab(월간) | role=tab | Shows monthly view |
+
+## Hidden UI Discovered
+- Confirmation modal: "승인하시겠습니까?" with [확인, 취소]
+- Rejection modal: textarea + [제출, 취소]
+- Dropdown filter: [전체, 부서별, 기간별]
 
 ## Navigation Links
 - /attendance-records
