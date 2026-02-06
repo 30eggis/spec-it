@@ -7,8 +7,6 @@
 #   - Just the ID (e.g., 20260131-024252) - will search in baseDir/tmp/
 #   - Full path to session dir (e.g., /path/to/tmp/20260131-024252)
 
-set -e
-
 SESSION_ARG="$1"
 ACTION="$2"
 shift 2
@@ -63,9 +61,6 @@ STATUS_FILE="$SESSION_DIR/_status.json"
 SESSION_ROOT=$(dirname "$SESSION_DIR")
 RUNTIME_LOG="$SESSION_ROOT/runtime-log.md"
 
-# Debug output
-echo "DEBUG:SESSION_DIR=$SESSION_DIR" >&2
-
 if [ ! -f "$STATUS_FILE" ]; then
   echo "ERROR:STATUS_NOT_FOUND"
   exit 1
@@ -73,6 +68,21 @@ fi
 
 TIMESTAMP=$(date -Iseconds)
 TIME_DISPLAY=$(date +"%H:%M:%S")
+
+# Safe jq wrapper: avoids race conditions with PID-unique tmp files
+# Usage: safe_jq <jq_args...> <input_file>
+# Writes result back to input_file. Silently skips on failure.
+safe_jq() {
+  local args=("$@")
+  local input_file="${args[-1]}"
+  local tmp_file="${input_file}.tmp.$$"
+  if jq "${args[@]:0:${#args[@]}-1}" "$input_file" > "$tmp_file" 2>/dev/null; then
+    mv "$tmp_file" "$input_file"
+  else
+    rm -f "$tmp_file"
+    return 1
+  fi
+}
 
 # Initialize runtime-log.md if not exists
 if [ ! -f "$RUNTIME_LOG" ]; then
@@ -115,10 +125,10 @@ case "$ACTION" in
     AGENT_NAME="${ARGS[0]}"
 
     # Update _status.json
-    jq --arg name "$AGENT_NAME" --arg ts "$TIMESTAMP" '
+    safe_jq --arg name "$AGENT_NAME" --arg ts "$TIMESTAMP" '
       .agents += [{"name": $name, "status": "running", "startedAt": $ts}] |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
 
     # Update runtime-log.md (add pending row)
     AGENT_NUM=$(($(get_agent_count) + 1))
@@ -136,10 +146,10 @@ case "$ACTION" in
     DURATION=$(calc_duration "$START_TS" "$TIMESTAMP")
 
     # Update _status.json - agent status
-    jq --arg name "$AGENT_NAME" --arg ts "$TIMESTAMP" --arg out "$OUTPUT" --arg dur "$DURATION" '
+    safe_jq --arg name "$AGENT_NAME" --arg ts "$TIMESTAMP" --arg out "$OUTPUT" --arg dur "$DURATION" '
       (.agents[] | select(.name == $name)) |= . + {"status": "completed", "completedAt": $ts, "output": $out, "duration": $dur} |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
 
     # If step is provided, also update step progress
     if [ -n "$STEP" ]; then
@@ -165,25 +175,25 @@ case "$ACTION" in
       PHASE="${STEP%%.*}"
 
       # Update _status.json with step progress
-      jq --arg step "$STEP" --argjson phase "$PHASE" --argjson prog "$PROG" --arg ts "$TIMESTAMP" '
+      safe_jq --arg step "$STEP" --argjson phase "$PHASE" --argjson prog "$PROG" --arg ts "$TIMESTAMP" '
         .currentStep = $step |
         .currentPhase = $phase |
         .progress = $prog |
         .completedSteps += [$step] |
         .completedSteps |= unique |
         .lastUpdate = $ts
-      ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+      ' "$STATUS_FILE"
 
       # Update _meta.json (unified for both plan and execute modes)
       META_FILE="$SESSION_DIR/_meta.json"
       if [ -f "$META_FILE" ]; then
-        jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
+        safe_jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
           .currentStep = $step |
           .currentPhase = $phase |
           .lastCheckpoint = $ts |
           .completedSteps += [$step] |
           .completedSteps |= unique
-        ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+        ' "$META_FILE"
       fi
 
       echo "STEP_COMPLETED:$STEP"
@@ -204,23 +214,23 @@ case "$ACTION" in
     PROGRESS="${ARGS[0]}"
     STEP="${ARGS[1]:-}"
     PHASE="${ARGS[2]:-}"
-    jq --argjson prog "$PROGRESS" --arg step "$STEP" --arg phase "$PHASE" --arg ts "$TIMESTAMP" '
+    safe_jq --argjson prog "$PROGRESS" --arg step "$STEP" --arg phase "$PHASE" --arg ts "$TIMESTAMP" '
       .progress = $prog |
       (if $step != "" then .currentStep = $step else . end) |
       (if $phase != "" then .currentPhase = ($phase | tonumber) else . end) |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
     echo "PROGRESS:$PROGRESS"
     ;;
   "file-created")
     FILE_PATH="${ARGS[0]}"
     LINES="${ARGS[1]:-0}"
-    jq --arg file "$FILE_PATH" --argjson lines "$LINES" --arg ts "$TIMESTAMP" '
+    safe_jq --arg file "$FILE_PATH" --argjson lines "$LINES" --arg ts "$TIMESTAMP" '
       .stats.filesCreated += 1 |
       .stats.linesWritten += $lines |
       .recentFiles = ([$file] + .recentFiles)[:10] |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
     echo "FILE_CREATED:$FILE_PATH"
     ;;
   "agent-error")
@@ -232,11 +242,11 @@ case "$ACTION" in
     DURATION=$(calc_duration "$START_TS" "$TIMESTAMP")
 
     # Update _status.json
-    jq --arg name "$AGENT_NAME" --arg ts "$TIMESTAMP" --arg err "$ERROR_MSG" --arg dur "$DURATION" '
+    safe_jq --arg name "$AGENT_NAME" --arg ts "$TIMESTAMP" --arg err "$ERROR_MSG" --arg dur "$DURATION" '
       (.agents[] | select(.name == $name)) |= . + {"status": "error", "completedAt": $ts, "error": $err, "duration": $dur} |
       .errors += [$name + ": " + $err] |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
 
     # Update runtime-log.md
     if grep -q "| $AGENT_NAME |.*⏳" "$RUNTIME_LOG"; then
@@ -249,10 +259,10 @@ case "$ACTION" in
     ;;
   "error")
     ERROR_MSG="${ARGS[0]}"
-    jq --arg err "$ERROR_MSG" --arg ts "$TIMESTAMP" '
+    safe_jq --arg err "$ERROR_MSG" --arg ts "$TIMESTAMP" '
       .errors += [$err] |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
 
     # Log to runtime-log.md
     echo "" >> "$RUNTIME_LOG"
@@ -263,40 +273,40 @@ case "$ACTION" in
   "waiting")
     # Set waiting for user input flag
     WAITING_MSG="${ARGS[0]:-Waiting for user input}"
-    jq --arg ts "$TIMESTAMP" --arg msg "$WAITING_MSG" '
+    safe_jq --arg ts "$TIMESTAMP" --arg msg "$WAITING_MSG" '
       .waitingForUser = true |
       .waitingMessage = $msg |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
 
     # Update _meta.json
     META_FILE="$SESSION_DIR/_meta.json"
     if [ -f "$META_FILE" ]; then
-      jq --arg ts "$TIMESTAMP" --arg msg "$WAITING_MSG" '
+      safe_jq --arg ts "$TIMESTAMP" --arg msg "$WAITING_MSG" '
         .waitingForUser = true |
         .waitingMessage = $msg |
         .lastCheckpoint = $ts
-      ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+      ' "$META_FILE"
     fi
 
     echo "WAITING:$WAITING_MSG"
     ;;
   "resume")
     # Clear waiting for user input flag
-    jq --arg ts "$TIMESTAMP" '
+    safe_jq --arg ts "$TIMESTAMP" '
       .waitingForUser = false |
       .waitingMessage = null |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
 
     # Update _meta.json
     META_FILE="$SESSION_DIR/_meta.json"
     if [ -f "$META_FILE" ]; then
-      jq --arg ts "$TIMESTAMP" '
+      safe_jq --arg ts "$TIMESTAMP" '
         .waitingForUser = false |
         .waitingMessage = null |
         .lastCheckpoint = $ts
-      ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+      ' "$META_FILE"
     fi
 
     echo "RESUMED"
@@ -322,32 +332,32 @@ case "$ACTION" in
     esac
 
     # Update _status.json
-    jq --argjson phase "$PHASE" --argjson prog "$PROG" --arg ts "$TIMESTAMP" '
+    safe_jq --argjson phase "$PHASE" --argjson prog "$PROG" --arg ts "$TIMESTAMP" '
       .completedPhases += [$phase] |
       .completedPhases |= unique |
       .progress = $prog |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
 
     # If next phase provided, update current phase
     if [ -n "$NEXT_PHASE" ]; then
-      jq --argjson nextPhase "$NEXT_PHASE" --arg nextStep "$NEXT_STEP" --arg ts "$TIMESTAMP" '
+      safe_jq --argjson nextPhase "$NEXT_PHASE" --arg nextStep "$NEXT_STEP" --arg ts "$TIMESTAMP" '
         .currentPhase = $nextPhase |
         (if $nextStep != "" then .currentStep = $nextStep else . end) |
         .lastUpdate = $ts
-      ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+      ' "$STATUS_FILE"
     fi
 
     # Update _meta.json (unified for both plan and execute modes)
     META_FILE="$SESSION_DIR/_meta.json"
     if [ -f "$META_FILE" ]; then
-      jq --argjson phase "$PHASE" --argjson nextPhase "${NEXT_PHASE:-0}" --arg nextStep "$NEXT_STEP" --arg ts "$TIMESTAMP" '
+      safe_jq --argjson phase "$PHASE" --argjson nextPhase "${NEXT_PHASE:-0}" --arg nextStep "$NEXT_STEP" --arg ts "$TIMESTAMP" '
         .completedPhases += [$phase] |
         .completedPhases |= unique |
         (if $nextPhase > 0 then .currentPhase = $nextPhase else . end) |
         (if $nextStep != "" then .currentStep = $nextStep else . end) |
         .lastCheckpoint = $ts
-      ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+      ' "$META_FILE"
     fi
 
     echo "PHASE_COMPLETED:$PHASE"
@@ -362,20 +372,20 @@ case "$ACTION" in
     PHASE="${STEP%%.*}"
 
     # Update _status.json
-    jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
+    safe_jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
       .currentStep = $step |
       .currentPhase = $phase |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
 
     # Update _meta.json (unified for both plan and execute modes)
     META_FILE="$SESSION_DIR/_meta.json"
     if [ -f "$META_FILE" ]; then
-      jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
+      safe_jq --arg step "$STEP" --argjson phase "$PHASE" --arg ts "$TIMESTAMP" '
         .currentStep = $step |
         .currentPhase = $phase |
         .lastCheckpoint = $ts
-      ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+      ' "$META_FILE"
     fi
 
     echo "STEP:$STEP"
@@ -389,15 +399,15 @@ case "$ACTION" in
     if [ -f "$META_FILE" ]; then
       # Try to parse VALUE as JSON, fallback to string
       if echo "$VALUE" | jq . >/dev/null 2>&1; then
-        jq --arg key "$KEY" --argjson val "$VALUE" --arg ts "$TIMESTAMP" '
+        safe_jq --arg key "$KEY" --argjson val "$VALUE" --arg ts "$TIMESTAMP" '
           .[$key] = $val |
           .lastCheckpoint = $ts
-        ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+        ' "$META_FILE"
       else
-        jq --arg key "$KEY" --arg val "$VALUE" --arg ts "$TIMESTAMP" '
+        safe_jq --arg key "$KEY" --arg val "$VALUE" --arg ts "$TIMESTAMP" '
           .[$key] = $val |
           .lastCheckpoint = $ts
-        ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+        ' "$META_FILE"
       fi
       echo "STATE_UPDATED:$KEY=$VALUE"
     else
@@ -406,21 +416,21 @@ case "$ACTION" in
     ;;
   "complete")
     # Update _status.json
-    jq --arg ts "$TIMESTAMP" '
+    safe_jq --arg ts "$TIMESTAMP" '
       .status = "completed" |
       .progress = 100 |
       .waitingForUser = false |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
 
     # Update _meta.json (unified for both plan and execute modes)
     META_FILE="$SESSION_DIR/_meta.json"
     if [ -f "$META_FILE" ]; then
-      jq --arg ts "$TIMESTAMP" '
+      safe_jq --arg ts "$TIMESTAMP" '
         .status = "completed" |
         .completedAt = $ts |
         .lastCheckpoint = $ts
-      ' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+      ' "$META_FILE"
     fi
 
     # Update runtime-log.md summary
