@@ -78,21 +78,30 @@ IF --resume in args:
 
 ## P1: Mockup Analysis
 
+> **MANDATORY**: P1 MUST use Playwright MCP for all analysis.
+> The agent MUST visit every screen in the browser and click ALL interactive elements.
+> - Click every button, link, tab, dropdown, and role="button" element
+> - Click elements that have onClick handlers or appear clickable in the snapshot
+> - Click center of button-like visual elements even if not properly componentized as `<button>`
+> - Record all state changes: modals, dropdowns, navigation, toasts, expanded content
+> - Code-only analysis without browser interaction is NOT acceptable
+
 ```
 Bash: status-update.sh {sessionDir} agent-start mockup-analyzer
 
 Task(mockup-analyzer, sonnet):
   Input: projectPath, devServerUrl
-  Tools: Playwright MCP
+  Tools: Playwright MCP (browser_navigate, browser_snapshot, browser_click, browser_hover, browser_wait_for, browser_take_screenshot, browser_evaluate, browser_press_key)
+  REQUIRED: Use browser_snapshot on every screen, browser_click ALL interactive elements found in snapshot
   Output:
     - 00-analysis/_index.md
     - 00-analysis/navigation-structure.md
-    - 00-analysis/screens/*.md
+    - 00-analysis/screens/*.md (MUST include Interactive Exploration Results + Hidden UI Discovered sections)
 
 Bash: status-update.sh {sessionDir} agent-complete mockup-analyzer "" 1.1
 Bash: meta-checkpoint.sh {sessionDir} 1.1
 
-AskUserQuestion: "Analysis complete. {screenCount} screens detected. Review?"
+AskUserQuestion: "Analysis complete. {screenCount} screens detected, {interactionCount} interactive elements explored. Review?"
 Options: [Approve, Revise]
 ```
 
