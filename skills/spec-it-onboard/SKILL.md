@@ -83,11 +83,14 @@ IF --resume in args:
 ## P1: Mockup Analysis
 
 > **MANDATORY**: P1 MUST use Playwright MCP for all analysis.
-> The agent MUST visit every screen in the browser and click ALL interactive elements.
+> The agent MUST visit every screen in the browser and **recursively** click ALL interactive elements to FULL DEPTH.
 > - Click every button, link, tab, dropdown, and role="button" element
 > - Click elements that have onClick handlers or appear clickable in the snapshot
 > - Click center of button-like visual elements even if not properly componentized as `<button>`
+> - **RECURSIVE DEPTH**: When clicking an element reveals new content (sub-menu panels, nested tabs, new forms), the agent MUST explore that new content fully — click all its interactive elements, tabs, and sub-panels too
+> - Example: On /management, clicking "조직 인사관리" shows a new panel → explore ALL tabs/buttons/forms inside that panel
 > - Record all state changes: modals, dropdowns, navigation, toasts, expanded content
+> - Track visited states to avoid infinite loops (max depth: 5)
 > - Code-only analysis without browser interaction is NOT acceptable
 
 ```
