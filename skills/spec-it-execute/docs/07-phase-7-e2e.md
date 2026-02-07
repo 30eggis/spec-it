@@ -178,6 +178,63 @@ Phase 7 FAIL
 → Phase 4 → Phase 5 → Phase 6 → Phase 7 재검증
 ```
 
+## Dual-Server E2E (if _meta.mockServerEnabled)
+
+Phase 7은 Line A (UI)와 Line B (API)의 **합류 지점**입니다.
+mock-server가 활성화된 경우, 두 서버를 동시 기동하여 E2E 테스트를 실행합니다.
+
+### Playwright 설정
+
+`playwright.config.ts`의 `webServer`를 배열로 구성:
+
+```typescript
+webServer: [
+  {
+    command: 'cd mock-server && npm run seed:reset && npm run dev',
+    port: 4000,
+    reuseExistingServer: !process.env.CI,
+  },
+  {
+    command: 'npm run dev',
+    port: 3000,
+    reuseExistingServer: !process.env.CI,
+    env: { NEXT_PUBLIC_API_URL: 'http://localhost:4000/api' },
+  },
+]
+```
+
+### 테스트 격리
+
+- `beforeAll`: `POST http://localhost:4000/api/__admin/reset-db`
+- 각 테스트 스위트 시작 전 DB 초기화로 격리 보장
+- faker.seed(고정값)으로 결정적 시드 → assertion 안정성
+
+### E2E 테스트 작성 시 주의
+
+- 프론트엔드가 실제 mock-server API를 호출 (인라인 mock 아님)
+- 데이터는 시드에서 결정적으로 생성 → assertion 가능
+- `networkidle` 대신 `domcontentloaded` 사용 (타이머 있는 페이지)
+- `waitForTimeout(1000)` 등으로 setInterval 안정화
+
+### 합류 전 전제 조건
+
+Phase 7 진입 전 반드시 확인:
+- Line A: Phase 6A (Unit Tests) 통과
+- Line B: Phase 6B (Unit Tests) 통과
+- 두 라인 모두 `complete` 상태여야 Phase 7 진입 가능
+
+### 루트 package.json 스크립트 추가
+
+Phase 7 진입 시 다음 스크립트를 루트 `package.json`에 추가:
+
+```json
+{
+  "mock:dev": "cd mock-server && npm run dev",
+  "mock:seed": "cd mock-server && npm run seed:reset",
+  "dev:full": "concurrently \"npm run dev\" \"npm run mock:dev\""
+}
+```
+
 ## 회귀 포인트
 
 **실패 시 → Phase 3 (Execute)로 회귀**
