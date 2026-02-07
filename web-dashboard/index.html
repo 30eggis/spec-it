@@ -20,8 +20,35 @@
         <div class="hero-actions">
           <button class="btn primary" data-action="pick">Add Session</button>
           <button class="btn ghost" data-action="clear">Clear All</button>
+          <button class="btn ghost" data-action="toggle-telegram" id="telegram-toggle">Telegram</button>
         </div>
       </header>
+
+      <section class="telegram-panel" id="telegram-panel" hidden>
+        <div class="telegram-inner">
+          <div class="telegram-title">Telegram Notifications</div>
+          <div class="telegram-desc">
+            Dashboard notifications are stored in browser localStorage.<br>
+            For CLI hook notifications, edit <code>~/.claude/hooks/spec-it/telegram-config.js</code>
+          </div>
+          <div class="telegram-fields">
+            <label>
+              <span>Bot Token</span>
+              <input type="text" id="tg-bot-token" placeholder="123456:ABC-DEF..." autocomplete="off" />
+            </label>
+            <label>
+              <span>Chat ID</span>
+              <input type="text" id="tg-chat-id" placeholder="7771682402" autocomplete="off" />
+            </label>
+          </div>
+          <div class="telegram-actions">
+            <button class="mini-btn" data-action="save-telegram">Save</button>
+            <button class="mini-btn" data-action="test-telegram">Test</button>
+            <button class="mini-btn" data-action="clear-telegram">Clear</button>
+            <span class="telegram-status" id="tg-status"></span>
+          </div>
+        </div>
+      </section>
 
       <section class="drop-zone" data-drop-zone>
         <div class="drop-frame">

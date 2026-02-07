@@ -64,6 +64,42 @@ document.addEventListener("click", async (event) => {
     }
   }
 
+  if (action === "toggle-telegram") {
+    const panel = document.getElementById("telegram-panel");
+    if (panel) panel.hidden = !panel.hidden;
+  }
+
+  if (action === "save-telegram") {
+    const token = document.getElementById("tg-bot-token")?.value.trim() || "";
+    const chatId = document.getElementById("tg-chat-id")?.value.trim() || "";
+    localStorage.setItem(TG_TOKEN_KEY, token);
+    localStorage.setItem(TG_CHAT_KEY, chatId);
+    updateTelegramUI();
+    const status = document.getElementById("tg-status");
+    if (status) { status.textContent = "Saved"; setTimeout(() => updateTelegramUI(), 2000); }
+  }
+
+  if (action === "clear-telegram") {
+    localStorage.removeItem(TG_TOKEN_KEY);
+    localStorage.removeItem(TG_CHAT_KEY);
+    const tokenInput = document.getElementById("tg-bot-token");
+    const chatInput = document.getElementById("tg-chat-id");
+    if (tokenInput) tokenInput.value = "";
+    if (chatInput) chatInput.value = "";
+    updateTelegramUI();
+  }
+
+  if (action === "test-telegram") {
+    const status = document.getElementById("tg-status");
+    if (!isTelegramConfigured()) {
+      if (status) status.textContent = "Not configured";
+      return;
+    }
+    sendTelegram("Spec-It Dashboard: Telegram test OK").then(() => {
+      if (status) { status.textContent = "Test sent!"; setTimeout(() => updateTelegramUI(), 2000); }
+    });
+  }
+
   if (action === "authorize") {
     const sessionKey = actionTarget.dataset.session;
     const session = sessions.get(sessionKey);
@@ -253,6 +289,7 @@ async function refreshSession(session) {
   session.isCached = false;
   removeCachedSessionsBySessionId(merged.sessionId);
   cacheSessionSnapshot(session);
+  notifyTelegramIfNeeded(session);
 }
 
 async function readJson(dirHandle, fileName) {
@@ -1058,4 +1095,158 @@ function updateSupportMessage() {
 
 function setSupportMessage(message) {
   supportMessage.textContent = message;
+}
+
+// ── Telegram Notifications ──
+
+const TG_TOKEN_KEY = "spec-it-tg-token";
+const TG_CHAT_KEY = "spec-it-tg-chat";
+const prevSessionStates = new Map();
+
+// Try to load config file as fallback defaults
+(function loadTelegramConfigFile() {
+  window.__TELEGRAM__ = window.__TELEGRAM__ || {};
+
+  const path = location.pathname;
+  let configPath = null;
+
+  const claudeIdx = path.indexOf("/.claude/");
+  if (claudeIdx > 0) {
+    configPath = path.substring(0, claudeIdx) + "/.claude/hooks/spec-it/telegram-config.js";
+  } else {
+    const homeMatch = path.match(/^(\/Users\/[^/]+|\/home\/[^/]+)/);
+    if (homeMatch) {
+      configPath = homeMatch[1] + "/.claude/hooks/spec-it/telegram-config.js";
+    }
+  }
+
+  if (!configPath) {
+    initTelegramUI();
+    return;
+  }
+
+  const script = document.createElement("script");
+  script.src = configPath;
+  script.onload = () => initTelegramUI();
+  script.onerror = () => initTelegramUI();
+  document.head.appendChild(script);
+})();
+
+function getTelegramCredentials() {
+  const storedToken = localStorage.getItem(TG_TOKEN_KEY);
+  const storedChat = localStorage.getItem(TG_CHAT_KEY);
+  const fileCfg = window.__TELEGRAM__ || {};
+
+  return {
+    botToken: storedToken || fileCfg.botToken || "",
+    chatId: storedChat || fileCfg.chatId || "",
+  };
+}
+
+function isTelegramConfigured() {
+  const { botToken, chatId } = getTelegramCredentials();
+  return Boolean(botToken && chatId);
+}
+
+function initTelegramUI() {
+  const { botToken, chatId } = getTelegramCredentials();
+  const tokenInput = document.getElementById("tg-bot-token");
+  const chatInput = document.getElementById("tg-chat-id");
+  if (tokenInput && botToken) tokenInput.value = botToken;
+  if (chatInput && chatId) chatInput.value = chatId;
+  updateTelegramUI();
+}
+
+function updateTelegramUI() {
+  const toggle = document.getElementById("telegram-toggle");
+  const status = document.getElementById("tg-status");
+  if (!toggle) return;
+
+  const configured = isTelegramConfigured();
+  toggle.textContent = configured ? "Telegram ON" : "Telegram";
+
+  if (status) {
+    status.textContent = configured ? "Active" : "Enter Bot Token and Chat ID, then Save";
+    status.style.color = configured ? "var(--ok)" : "var(--muted)";
+  }
+}
+
+async function sendTelegram(text) {
+  const { botToken, chatId } = getTelegramCredentials();
+  if (!botToken || !chatId) return;
+
+  try {
+    await fetch(`https://api.telegram.org/bot${botToken}/sendMessage`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        chat_id: chatId,
+        text,
+        disable_notification: false,
+      }),
+    });
+  } catch (_) {
+    // silently fail
+  }
+}
+
+function detectSessionChanges(prev, curr) {
+  const changes = [];
+  if (!prev || Object.keys(prev).length === 0) return changes;
+
+  if (Number(prev.currentPhase) !== Number(curr.currentPhase)) {
+    changes.push({ type: "phase", from: prev.currentPhase, to: curr.currentPhase });
+  }
+
+  if (prev.status !== curr.status && curr.status) {
+    changes.push({ type: "status", to: curr.status });
+  }
+
+  if (!prev.waitingForUser && curr.waitingForUser) {
+    changes.push({ type: "waiting", message: curr.waitingMessage });
+  }
+
+  const pe = Array.isArray(prev.errors) ? prev.errors.length : 0;
+  const ce = Array.isArray(curr.errors) ? curr.errors.length : 0;
+  if (ce > pe) {
+    changes.push({ type: "error", message: curr.errors[ce - 1] });
+  }
+
+  return changes;
+}
+
+function notifyTelegramIfNeeded(session) {
+  if (!isTelegramConfigured()) return;
+
+  const data = session.data || {};
+  const prev = prevSessionStates.get(session.key);
+  prevSessionStates.set(session.key, { ...data });
+
+  const changes = detectSessionChanges(prev, data);
+  if (changes.length === 0) return;
+
+  const sessionId = data.sessionId || session.name || "unknown";
+  const mode = resolveMode(data);
+  const label = mode === "execute" ? "EXECUTE" : "SPEC-IT";
+  const lines = [`[${label}] ${sessionId}`];
+
+  for (const c of changes) {
+    switch (c.type) {
+      case "phase":
+        lines.push(`Phase ${c.from || "?"} → ${c.to}`);
+        break;
+      case "status":
+        lines.push(`Status: ${c.to}`);
+        break;
+      case "waiting":
+        lines.push(`Waiting: ${c.message || "User input needed"}`);
+        break;
+      case "error":
+        lines.push(`Error: ${c.message || "Error occurred"}`);
+        break;
+    }
+  }
+
+  lines.push(`Progress: ${data.progress || 0}%`);
+  sendTelegram(lines.join("\n"));
 }

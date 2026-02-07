@@ -450,6 +450,93 @@ h1 {
   }
 }
 
+.telegram-panel {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: linear-gradient(120deg, #2a2c3c 0%, #232431 55%, #1c1d28 100%);
+  overflow: hidden;
+  animation: rise 0.3s ease;
+}
+
+.telegram-inner {
+  padding: 20px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.telegram-title {
+  font-family: "Space Grotesk", "IBM Plex Sans", sans-serif;
+  font-weight: 600;
+  font-size: 14px;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--accent-3);
+}
+
+.telegram-desc {
+  font-size: 12px;
+  color: var(--muted);
+  line-height: 1.5;
+}
+
+.telegram-desc code {
+  background: rgba(30, 32, 44, 0.9);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-family: "Courier New", monospace;
+  font-size: 11px;
+  color: var(--accent);
+}
+
+.telegram-fields {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.telegram-fields label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex: 1;
+  min-width: 180px;
+}
+
+.telegram-fields label span {
+  font-size: 12px;
+  color: var(--muted);
+  font-weight: 600;
+}
+
+.telegram-fields input {
+  background: rgba(30, 32, 44, 0.9);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 8px 12px;
+  color: var(--ink);
+  font-family: "Courier New", monospace;
+  font-size: 13px;
+  outline: none;
+  transition: border 0.2s ease;
+}
+
+.telegram-fields input:focus {
+  border-color: var(--accent);
+}
+
+.telegram-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.telegram-status {
+  font-size: 12px;
+  color: var(--muted);
+  margin-left: 8px;
+}
+
 @media (max-width: 720px) {
   .hero {
     padding: 22px;
