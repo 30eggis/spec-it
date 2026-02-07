@@ -284,12 +284,114 @@ async function refreshSession(session) {
   }
 
   const merged = mergeStatus(metaResult.value || {}, statusResult.value || {});
+
+  const pilotResult = await readJson(session.dirHandle, "dev-pilot-state.json");
+  if (pilotResult.ok && pilotResult.value?.active) {
+    applyDevPilotProgress(merged, pilotResult.value);
+  }
+
+  const ultraqaResult = await readJson(session.dirHandle, "ultraqa-state.json");
+  if (ultraqaResult.ok && ultraqaResult.value?.active) {
+    applyUltraqaProgress(merged, ultraqaResult.value);
+  }
+
   session.data = merged;
   session.locked = false;
   session.isCached = false;
   removeCachedSessionsBySessionId(merged.sessionId);
   cacheSessionSnapshot(session);
   notifyTelegramIfNeeded(session);
+}
+
+function applyDevPilotProgress(data, pilot) {
+  const workers = Array.isArray(pilot.workers) ? pilot.workers : [];
+  if (workers.length === 0) return;
+
+  const completed = workers.filter((w) => w.status === "complete").length;
+  const total = workers.length;
+
+  // Update agents from dev-pilot workers
+  const pilotAgents = workers.map((w) => {
+    const agent = { name: `dev-pilot-${w.id}`, status: w.status === "complete" ? "completed" : w.status };
+    if (w.filesCreated) agent.filesCreated = w.filesCreated;
+    return agent;
+  });
+  data.agents = pilotAgents;
+
+  // Update Phase 3 progress based on worker completion
+  if (Number(data.currentPhase) === 3 && data.status !== "completed") {
+    const workerProgress = total > 0 ? Math.round((completed / total) * 100) : 0;
+    data.devPilotPhase3Progress = workerProgress;
+
+    // Update overall progress: phases 0-2 done (33%) + phase 3 partial
+    const phase3Weight = 100 / 9;
+    const completedWeight = (2 / 9) * 100;
+    data.progress = Math.round(completedWeight + (phase3Weight * workerProgress) / 100);
+  }
+
+  data.lastUpdate = new Date().toISOString();
+}
+
+function applyUltraqaProgress(data, ultraqa) {
+  const currentPhase = Number(data.currentPhase);
+  // ultraqa runs during Phase 6 (unit) or Phase 7 (e2e)
+  if (currentPhase !== 6 && currentPhase !== 7) return;
+
+  const mode = ultraqa.mode || "";
+  const iteration = ultraqa.iteration || 1;
+  const maxIterations = ultraqa.maxIterations || (mode === "e2e" ? 3 : 5);
+  const results = ultraqa.results || {};
+  const phase = ultraqa.phase || "";
+
+  // Build agent entry from ultraqa state
+  const agentName = mode === "e2e" ? "ultraqa-e2e" : "ultraqa-unit";
+  const agentStatus = phase === "fix_cycle" ? "fixing" : "running";
+  const ultraqaAgent = {
+    name: `${agentName} (${iteration}/${maxIterations})`,
+    status: agentStatus,
+  };
+
+  // Merge with existing agents or replace
+  if (!Array.isArray(data.agents) || data.agents.length === 0) {
+    data.agents = [ultraqaAgent];
+  } else {
+    const existing = data.agents.findIndex((a) => a.name.startsWith("ultraqa-"));
+    if (existing >= 0) {
+      data.agents[existing] = ultraqaAgent;
+    } else {
+      data.agents.push(ultraqaAgent);
+    }
+  }
+
+  // Calculate phase progress based on iteration and test results
+  let phaseProgress = 0;
+  if (results.total > 0) {
+    const passRate = results.passed / results.total;
+    // Progress = base from iteration + bonus from pass rate
+    const iterationBase = Math.round(((iteration - 1) / maxIterations) * 60);
+    const passBonus = Math.round(passRate * 40);
+    phaseProgress = Math.min(99, iterationBase + passBonus);
+  } else {
+    // No results yet, estimate from iteration
+    phaseProgress = Math.round(((iteration - 1) / maxIterations) * 30) + 5;
+  }
+
+  data.ultraqaPhaseProgress = phaseProgress;
+
+  // Update overall progress
+  const completedPhases = Array.isArray(data.completedPhases) ? data.completedPhases.length : 0;
+  const phaseWeight = 100 / 9;
+  data.progress = Math.round(completedPhases * phaseWeight + (phaseWeight * phaseProgress) / 100);
+
+  // Enrich current task display
+  if (results.total > 0) {
+    const coverage = results.coverage || "0%";
+    data.currentTask = `${mode.toUpperCase()} ${iteration}/${maxIterations} | ${results.passed}/${results.total} passed | coverage ${coverage}`;
+  } else {
+    data.currentTask = `${mode.toUpperCase()} ${iteration}/${maxIterations} | ${phase}`;
+  }
+
+  data.lastUpdate = new Date().toISOString();
 }
 
 async function readJson(dirHandle, fileName) {
@@ -798,9 +900,9 @@ function renderExecute(data) {
   const currentPhase = Number(data.currentPhase) || 1;
   const currentStep = data.currentStep || "";
   const currentTask = data.currentTask || "";
-  const completedTasks = Array.isArray(data.completedTasks)
+  const completedTasks = Array.isArray(data.completedTasks) && data.completedTasks.length > 0
     ? data.completedTasks.length
-    : 0;
+    : agents.filter((a) => a.status === "completed" || a.status === "complete").length;
   const qaAttempts = data.qaAttempts ?? 0;
   const maxQa = data.maxQaAttempts ?? 0;
   const agents = Array.isArray(data.agents) ? data.agents : [];
@@ -818,11 +920,14 @@ function renderExecute(data) {
     )
     .join("");
 
+  const devPilotProgress = data.devPilotPhase3Progress;
   const currentLine = currentTask
     ? currentTask
     : status === "completed"
       ? "All tasks completed"
-      : `Phase ${currentPhase} - Step ${currentStep}`;
+      : devPilotProgress !== undefined
+        ? `Phase 3 - EXECUTE (workers ${devPilotProgress}%)`
+        : `Phase ${currentPhase} - Step ${currentStep}`;
 
   return `
     <div class="block">
@@ -941,15 +1046,22 @@ function fillPhaseProgress(phases, data, totalPhases) {
     let progress = 0;
     if (isComplete) {
       progress = 100;
-    } else if (isCurrent && currentStep) {
-      const stepIndex = phase.steps.indexOf(currentStep);
-      if (stepIndex >= 0 && phase.steps.length > 0) {
-        progress = Math.round(
-          (stepIndex / phase.steps.length) * 100 +
-            50 / phase.steps.length
-        );
-      } else {
-        progress = 10;
+    } else if (isCurrent) {
+      // Use agent-reported progress for phases with background state files
+      if (phase.num === 3 && data.devPilotPhase3Progress !== undefined) {
+        progress = data.devPilotPhase3Progress;
+      } else if ((phase.num === 6 || phase.num === 7) && data.ultraqaPhaseProgress !== undefined) {
+        progress = data.ultraqaPhaseProgress;
+      } else if (currentStep) {
+        const stepIndex = phase.steps.indexOf(currentStep);
+        if (stepIndex >= 0 && phase.steps.length > 0) {
+          progress = Math.round(
+            (stepIndex / phase.steps.length) * 100 +
+              50 / phase.steps.length
+          );
+        } else {
+          progress = 10;
+        }
       }
     }
 
