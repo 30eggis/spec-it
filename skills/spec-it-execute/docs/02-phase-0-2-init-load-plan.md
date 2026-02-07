@@ -3,16 +3,30 @@
 ## Phase 0: Initialize
 
 - Initialize session with `scripts/core/execute-session-init.sh`
-- If dashboard enabled, show absolute file path for web dashboard:
+- **Project Setup (wireframe/baseproject 공통):**
+  1. workDir에 `spec-it-execute/` 폴더 생성
+  2. If executeMode == "baseproject":
+     - projectSourcePath의 내용을 `spec-it-execute/`로 복사 (node_modules, .git, .next 제외)
+  3. 이후 모든 코드 작업은 `{workDir}/spec-it-execute/` 에서 진행
+  4. _meta.projectWorkDir = `{workDir}/spec-it-execute/`
+- **spec-map.md 파싱:**
+  1. Read: `{specFolder}/spec-map.md`
+  2. Parse: `Cross-References > By Artifact Phase` 테이블
+  3. 각 토픽의 디렉토리 경로를 _meta.specTopics에 저장
+  4. dev-plan/ 등 테이블에 없는 폴더도 스캔하여 추가
+- Dashboard 경로 표시 (항상 Enable):
   `"⏺ Dashboard:  file://$HOME/.claude/plugins/marketplaces/spec-it/web-dashboard/index.html  을 열어 실시간 진행 상황을 확인할 수 있습니다."`
   (URL 앞뒤 공백 필수 - 터미널에서 클릭 시 분리되도록)
 - If `--resume`, load saved state and resume
 
 ## Phase 1: Load
 
-- Validate spec files exist
-- Extract task list from `dev-tasks.md`
-- Analyze UI references (wireframes, design tokens)
+- _meta.specTopics에서 사용 가능한 토픽 확인
+- dev-plan에서 task list 추출
+- executeMode에 따라:
+  - wireframe: wireframe YAML + design-tokens 로드
+  - baseproject: migration plan + component specs 로드
+- 공통: personas, components, scenarios 로드 (있는 것만)
 
 ## Phase 2: Plan
 

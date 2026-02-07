@@ -69,6 +69,11 @@ Standard templates for consistent spec-it output quality across all modes.
 | Phase | `PHASE_TEMPLATE.md` | Phase scope and deliverables |
 | Tasks | `TASKS_TEMPLATE.md` | Sprint task breakdown |
 
+### Folder Index (Progressive Loading)
+| Template | Path | Description |
+|----------|------|-------------|
+| _index.md | `_INDEX_TEMPLATE.md` | 폴더별 필수 목차. File Map + When to Read로 점진적 로딩 지원 |
+
 ---
 
 ## Output Structure
@@ -185,4 +190,5 @@ Templates use Handlebars-style placeholders:
 | 05-Tests | 6 |
 | 06-Final | 3 |
 | Phase & Tasks | 2 |
-| **Total** | **33** |
+| Folder Index | 1 |
+| **Total** | **34** |

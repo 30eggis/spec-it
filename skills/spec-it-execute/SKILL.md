@@ -2,7 +2,7 @@
 name: spec-it-execute
 description: "Autopilot executor that turns spec-it output into working code (10 phases: 0-9)."
 allowed-tools: Read, Write, Edit, Glob, Grep, Bash, Task, AskUserQuestion
-argument-hint: "<spec-folder> [--resume <sessionId>] [--design-style <style>] [--design-trends <trends>] [--dashboard <Enable|Skip>]"
+argument-hint: "<spec-folder> [--resume <sessionId>] [--mode <wireframe|baseproject>] [--base-project <path>] [--design-style <style>] [--design-trends <trends>]"
 permissionMode: bypassPermissions
 ---
 
@@ -65,42 +65,80 @@ Phase N FAIL → {type}-fix-tasks.json → dev-pilot --mode=fix → Phase 4 → 
 | 7 | e2e-fix-tasks.json |
 | 8 | review-fix-tasks.json |
 
-## Setup Intake (Only if Missing)
+## Setup Intake
 
-If design style or dashboard preference is already provided (args or prior spec meta), do NOT ask again.
+### Step 1: 작업 유형 (Only if Missing)
+
+```
+executeMode = args.executeMode or userRequest
+
+IF executeMode missing:
+  AskUserQuestion(
+    questions: [{
+      question: "작업 유형을 선택하세요",
+      header: "Execute Mode",
+      options: [
+        {label: "use WireFrame", description: "wireframe 기반 신규 개발"},
+        {label: "use BaseProject", description: "기존 프로젝트를 복사하여 리팩토링"}
+      ]
+    }]
+  )
+```
+
+### Step 2: spec-folder 경로
+
+```
+specFolder = args[0] or userRequest
+
+IF specFolder missing:
+  AskUserQuestion(
+    questions: [{
+      question: "spec-folder 경로를 입력하세요 (spec-map.md가 있는 폴더)",
+      header: "Spec Folder",
+      options: []
+    }]
+  )
+
+# spec-map.md 자동 파싱
+Read: {specFolder}/spec-map.md
+Parse: Cross-References > By Artifact Phase 테이블
+Extract: 모든 artifact 디렉토리 경로 자동 매핑
+Also scan: dev-plan/, *-tests/, *-review/ 등 spec-map에 없을 수 있는 폴더
+```
+
+### Step 3: 기존 프로젝트 경로 (use BaseProject만)
+
+```
+IF executeMode == "use BaseProject":
+  AskUserQuestion(
+    questions: [{
+      question: "기존 프로젝트 경로를 입력하세요",
+      header: "Base Project",
+      options: []
+    }]
+  )
+```
+
+### Step 4: Design Style (Only if Missing)
 
 ```
 designStyle = args.designStyle or userRequest
-designTrends = args.designTrends or userRequest
-dashboard = args.dashboard or userRequest
-
-questions = []
 
 IF designStyle missing:
-  questions += {
-    question: "어떤 디자인 스타일을 적용하시겠습니까? (2026 Design Trends 기반)",
-    header: "Design Style",
-    options: [
-      {label: "Minimal (Recommended)", description: "밝은 테마, 미니멀 카드"},
-      {label: "Immersive", description: "다크 테마, 그라데이션, 네온 포인트"},
-      {label: "Organic", description: "Glassmorphism, 부드러운 곡선"},
-      {label: "Custom", description: "직접 트렌드 선택"},
-      {label: "Custom File", description: "직접 스타일 파일 경로 지정"}
-    ]
-  }
-
-IF dashboard missing:
-  questions += {
-    question: "웹 대시보드를 사용할까요?",
-    header: "Dashboard",
-    options: [
-      {label: "Enable", description: "Web dashboard 사용"},
-      {label: "Skip", description: "대시보드 없이 진행"}
-    ]
-  }
-
-IF questions not empty:
-  AskUserQuestion(questions)
+  AskUserQuestion(
+    questions: [{
+      question: "어떤 디자인 스타일을 적용하시겠습니까?",
+      header: "Design Style",
+      options: [
+        {label: "None (Recommended)", description: "디자인 트렌드 적용 안함, 기본 스타일로 구현"},
+        {label: "Minimal", description: "밝은 테마, 미니멀 카드"},
+        {label: "Immersive", description: "다크 테마, 그라데이션, 네온 포인트"},
+        {label: "Organic", description: "Glassmorphism, 부드러운 곡선"},
+        {label: "Custom", description: "직접 트렌드 선택"},
+        {label: "Custom File", description: "직접 스타일 파일 경로 지정"}
+      ]
+    }]
+  )
 
 IF designStyle == "Custom":
   AskUserQuestion(
@@ -127,11 +165,25 @@ IF designStyle == "Custom File":
       options: []
     }]
   )
+```
 
-# Persist to execute meta when available
+### Dashboard: 항상 Enable (질문 안함)
+
+```
+dashboard = "Enable"
+```
+
+### _meta 저장
+
+```
+_meta.executeMode = selectedMode           # "wireframe" | "baseproject"
+_meta.specFolder = specFolder
+_meta.specTopics = parsedTopics            # spec-map에서 추출한 토픽 맵
+_meta.projectSourcePath = projectSourcePath # baseproject 경로 (없으면 null)
+_meta.projectWorkDir = "{workDir}/spec-it-execute/"
 _meta.designStyle = selectedStyle
-_meta.designTrends = selectedTrends or designTrends
-_meta.dashboardEnabled = dashboard
+_meta.designTrends = selectedTrends or null
+_meta.dashboardEnabled = true
 ```
 
 ## Doc Index (progressive loading)
