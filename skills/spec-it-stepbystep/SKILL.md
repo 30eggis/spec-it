@@ -2,7 +2,7 @@
 name: spec-it-stepbystep
 description: "Step-by-step spec generator with phase approvals for small projects and learning."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
-argument-hint: "[--resume <sessionId>]"
+argument-hint: "[--session <sessionId>] [--resume <sessionId>]"
 permissionMode: bypassPermissions
 ---
 
@@ -103,9 +103,22 @@ _meta.mode = "stepbystep"
 ### Step 0.1: Session Init
 
 ```
-result = Bash: session-init.sh "" stepbystep "$(pwd)"
-sessionId = extract SESSION_ID
-sessionDir = extract SESSION_DIR
+IF --session {sessionId} in args:
+  # Reuse session created by router
+  sessionDir = .spec-it/{sessionId}/plan
+  Read: {sessionDir}/_meta.json
+  # Update _meta.json with mode-specific values
+  Update _meta.json:
+    mode = "stepbystep"
+    uiMode = "stepbystep"
+    designStyle = from args or Step 0.0
+    designTrendsPath = from args or Step 0.0
+    dashboardEnabled = from args or Step 0.0
+ELSE:
+  # Direct invocation — create new session
+  result = Bash: session-init.sh "" stepbystep "$(pwd)"
+  sessionId = extract SESSION_ID
+  sessionDir = extract SESSION_DIR
 
 IF dashboard enabled:
   Output: "⏺ Dashboard: file://.../web-dashboard/index.html"

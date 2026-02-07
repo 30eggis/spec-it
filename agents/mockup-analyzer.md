@@ -37,276 +37,226 @@ IF connection refused:
   STOP
 ```
 
-### Step 3: Main Page Crawl
+### Step 3: Initialize click-todo.yaml
+
+> **click-todo.yaml is the single source of truth for exploration state.**
+> Every clickable element goes here. Exploration is complete ONLY when ALL items are `clicked: true`.
+> This file is persistent — if the agent context resets, it can resume from where it left off.
 
 ```
 browser_navigate: http://localhost:PORT
-browser_snapshot: Extract initial structure
+browser_snapshot: Extract ALL elements
 
-Detect persona switcher:
-- Look for dropdown/tabs with user roles
-- Extract URL prefixes (e.g., /employee, /admin, /hr)
+Create click-todo.yaml at: {outputDir}/click-todo.yaml
 ```
 
-### Step 4: Navigation Extraction
+#### click-todo.yaml Schema
 
-```
-FOR each persona:
-  browser_navigate: /{persona-prefix}
-  browser_snapshot: Extract nav elements
-
-  Extract:
-  - Menu items (link text + href)
-  - Sidebar structure
-  - Top navigation
-  - Breadcrumbs
-```
-
-### Step 5: Screen Inventory
-
-```
-FOR each URL discovered:
-  browser_navigate: URL
-  browser_snapshot: Full page
-
-  Classify elements:
-  - Forms (input, select, textarea)
-  - Tables (table, columnheader, row)
-  - Action buttons (button text: 승인, 반려, 신청, etc.)
-  - Cards/Widgets (heading + data)
-  - Stats displays
+```yaml
+baseUrl: "http://localhost:PORT"
+items:
+  - path: "/"                     # URL where element was found
+    context: ""                   # click chain to reach element ("" = directly visible)
+    label: "Settings"             # element text / accessible name
+    type: nav                     # nav | tab | button | menu | link | select | checkbox | toggle
+    clicked: false                # true after clicked
+    result: null                  # navigation | modal | dropdown | panel | toast | none
+    navigatedTo: null             # target URL (only when result=navigation)
+    notes: ""                     # observation after click
 ```
 
-### Step 5.5: Recursive Deep Exploration (MANDATORY)
+**Dedup key**: `path + context + label + type`
+NEVER add duplicate items. Always check existing items before adding.
 
-> **This step is REQUIRED for every screen. Do NOT skip.**
-> **CRITICAL**: Explore to FULL DEPTH. When clicking an element reveals new content (sub-menu panel, tab content, nested tabs), you MUST recursively explore that new content too. Time is not a constraint — completeness is.
-
-For every screen visited in Step 5, perform **recursive** interactive exploration using Playwright MCP.
-
-#### Core Concept: State Tree Exploration
+#### Element Extraction Rules
 
 ```
-A screen is NOT just its initial render. It is a TREE of states:
-
-/management (initial)
-  ├─ 관리 메뉴: 기본 설정 (active by default)
-  │   ├─ Tab: 일반 (active by default) → forms, checkboxes, dropdowns
-  │   ├─ Tab: 알림 → explore ALL elements here
-  │   ├─ Tab: 보안 → explore ALL elements here
-  │   └─ Tab: 고급 옵션 → explore ALL elements here
-  ├─ 관리 메뉴: 조직 인사관리 (click to switch)
-  │   ├─ Sub-tabs? → explore each
-  │   └─ Forms/tables/buttons → explore all
-  ├─ 관리 메뉴: 근무 시간관리 (click to switch)
-  │   └─ ...
-  └─ ...
-
-Every leaf node must be visited and recorded.
+From browser_snapshot, extract:
+- <a> with href          → type: nav (same-site) or link (external)
+- <button>               → type: button
+- role="tab"             → type: tab
+- role="menuitem"        → type: menu
+- <select>               → type: select
+- checkbox / toggle      → type: checkbox or toggle
+- aria-expanded elements → categorize by role
+- aria-haspopup elements → categorize by role
 ```
 
-#### 5.5.0: State Tracking Setup
+#### Hidden Element Detection
+
+Run this on EVERY new page or state change to catch non-semantic clickable elements:
 
 ```
-Initialize per screen:
-  visitedStates = Set()  # Track explored states to prevent infinite loops
-  stateKey = function(snapshot) → hash of visible interactive element uids + text
-  explorationPath = []   # Breadcrumb trail: ["기본 설정", "알림"]
-```
-
-#### 5.5.1: Recursive Explore Function
-
-```
-FUNCTION deepExplore(contextLabel, depth=0):
-  IF depth > 5: RETURN  # Safety limit
-
-  browser_snapshot: Get full element tree with uids
-  currentStateKey = stateKey(snapshot)
-
-  IF currentStateKey IN visitedStates: RETURN
-  ADD currentStateKey TO visitedStates
-
-  # Collect ALL interactive elements in current view
-  interactiveElements = Parse snapshot for:
-  - <button> elements (any)
-  - <a> links (internal page links only, skip external navigation)
-  - Elements with role="button", role="tab", role="menuitem", role="link"
-  - Elements with aria-expanded, aria-haspopup
-  - Elements with onClick handlers (visible in snapshot as clickable)
-  - <select> dropdowns
-  - Checkbox / radio inputs
-  - Any element with cursor:pointer styling
-
-  # Categorize elements BEFORE clicking
-  panelSwitchers = []  # Elements that switch content panels (sub-menus, tabs)
-  actions = []         # Buttons that trigger modals/toasts/state changes
-  formElements = []    # Inputs, selects, checkboxes (record without clicking)
-  navLinks = []        # Links that navigate away (record URL only)
-
-  FOR each element:
-    Categorize by type:
-    - button with tab-like text / role="tab" → panelSwitchers
-    - button in sidebar/sub-nav / role="menuitem" → panelSwitchers
-    - <a> with href to different page → navLinks (record, don't follow)
-    - <select>, <input>, checkbox → formElements
-    - Other buttons → actions
-
-  # Phase A: Record form elements (no click needed)
-  FOR each formElement:
-    Record: element type, label, current value, options (for select/radio)
-
-  # Phase B: Record nav links (no click needed)
-  FOR each navLink:
-    Record: link text, href URL
-
-  # Phase C: Explore panel switchers WITH RECURSION
-  FOR each panelSwitcher:
-    Record: explorationPath + [panelSwitcher.text]
-    browser_click(panelSwitcher.uid)
-    browser_wait_for: Brief wait for content change
-
-    # RECURSE into the new panel content
-    deepExplore(
-      contextLabel = contextLabel + " > " + panelSwitcher.text,
-      depth = depth + 1
-    )
-
-    # Return to parent state if needed (click back to previous panel)
-    # Use the parent panelSwitcher or browser_navigate to restore
-
-  # Phase D: Explore action elements (modals, toggles, etc.)
-  FOR each action:
-    browser_click(action.uid)
-    browser_wait_for: Brief wait
-    browser_snapshot: Capture result
-
-    Record what happened:
-    - Modal/dialog opened? → Record modal content and actions
-    - Dropdown appeared? → Record all options
-    - Toast/notification? → Record message
-    - Content expanded/collapsed? → Record hidden content
-    - State toggle? → Record before/after state
-
-    IF modal/dialog opened:
-      Explore modal contents:
-      - Record all form fields, labels, buttons
-      - browser_click action buttons inside modal (record results)
-      - IF modal contains tabs/sub-panels → deepExplore(modal context, depth+1)
-      - Dismiss modal (click close/cancel or press Escape)
-
-    IF dropdown appeared:
-      Record all dropdown options
-      browser_press_key: Escape to close
-
-    Restore element to original state if toggled
-
-END FUNCTION
-```
-
-#### 5.5.2: Detect Hidden Interactive Elements
-
-```
-Some elements may not be properly componentized but visually appear as buttons.
-Use browser_evaluate to find elements that LOOK like buttons:
-
 browser_evaluate: () => {
-  const allElements = document.querySelectorAll('div, span, p, td');
-  const buttonLike = [];
-  allElements.forEach(el => {
+  const els = document.querySelectorAll('div, span, p, td');
+  const found = [];
+  els.forEach(el => {
     const style = window.getComputedStyle(el);
     const text = el.innerText?.trim();
     if (text && text.length < 30 &&
         (style.cursor === 'pointer' ||
          style.borderRadius !== '0px' ||
          el.classList.toString().match(/btn|button|chip|tag|badge|action|clickable/i))) {
-      buttonLike.push({
-        text: text,
-        tag: el.tagName,
-        classes: el.className
-      });
+      found.push({ text, tag: el.tagName, classes: el.className });
     }
   });
-  return buttonLike;
+  return found;
 }
 
-FOR each button-like element NOT already explored:
-  Try browser_click on the element
-  browser_snapshot: Check for any state change
-  IF new content panel appeared → deepExplore(element.text, depth+1)
-  Record results
+→ Add discovered hidden elements to click-todo.yaml (dedup)
 ```
 
-#### 5.5.3: Execute the Exploration
+### Step 4: Exhaustive Click Exploration
+
+> **CRITICAL**: Do NOT stop until every item in click-todo.yaml is `clicked: true`.
+> Clicking one item often reveals new items — add them and keep going.
+> Time is not a constraint. **Completeness is the only goal.**
 
 ```
-FOR each screen:
-  browser_snapshot: Get initial state
+LOOP:
+  Read click-todo.yaml
+  IF all items.clicked == true → EXIT LOOP
 
-  # Start recursive exploration from the root
-  deepExplore(contextLabel = screenName, depth = 0)
+  # --- Target Selection ---
+  # Prefer items on current page (same path + context) to minimize navigation
+  # Among those, pick first unclicked item
+  Pick first item where clicked == false
 
-  # After deepExplore, run hidden element detection (5.5.2)
-  # This catches elements missed by snapshot-based detection
+  # --- 1. Navigate if needed ---
+  IF item.path != currentURL:
+    browser_navigate: item.path
 
-  Record total exploration stats:
-  - Total states explored: visitedStates.size
-  - Total interactive elements found
-  - Exploration tree depth reached
+  # --- 2. Replay context chain ---
+  # Context tracks the prerequisite clicks to make an element visible
+  # e.g. context: "기본 설정 > 보안" means: click "기본 설정", then click "보안"
+  IF item.context != "":
+    Split by " > " → ["기본 설정", "보안"]
+    FOR each step in chain:
+      Find element matching step label in current snapshot
+      browser_click(element)
+      browser_wait_for: content change
+
+  # --- 3. Pre-click: collect new items ---
+  browser_snapshot
+  Extract clickable elements → add to click-todo.yaml (dedup)
+  Run hidden element detection → add to click-todo.yaml (dedup)
+
+  # --- 4. Click the target ---
+  Find element matching item.label + item.type in snapshot
+  browser_click(element)
+  item.clicked = true
+
+  # --- 5. Post-click: observe result ---
+  browser_wait_for: brief wait for state change
+  browser_snapshot
+
+  Determine what happened:
+
+  A) URL changed → Navigation
+     item.result = "navigation"
+     item.navigatedTo = newURL
+     Snapshot new page → extract all clickable items → add to click-todo.yaml
+
+  B) Modal/dialog appeared
+     item.result = "modal"
+     Record modal contents in item.notes (form fields, text, buttons)
+     Add modal's clickable elements to click-todo.yaml with:
+       context = (item.context ? item.context + " > " : "") + item.label + " [modal]"
+     Dismiss modal (Escape or close button)
+
+  C) Content changed, URL unchanged → Panel/tab switch
+     item.result = "panel"
+     New elements discovered get context:
+       item.context ? item.context + " > " + item.label : item.label
+     Add new elements to click-todo.yaml
+
+  D) Dropdown/select opened
+     item.result = "dropdown"
+     Record all options in item.notes
+     Dismiss (Escape)
+
+  E) Toast/notification appeared
+     item.result = "toast"
+     Record message in item.notes
+
+  F) Nothing visible happened
+     item.result = "none"
+
+  # --- 6. Save progress ---
+  Write updated click-todo.yaml
+
+END LOOP
+
+Final stats (log to console):
+  Total items discovered: N
+  Total items clicked: N
+  Unique paths visited: N
+  Max context depth: N
 ```
 
-#### Example: Expected Exploration for /management
+#### Exploration Example
 
 ```
-deepExplore("/management", depth=0)
-  panelSwitchers found: [기본 설정(active), 조직 인사관리, 근무 시간관리, 휴가 요청관리, 리포트]
-  actions found: [저장]
-  formElements found: [회사명 input, 국가 select, ...]
+Starting URL: http://localhost:3000/management
 
-  → Click "기본 설정" (or already active)
-    deepExplore("/management > 기본 설정", depth=1)
-      panelSwitchers found: [일반(active), 알림, 보안, 고급 옵션]
+== After initial snapshot ==
+click-todo.yaml items:
+  - { path: "/management", context: "",  label: "기본 설정",     type: tab,    clicked: false }
+  - { path: "/management", context: "",  label: "조직 인사관리", type: tab,    clicked: false }
+  - { path: "/management", context: "",  label: "근무 시간관리", type: tab,    clicked: false }
+  - { path: "/management", context: "",  label: "저장",          type: button, clicked: false }
+  - { path: "/management", context: "",  label: "회사명",        type: input,  clicked: false }
 
-      → Click "일반" (or already active)
-        deepExplore("/management > 기본 설정 > 일반", depth=2)
-          formElements: [회사명, 국가, 회사 로고, 관리 단위, ...]
-          actions: [저장, 파일 선택, Excel 업로드, 추가하기]
-          → Click each action, record modals/results
+== Click "기본 설정" → result: panel ==
+NEW items added:
+  - { path: "/management", context: "기본 설정", label: "일반",     type: tab, clicked: false }
+  - { path: "/management", context: "기본 설정", label: "알림",     type: tab, clicked: false }
+  - { path: "/management", context: "기본 설정", label: "보안",     type: tab, clicked: false }
+  - { path: "/management", context: "기본 설정", label: "고급 옵션", type: tab, clicked: false }
 
-      → Click "알림"
-        deepExplore("/management > 기본 설정 > 알림", depth=2)
-          Record ALL content, forms, toggles, buttons
+== Click "기본 설정 > 보안" → result: panel ==
+(Agent navigates to /management, clicks "기본 설정", then clicks "보안")
+NEW items added:
+  - { path: "/management", context: "기본 설정 > 보안", label: "비밀번호 변경", type: button, clicked: false }
+  - { path: "/management", context: "기본 설정 > 보안", label: "2FA 설정",      type: button, clicked: false }
 
-      → Click "보안"
-        deepExplore("/management > 기본 설정 > 보안", depth=2)
-          Record ALL content
+== Click "기본 설정 > 보안 > 비밀번호 변경" → result: modal ==
+(Agent replays context: "기본 설정" → "보안", then clicks "비밀번호 변경")
+NEW items added:
+  - { path: "/management", context: "기본 설정 > 보안 > 비밀번호 변경 [modal]", label: "확인", type: button, clicked: false }
+  - { path: "/management", context: "기본 설정 > 보안 > 비밀번호 변경 [modal]", label: "취소", type: button, clicked: false }
 
-      → Click "고급 옵션"
-        deepExplore("/management > 기본 설정 > 고급 옵션", depth=2)
-          Record ALL content
+... continues until ALL items clicked: true ...
+```
 
-  → Click "조직 인사관리"
-    deepExplore("/management > 조직 인사관리", depth=1)
-      panelSwitchers? → Explore each sub-tab/panel
-      formElements? → Record all
-      actions? → Click and record
+### Step 5: Screen Data Compilation
 
-  → Click "근무 시간관리"
-    deepExplore("/management > 근무 시간관리", depth=1)
-      ...
+After all items in click-todo.yaml are `clicked: true`, generate per-screen analysis.
 
-  → Click "휴가 요청관리"
-    deepExplore("/management > 휴가 요청관리", depth=1)
-      ...
+```
+Read completed click-todo.yaml
+Group items by path
 
-  → Click "리포트"
-    deepExplore("/management > 리포트", depth=1)
-      ...
+FOR each unique path:
+  Filter items where item.path == this path
+  Compile:
+  - Components detected (group by element type and pattern)
+  - All interactive elements with their click results
+  - Hidden UI discovered (modals, dropdowns, expanded panels)
+  - Navigation links to other pages
+  - Form elements inventory
+
+  Write: 00-analysis/screens/{screen-name}.md
+
+Also generate:
+  Write: 00-analysis/_index.md          (summary of all screens)
+  Write: 00-analysis/navigation-structure.md  (URL map + persona matrix)
 ```
 
 ### Step 6: Persona Inference
 
 ```
-Analyze button/form patterns:
+Analyze button/form patterns from click-todo.yaml:
 - "승인/반려" buttons → Manager/Admin persona
 - "신청" forms → Employee persona
 - "설정", "규칙 관리" → Admin persona
@@ -314,6 +264,31 @@ Analyze button/form patterns:
 ```
 
 ## Output
+
+### 00-analysis/click-todo.yaml
+
+The completed exploration state file. Every item should be `clicked: true`.
+
+```yaml
+baseUrl: "http://localhost:3000"
+items:
+  - path: "/"
+    context: ""
+    label: "Settings"
+    type: nav
+    clicked: true
+    result: navigation
+    navigatedTo: "/settings"
+    notes: ""
+  - path: "/settings"
+    context: "보안"
+    label: "비밀번호 변경"
+    type: button
+    clicked: true
+    result: modal
+    navigatedTo: null
+    notes: "Modal with 현재 비밀번호, 새 비밀번호, 확인 fields + [변경, 취소] buttons"
+```
 
 ### 00-analysis/_index.md
 
@@ -326,7 +301,14 @@ Analyze button/form patterns:
 - Total Screens: {count}
 - Personas Detected: {count}
 
+## Exploration Stats
+- Total clickable items: {N}
+- All items clicked: Yes
+- Unique paths visited: {N}
+- Max context depth: {N}
+
 ## Quick Links
+- [click-todo.yaml](./click-todo.yaml)
 - [Navigation Structure](./navigation-structure.md)
 - [Screens](./screens/)
 ```
@@ -374,33 +356,15 @@ persona: hr-admin
 | AlertWidget | 2 | 누락, 52시간 위험 |
 | DataTable | 1 | 승인 대기 |
 
-## Actions Available
-- 전체 보기 (link)
-- 승인 (button)
-- 반려 (button)
-
-## Interactive Exploration Results
-
-### State Tree
-Total states explored: {N} | Max depth: {N}
-
-### Panel: {default panel name}
-#### Tab: {default tab name}
-| Element | Type | Click Result |
-|---------|------|-------------|
-| 승인 button | button | Opens confirmation modal with "승인하시겠습니까?" |
-| 반려 button | button | Opens rejection modal with textarea for reason |
-
-#### Tab: {tab2 name}
-| Element | Type | Click Result |
-|---------|------|-------------|
-| ... | ... | ... |
-
-### Panel: {panel2 name}
-#### Tab: {sub-tab name}
-| Element | Type | Click Result |
-|---------|------|-------------|
-| ... | ... | ... |
+## Interactive Elements
+| Label | Type | Context | Result | Notes |
+|-------|------|---------|--------|-------|
+| 승인 | button | | modal | "승인하시겠습니까?" with [확인, 취소] |
+| 반려 | button | | modal | textarea for rejection reason |
+| 전체 보기 | nav | | navigation → /attendance | |
+| 일반 | tab | 기본 설정 | panel | form fields, settings |
+| 알림 | tab | 기본 설정 | panel | notification toggles |
+| 비밀번호 변경 | button | 기본 설정 > 보안 | modal | password change form |
 
 ## Hidden UI Discovered
 - Confirmation modal: "승인하시겠습니까?" with [확인, 취소]

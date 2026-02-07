@@ -2,6 +2,7 @@
 name: spec-it-fast-launch
 description: "Fast wireframe generator with design trends for rapid prototyping."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
+argument-hint: "[--session <sessionId>] [--resume <sessionId>]"
 ---
 
 # spec-it-fast-launch: Fast Launch Mode
@@ -164,17 +165,25 @@ _meta.dashboardEnabled = dashboard
 ### Step 0.1: Session Init
 
 ```
-# Generate session and get SESSION_DIR
-result = Bash: $HOME/.claude/plugins/marketplaces/spec-it/scripts/core/session-init.sh "" yaml "$(pwd)"
-
-# Parse output to get SESSION_DIR (full absolute path)
-sessionId = extract SESSION_ID from result
-sessionDir = extract SESSION_DIR from result  # CRITICAL: Use this in all script calls
-
-→ Creates folders, _meta.json, _status.json
+IF --session {sessionId} in args:
+  # Reuse session created by router
+  sessionDir = .spec-it/{sessionId}/plan
+  Read: {sessionDir}/_meta.json
+  # Update _meta.json with mode-specific values
+  Update _meta.json:
+    mode = "fast-launch"
+    uiMode = "yaml"
+    designStyle = from args or Step 0.0
+    designTrendsPath = from args or Step 0.0
+    dashboardEnabled = from args or Step 0.0
+ELSE:
+  # Direct invocation — create new session
+  result = Bash: session-init.sh "" yaml "$(pwd)"
+  sessionId = extract SESSION_ID
+  sessionDir = extract SESSION_DIR
 
 IF _meta.dashboardEnabled == "Enable":
-  Output: "⏺ Dashboard:  file://$HOME/.claude/plugins/marketplaces/spec-it/web-dashboard/index.html  을 열어 실시간 진행 상황을 확인할 수 있습니다."
+  Output: "⏺ Dashboard: file://.../web-dashboard/index.html"
 ```
 
 ### Step 0.R: Resume

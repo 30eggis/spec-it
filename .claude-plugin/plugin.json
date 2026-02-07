@@ -13,15 +13,6 @@
   "hooks": {
     "PreToolUse": [
       {
-        "matcher": "Skill(spec-it*)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "./scripts/core/pre-init.sh"
-          }
-        ]
-      },
-      {
         "matcher": "Skill(spec-it-execute)",
         "hooks": [
           {

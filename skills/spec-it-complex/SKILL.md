@@ -2,7 +2,7 @@
 name: spec-it-complex
 description: "Hybrid spec generator with 4 milestone approvals for medium projects."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
-argument-hint: "[--resume <sessionId>]"
+argument-hint: "[--session <sessionId>] [--resume <sessionId>]"
 permissionMode: bypassPermissions
 ---
 
@@ -83,9 +83,22 @@ _meta.mode = "complex"
 ### Step 0.1: Session Init
 
 ```
-result = Bash: session-init.sh "" complex "$(pwd)"
-sessionId = extract SESSION_ID
-sessionDir = extract SESSION_DIR
+IF --session {sessionId} in args:
+  # Reuse session created by router
+  sessionDir = .spec-it/{sessionId}/plan
+  Read: {sessionDir}/_meta.json
+  # Update _meta.json with mode-specific values
+  Update _meta.json:
+    mode = "complex"
+    uiMode = "complex"
+    designStyle = from args or Step 0.0
+    designTrendsPath = from args or Step 0.0
+    dashboardEnabled = from args or Step 0.0
+ELSE:
+  # Direct invocation — create new session
+  result = Bash: session-init.sh "" complex "$(pwd)"
+  sessionId = extract SESSION_ID
+  sessionDir = extract SESSION_DIR
 
 IF dashboard enabled:
   Output: "⏺ Dashboard: file://.../web-dashboard/index.html"

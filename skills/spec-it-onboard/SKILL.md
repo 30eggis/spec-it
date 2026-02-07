@@ -2,7 +2,7 @@
 name: spec-it-onboard
 description: "Onboard existing Next.js mockup into spec-it workflow. Transform mockups to production-ready specifications."
 allowed-tools: Read, Write, Edit, Bash, Task, AskUserQuestion
-argument-hint: "[project-path] [--resume <sessionId>]"
+argument-hint: "[project-path] [--session <sessionId>] [--resume <sessionId>]"
 permissionMode: bypassPermissions
 ---
 
@@ -65,9 +65,21 @@ IF not Next.js:
 
 ```
 docsDir = {pwd}/spec-it-onboard          # pwd = 스킬 실행 위치 (분석 대상 폴더가 아님)
-result = Bash: session-init.sh "" onboard "{projectPath}"
-sessionId = extract SESSION_ID
-sessionDir = extract SESSION_DIR
+
+IF --session {sessionId} in args:
+  # Reuse session created by router
+  sessionDir = .spec-it/{sessionId}/plan
+  Read: {sessionDir}/_meta.json
+  # Update _meta.json with mode-specific values
+  Update _meta.json:
+    mode = "onboard"
+    uiMode = "onboard"
+    projectPath = {projectPath}
+ELSE:
+  # Direct invocation — create new session
+  result = Bash: session-init.sh "" onboard "{projectPath}"
+  sessionId = extract SESSION_ID
+  sessionDir = extract SESSION_DIR
 
 # 모든 output은 {pwd}/spec-it-onboard/{sessionId}/ 에 생성
 outputDir = {docsDir}/{sessionId}

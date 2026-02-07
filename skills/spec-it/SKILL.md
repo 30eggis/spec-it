@@ -1,7 +1,7 @@
 ---
 name: spec-it
 description: "Spec-it router that selects automation, complex, or step-by-step mode."
-allowed-tools: AskUserQuestion, Skill
+allowed-tools: AskUserQuestion, Skill, Bash
 argument-hint: "[mode] [--resume <sessionId>]"
 permissionMode: bypassPermissions
 ---
@@ -37,30 +37,45 @@ fi
 
 ---
 
+### Step 0.5: Session Init
+
+> **CRITICAL**: Create session BEFORE any questions so `_status.json` exists for all subsequent hooks.
+
+```
+IF args contains "--resume":
+  # Don't create new session — sub-skill handles resume
+  SKIP session init
+
+ELSE:
+  result = Bash: session-init.sh "" plan "$(pwd)"
+  sessionId = extract SESSION_ID
+  sessionDir = extract SESSION_DIR
+```
+
+---
+
 ### Step 1: Check for Direct Mode Specification
 
 ```
 IF args contains "stepbystep" OR "step-by-step" OR "manual":
-  Skill(spec-it-stepbystep, args)
+  Skill(spec-it-stepbystep, args + " --session {sessionId}")
   STOP
 
 IF args contains "complex" OR "hybrid" OR "milestone":
-  Skill(spec-it-complex, args)
+  Skill(spec-it-complex, args + " --session {sessionId}")
   STOP
 
 IF args contains "auto" OR "automation" OR "full-auto":
-  Skill(spec-it-automation, args)
+  Skill(spec-it-automation, args + " --session {sessionId}")
   STOP
 
 IF args contains "fast" OR "quick" OR "rapid":
-  Skill(spec-it-fast-launch, args)
+  Skill(spec-it-fast-launch, args + " --session {sessionId}")
   STOP
 
 IF args contains "--resume":
-  # Resume needs to know which mode - check session _meta.json
-  # New structure: .spec-it/{sessionId}/(plan|execute)/_meta.json
   Read: .spec-it/{sessionId}/plan/_meta.json OR .spec-it/{sessionId}/execute/_meta.json
-  route to appropriate skill based on mode stored in meta
+  route to appropriate skill based on mode stored in meta + " --resume {sessionId}"
   STOP
 ```
 
@@ -145,10 +160,10 @@ IF designStyle == "Custom File":
 
 ```
 CASE selection:
-  "Step-by-Step" → Skill(spec-it-stepbystep, "--design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
-  "Complex/Hybrid" → Skill(spec-it-complex, "--design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
-  "Full Automation → Execute" → Skill(spec-it-automation, "--design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
-  "Fast → Execute" → Skill(spec-it-fast-launch, "--design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
+  "Step-by-Step" → Skill(spec-it-stepbystep, "--session {sessionId} --design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
+  "Complex/Hybrid" → Skill(spec-it-complex, "--session {sessionId} --design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
+  "Full Automation → Execute" → Skill(spec-it-automation, "--session {sessionId} --design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
+  "Fast → Execute" → Skill(spec-it-fast-launch, "--session {sessionId} --design-style {designStyle} --design-trends {designTrends} --dashboard {dashboard}")
 ```
 
 ---
