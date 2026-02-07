@@ -7,8 +7,6 @@
 #   - Just the ID (e.g., 20260131-024252) - will search in baseDir/tmp/
 #   - Full path to session dir (e.g., /path/to/tmp/20260131-024252)
 
-set -e
-
 SESSION_ARG="$1"
 NEW_STEP="$2"
 NEW_PHASE="${3:-}"
@@ -50,23 +48,36 @@ fi
 META_FILE="$SESSION_DIR/_meta.json"
 
 if [ ! -f "$META_FILE" ]; then
-  echo "ERROR:META_NOT_FOUND"
-  exit 1
+  # Session may have been deleted by user or never initialized — silently skip
+  exit 0
 fi
 
 TIMESTAMP=$(date -Iseconds)
 STATUS_FILE="$SESSION_DIR/_status.json"
 
+# Safe jq wrapper: PID-unique tmp files, silently skips on failure
+safe_jq() {
+  local args=("$@")
+  local input_file="${args[-1]}"
+  local tmp_file="${input_file}.tmp.$$"
+  if jq "${args[@]:0:${#args[@]}-1}" "$input_file" > "$tmp_file" 2>/dev/null; then
+    mv "$tmp_file" "$input_file"
+  else
+    rm -f "$tmp_file"
+    return 1
+  fi
+}
+
 # Update _meta.json - currentStep
-jq --arg step "$NEW_STEP" --arg ts "$TIMESTAMP" '
+safe_jq --arg step "$NEW_STEP" --arg ts "$TIMESTAMP" '
   .currentStep = $step |
   .lastCheckpoint = $ts |
   .completedSteps += [$step]
-' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+' "$META_FILE"
 
 # Update phase if provided
 if [ -n "$NEW_PHASE" ]; then
-  jq --argjson phase "$NEW_PHASE" '.currentPhase = $phase' "$META_FILE" > "$META_FILE.tmp" && mv "$META_FILE.tmp" "$META_FILE"
+  safe_jq --argjson phase "$NEW_PHASE" '.currentPhase = $phase' "$META_FILE"
 fi
 
 # Also update _status.json for dashboard sync
@@ -117,20 +128,19 @@ if [ -f "$STATUS_FILE" ]; then
   DETECTED_PHASE="${NEW_STEP%%.*}"
 
   if [ -n "$NEW_PHASE" ]; then
-    jq --arg step "$NEW_STEP" --argjson phase "$NEW_PHASE" --argjson prog "$TOTAL_PROGRESS" --arg ts "$TIMESTAMP" '
+    safe_jq --arg step "$NEW_STEP" --argjson phase "$NEW_PHASE" --argjson prog "$TOTAL_PROGRESS" --arg ts "$TIMESTAMP" '
       .currentStep = $step |
       .currentPhase = $phase |
       .progress = $prog |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
   else
-    # Use detected phase if not explicitly provided
-    jq --arg step "$NEW_STEP" --argjson phase "$DETECTED_PHASE" --argjson prog "$TOTAL_PROGRESS" --arg ts "$TIMESTAMP" '
+    safe_jq --arg step "$NEW_STEP" --argjson phase "$DETECTED_PHASE" --argjson prog "$TOTAL_PROGRESS" --arg ts "$TIMESTAMP" '
       .currentStep = $step |
       .currentPhase = $phase |
       .progress = $prog |
       .lastUpdate = $ts
-    ' "$STATUS_FILE" > "$STATUS_FILE.tmp" && mv "$STATUS_FILE.tmp" "$STATUS_FILE"
+    ' "$STATUS_FILE"
   fi
 fi
 

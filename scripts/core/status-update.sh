@@ -62,8 +62,8 @@ SESSION_ROOT=$(dirname "$SESSION_DIR")
 RUNTIME_LOG="$SESSION_ROOT/runtime-log.md"
 
 if [ ! -f "$STATUS_FILE" ]; then
-  echo "ERROR:STATUS_NOT_FOUND"
-  exit 1
+  # Session may have been deleted by user or never initialized — silently skip
+  exit 0
 fi
 
 TIMESTAMP=$(date -Iseconds)
@@ -410,8 +410,6 @@ case "$ACTION" in
         ' "$META_FILE"
       fi
       echo "STATE_UPDATED:$KEY=$VALUE"
-    else
-      echo "ERROR:META_FILE_NOT_FOUND"
     fi
     ;;
   "complete")
