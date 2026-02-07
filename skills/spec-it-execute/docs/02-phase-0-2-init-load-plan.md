@@ -27,6 +27,10 @@
   - wireframe: wireframe YAML + design-tokens 로드
   - baseproject: migration plan + component specs 로드
 - 공통: personas, components, scenarios 로드 (있는 것만)
+- **Mock Server 감지 (if _meta.mockServerEnabled):**
+  - `dev-plan/api-map.md` 로드 → API 엔드포인트 목록 추출
+  - `src/types/*.ts` → 데이터 스키마 추출 (있으면)
+  - `src/lib/constants.ts` → 도메인 상수 추출 (있으면)
 
 ## Phase 2: Plan
 
@@ -66,6 +70,41 @@ scope_check:
     - any_priority_excluded → REJECT
     - mvp_scope_limitation_detected → REJECT
 ```
+
+### Mock Server 태스크 생성 (if _meta.mockServerEnabled)
+
+task-registry에 Line B 태스크 그룹을 추가합니다.
+Line A (UI) 태스크와 별도로, `line: B` 속성으로 구분합니다.
+
+```yaml
+line_b_tasks:
+  - id: mock-foundation
+    line: B
+    description: "mock-server/ 초기화 (Fastify, SQLite, Drizzle)"
+    files: ["mock-server/package.json", "mock-server/src/index.ts", "mock-server/src/app.ts", "mock-server/src/db/**"]
+
+  - id: mock-seed
+    line: B
+    blockedBy: [mock-foundation]
+    description: "시드 생성기 (엔티티당 ~1000건)"
+    files: ["mock-server/src/seed/**"]
+
+  - id: mock-routes
+    line: B
+    blockedBy: [mock-foundation]
+    description: "api-map.md 기반 라우트 구현"
+    files: ["mock-server/src/routes/**", "mock-server/src/middleware/**", "mock-server/src/utils/**"]
+
+  - id: mock-integration
+    line: B
+    blockedBy: [mock-seed, mock-routes]
+    description: "E2E 연동 설정 (__admin/reset-db, CORS, health)"
+    files: ["mock-server/src/routes/admin/**"]
+```
+
+- Line A 태스크는 기존과 동일 (프론트엔드 페이지)
+- Line A/B 사이에 `blockedBy` 없음 → **완전 병렬**
+- 상세 스펙: `docs/15-mock-server.md` 참조
 
 ### Scope Rejection Example
 

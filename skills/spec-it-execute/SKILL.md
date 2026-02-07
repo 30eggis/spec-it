@@ -33,13 +33,16 @@ Autopilot execution engine that turns spec-it output into working code with mini
 | 0 | Initialize | bash-executor | - |
 | 1 | Load | - | - |
 | 2 | Plan | - | - |
-| 3 | Execute | **dev-pilot** | - |
-| 4 | Bringup | bash-executor | **Yes** → 3 |
-| 5 | Spec-Mirror | **spec-mirror** | **Yes** → 3 |
-| 6 | Unit Tests | **ultraqa** (unit) | **Yes** → 3 |
-| 7 | E2E Tests | **ultraqa** (e2e) | **Yes** → 3 |
+| 3A/3B | Execute (UI/API 병렬) | **dev-pilot** x2 | - |
+| 4A/4B | Bringup (UI/API 병렬) | bash-executor | **Yes** → 3 |
+| 5A | Spec-Mirror (UI only) | **spec-mirror** | **Yes** → 3A |
+| 6A/6B | Unit Tests (UI/API 병렬) | **ultraqa** (unit) | **Yes** → 3 |
+| 7 | E2E Tests (합류) | **ultraqa** (e2e) | **Yes** → 3 |
 | 8 | Validate | - | **Yes** → 3 |
 | 9 | Complete | - | - |
+
+> **Note:** Line B (API/mock-server)는 `_meta.mockServerEnabled = true`일 때만 활성화.
+> `false`이면 기존 단일 라인(Line A only)으로 동작.
 
 ## Key Sub-Skills
 
@@ -167,6 +170,19 @@ IF designStyle == "Custom File":
   )
 ```
 
+### Step 5: Mock Server (자동 감지)
+
+```
+mockServerEnabled = specFolder에 dev-plan/api-map.md 존재 여부
+
+IF api-map.md exists:
+  _meta.mockServerEnabled = true
+  _meta.mockServerPort = 4000
+  Log: "API Map 감지 → Mock Server 병렬 라인 활성화"
+ELSE:
+  _meta.mockServerEnabled = false
+```
+
 ### Dashboard: 항상 Enable (질문 안함)
 
 ```
@@ -184,6 +200,8 @@ _meta.projectWorkDir = "{workDir}/spec-it-execute/"
 _meta.designStyle = selectedStyle
 _meta.designTrends = selectedTrends or null
 _meta.dashboardEnabled = true
+_meta.mockServerEnabled = hasApiMap       # api-map.md 존재 시 true
+_meta.mockServerPort = 4000              # Mock 서버 포트 (mockServerEnabled 시)
 ```
 
 ## Doc Index (progressive loading)
@@ -203,6 +221,7 @@ _meta.dashboardEnabled = true
 - `skills/spec-it-execute/docs/12-state-schema.md`
 - `skills/spec-it-execute/docs/13-error-recovery.md`
 - `skills/spec-it-execute/docs/14-agents.md`
+- `skills/spec-it-execute/docs/15-mock-server.md`
 
 ## Critical Rules (must follow)
 

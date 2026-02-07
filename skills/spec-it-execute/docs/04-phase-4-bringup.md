@@ -70,6 +70,33 @@ scripts/qa/run-qa.sh "$(pwd)" --skip-test
 3. Phase 4 재검증
 4. 최대 시도 횟수 초과 시 `waiting` 상태, 사용자 개입 필요
 
+## 병렬 Bringup (if _meta.mockServerEnabled)
+
+mock-server가 활성화된 경우, Line A와 Line B를 병렬로 검증합니다.
+
+### Line A (UI) - 기존과 동일
+
+| 항목 | 실행 |
+|------|------|
+| lint | ✓ ESLint |
+| typecheck | ✓ tsc --noEmit |
+| build | ✓ next build |
+
+### Line B (API) - 신규
+
+| 항목 | 실행 |
+|------|------|
+| npm install | ✓ `cd mock-server && npm install` |
+| typecheck | ✓ `cd mock-server && npx tsc --noEmit` |
+| seed | ✓ `cd mock-server && npm run seed:reset` |
+| health check | ✓ 서버 기동 → `curl /api/health` → 200 확인 |
+
+### 회귀 정책
+
+두 라인 병렬 검증. 어느 라인이든 실패 시 **해당 라인만** Phase 3으로 회귀:
+- Line A 실패 → `fix-tasks.json` → dev-pilot fix mode (Line A only)
+- Line B 실패 → `mock-server-fix-tasks.json` → dev-pilot fix mode (Line B only)
+
 ## 다음 단계와의 관계
 
 | Phase | 역할 |
