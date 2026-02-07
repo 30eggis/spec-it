@@ -4,13 +4,21 @@
 
 find_session() {
     local project_dir="$1"
-    # New structure: .spec-it/{sessionId}/(plan|execute)
-    if [ -d "$project_dir/.spec-it" ]; then
-        # Find latest _status.json in plan or execute directories
-        local latest=$(ls -t "$project_dir"/.spec-it/*/plan/_status.json "$project_dir"/.spec-it/*/execute/_status.json 2>/dev/null | head -1)
-        if [ -n "$latest" ]; then
-            dirname "$latest"
-        fi
+    if [ ! -d "$project_dir/.spec-it" ]; then return; fi
+
+    local candidates=()
+    for f in "$project_dir"/.spec-it/*/plan/_status.json; do
+        [ -f "$f" ] && candidates+=("$f")
+    done
+    for f in "$project_dir"/.spec-it/*/execute/_status.json; do
+        [ -f "$f" ] && candidates+=("$f")
+    done
+
+    if [ ${#candidates[@]} -eq 0 ]; then return; fi
+
+    local latest=$(ls -t "${candidates[@]}" 2>/dev/null | head -1)
+    if [ -n "$latest" ]; then
+        dirname "$latest"
     fi
 }
 

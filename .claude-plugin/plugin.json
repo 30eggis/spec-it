@@ -39,6 +39,16 @@
             "timeout": 3
           }
         ]
+      },
+      {
+        "matcher": "AskUserQuestion|ExitPlanMode",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/telegram-input-notify.sh",
+            "timeout": 5
+          }
+        ]
       }
     ],
     "PostToolUse": [
@@ -49,6 +59,30 @@
             "type": "command",
             "command": "./scripts/hooks/tool-resume-hook.sh",
             "timeout": 3
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/telegram-stop-notify.sh",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "./scripts/hooks/telegram-permission-notify.sh",
+            "timeout": 5
           }
         ]
       }

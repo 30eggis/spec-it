@@ -39,6 +39,7 @@ Run each phase strictly in order. Do NOT start the next phase until the current 
 | P13 | test-spec-writer | `01-personas/`, `spec-map.md` | `10-tests/` | ★ |
 | P14 | api-predictor | `spec-map.md`, `projectPath` | `dev-plan/api-map.md` | - |
 | P15 | spec-assembler + dev-planner | `spec-map.md`, `10-tests/`, 전체 artifacts | `11-final/`, `dev-plan/development-map.md`, `dev-plan/{persona}/Phase-{n}/` | ★ |
+| P16 | docs-hub-curator | `outputDir` | `README-DOC/index.md` | - |
 
 ---
 
@@ -424,6 +425,21 @@ Bash: meta-checkpoint.sh {sessionDir} 15.1
 
 ---
 
+## P16: Docs Hub
+
+```
+Bash: status-update.sh {sessionDir} agent-start docs-hub-curator
+
+Task(docs-hub-curator, haiku):
+  Input: outputDir = {outputDir}
+  Output: README-DOC/index.md
+
+Bash: status-update.sh {sessionDir} agent-complete docs-hub-curator "" 16.1
+Bash: meta-checkpoint.sh {sessionDir} 16.1
+```
+
+---
+
 ## Final Approval
 
 ```
@@ -476,10 +492,12 @@ spec-it-onboard/{session-id}/
 ├── 10-tests/
 ├── 11-final/
 ├── spec-map.md
-└── dev-plan/
-    ├── api-map.md
-    ├── development-map.md
-    └── {persona}/Phase-{n}/
+├── dev-plan/
+│   ├── api-map.md
+│   ├── development-map.md
+│   └── {persona}/Phase-{n}/
+└── README-DOC/
+    └── index.md
 ```
 
 ---

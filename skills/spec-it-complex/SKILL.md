@@ -32,7 +32,7 @@ See [shared/references/common/rules/06-output-quality.md](../../shared/reference
 - ✅ Write tool for general files
 - ✅ Task(subagent) for large files
 
-## Workflow Overview (P1-P14)
+## Workflow Overview (P1-P15)
 
 ```
 [P1-P6: Auto] Requirements → Personas → Divergent → Critics → Resolution → Chapter Plan
@@ -47,7 +47,7 @@ See [shared/references/common/rules/06-output-quality.md](../../shared/reference
       ↓ [IF re-execution needed → P6]
 ★ MILESTONE 3: "Review complete?"
       ↓
-[P12-P14: Auto] Tests → Assembly → Dev Plan
+[P12-P15: Auto] Tests → Assembly → Dev Plan → Docs Hub
       ↓
 ★ MILESTONE 4: Final approval
 ```
@@ -388,6 +388,19 @@ Bash: status-update.sh {sessionDir} agent-complete dev-planner "" 14.1
 Bash: validate-output.sh "$(pwd)/tmp"
 ```
 
+### P15: Docs Hub
+
+```
+Bash: status-update.sh {sessionDir} agent-start docs-hub-curator
+
+Task(docs-hub-curator, haiku):
+  Input: outputDir = {docsDir}
+  Output: README-DOC/index.md
+
+Bash: status-update.sh {sessionDir} agent-complete docs-hub-curator "" 15.1
+Bash: meta-checkpoint.sh {sessionDir} 15.1
+```
+
 ---
 
 ## ★ MILESTONE 4: Final Approval
@@ -436,10 +449,12 @@ tmp/
 │   └── cross-persona/
 ├── 06-final/
 ├── spec-map.md
-└── dev-plan/
-    ├── development-map.md
-    ├── api-map.md
-    └── {persona-id}/Phase-{n}/
+├── dev-plan/
+│   ├── development-map.md
+│   ├── api-map.md
+│   └── {persona-id}/Phase-{n}/
+└── README-DOC/
+    └── index.md
 ```
 
 ---
@@ -464,6 +479,7 @@ tmp/
 | P12 | test-spec-writer | sonnet |
 | P13 | spec-assembler | haiku |
 | P14 | dev-planner | sonnet |
+| P15 | docs-hub-curator | haiku |
 
 ---
 

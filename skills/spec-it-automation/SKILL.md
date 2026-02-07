@@ -32,13 +32,13 @@ See [shared/references/common/rules/06-output-quality.md](../../shared/reference
 - ✅ Write tool for general files
 - ✅ Task(subagent) for large files
 
-## Workflow Overview (P1-P14 + Execute)
+## Workflow Overview (P1-P15 + Execute)
 
 ```
-[P1-P14: Full Auto]
+[P1-P15: Full Auto]
 Requirements → Personas → Divergent → Critics → Auto-Resolution → Chapter Plan
     → UI Architecture → Components → Context Synthesis → Critical Review (Auto)
-    → Tests → Assembly → Dev Plan
+    → Tests → Assembly → Dev Plan → Docs Hub
       ↓
 ★ Final Approval (only user interaction for spec)
       ↓
@@ -436,6 +436,21 @@ Bash: validate-output.sh "$(pwd)/tmp"
 
 ---
 
+## P15: Docs Hub (Auto)
+
+```
+Bash: status-update.sh {sessionDir} agent-start docs-hub-curator
+
+Task(docs-hub-curator, haiku):
+  Input: outputDir = {docsDir}
+  Output: README-DOC/index.md
+
+Bash: status-update.sh {sessionDir} agent-complete docs-hub-curator "" 15.1
+Bash: meta-checkpoint.sh {sessionDir} 15.1
+```
+
+---
+
 ## Final Approval & Auto-Execute
 
 ```
@@ -493,10 +508,12 @@ tmp/
 │   └── cross-persona/
 ├── 06-final/
 ├── spec-map.md
-└── dev-plan/
-    ├── development-map.md
-    ├── api-map.md
-    └── {persona-id}/Phase-{n}/
+├── dev-plan/
+│   ├── development-map.md
+│   ├── api-map.md
+│   └── {persona-id}/Phase-{n}/
+└── README-DOC/
+    └── index.md
 ```
 
 ---
@@ -533,6 +550,7 @@ tmp/
 | P12 | test-spec-writer | sonnet | Auto |
 | P13 | spec-assembler | haiku | Auto |
 | P14 | dev-planner | sonnet | Auto |
+| P15 | docs-hub-curator | haiku | Auto |
 
 ---
 
