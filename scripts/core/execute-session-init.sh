@@ -3,8 +3,6 @@
 # Usage: execute-session-init.sh [sessionId] [specFolder] [workDir]
 # Returns: SESSION_ID:{id}, SESSION_DIR:{path}
 
-set -e
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SESSION_ID="${1:-$(date +%Y%m%d-%H%M%S)}"

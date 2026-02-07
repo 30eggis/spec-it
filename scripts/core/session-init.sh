@@ -3,8 +3,6 @@
 # Usage: session-init.sh [sessionId] [uiMode] [workDir]
 # Returns: SESSION_ID:{id}
 
-set -e
-
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PLUGIN_DIR="$(cd "$SCRIPT_DIR/../.." && pwd)"
 SESSION_ID="${1:-$(date +%Y%m%d-%H%M%S)}"
