@@ -8,6 +8,18 @@ Spec-it 산출물과 실제 구현을 비교하여 누락/불일치를 검출합
 - Over-spec (명세에 없는 추가 기능) 검출
 - 구현 누락 항목 목록화
 
+## 비교 기준 (executeMode 분기)
+
+- If executeMode == "wireframe":
+  - wireframe YAML vs 구현 코드 비교 (기존 동작)
+  - wireframe prop adherence check 수행
+  - screen-list.md 기반 전체 화면 구현 여부 검증
+- If executeMode == "baseproject":
+  - dev-plan 태스크 완료 여부 vs 구현 코드 비교
+  - migration-plan 목표 달성 여부 검증
+  - wireframe adherence check 스킵
+  - 기존 코드 대비 리팩토링 목표 달성 여부 확인
+
 ## CRITICAL: Full Scope Verification (함축 금지)
 
 **Phase 5는 전체 spec 대비 100% 구현을 검증합니다. 부분 구현은 무조건 FAIL입니다.**
