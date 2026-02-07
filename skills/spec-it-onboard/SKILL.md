@@ -64,10 +64,17 @@ IF not Next.js:
 ### Step 0.2: Session Init
 
 ```
+docsDir = {pwd}/spec-it-onboard          # pwd = 스킬 실행 위치 (분석 대상 폴더가 아님)
 result = Bash: session-init.sh "" onboard "{projectPath}"
 sessionId = extract SESSION_ID
 sessionDir = extract SESSION_DIR
+
+# 모든 output은 {pwd}/spec-it-onboard/{sessionId}/ 에 생성
+outputDir = {docsDir}/{sessionId}
 ```
+
+> **IMPORTANT**: Output 파일은 반드시 스킬을 실행하는 현재 디렉토리(`pwd`)에 `spec-it-onboard/` 폴더를 만들어 저장합니다.
+> 분석 대상 프로젝트(`projectPath`) 안에 파일을 생성하지 마세요.
 
 ### Step 0.R: Resume
 
@@ -411,7 +418,7 @@ AskUserQuestion: "Spec complete. What next?"
 Options: [
   {label: "Run /spec-it-execute", description: "Start implementation"},
   {label: "Archive", description: "Move to archive/"},
-  {label: "Keep", description: "Keep in tmp/"}
+  {label: "Keep", description: "Keep in spec-it-onboard/"}
 ]
 
 Bash: status-update.sh {sessionDir} complete
@@ -422,7 +429,7 @@ Bash: status-update.sh {sessionDir} complete
 ## Output Structure
 
 ```
-tmp/{session-id}/
+spec-it-onboard/{session-id}/
 ├── 00-analysis/
 │   ├── _index.md
 │   ├── navigation-structure.md
