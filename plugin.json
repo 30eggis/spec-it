@@ -10,7 +10,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/setup-permissions.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/setup-permissions.sh"
           }
         ]
       },
@@ -19,7 +19,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/setup-permissions.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/setup-permissions.sh"
           }
         ]
       },
@@ -28,7 +28,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/hooks/tool-waiting-hook.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/tool-waiting-hook.sh",
             "timeout": 3
           }
         ]
@@ -38,7 +38,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/hooks/telegram-input-notify.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/telegram-input-notify.sh",
             "timeout": 5
           }
         ]
@@ -50,7 +50,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/hooks/tool-resume-hook.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/tool-resume-hook.sh",
             "timeout": 3
           }
         ]
@@ -62,7 +62,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/hooks/telegram-stop-notify.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/telegram-stop-notify.sh",
             "timeout": 5
           }
         ]
@@ -74,7 +74,7 @@
         "hooks": [
           {
             "type": "command",
-            "command": "./scripts/hooks/telegram-permission-notify.sh",
+            "command": "${CLAUDE_PLUGIN_ROOT}/scripts/hooks/telegram-permission-notify.sh",
             "timeout": 5
           }
         ]
